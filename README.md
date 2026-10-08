@@ -27,17 +27,6 @@ flutter run --dart-define=USE_MOCK_API=true
 
 The mock backend is enabled by default for non-production flavors, but passing `USE_MOCK_API=true` makes demo runs explicit. To open the component gallery, add `--dart-define=INITIAL_ROUTE=/gallery` to the `flutter run` command.
 
-### Demo account and flows
-
-| Action | Demo behavior |
-| --- | --- |
-| Sign in | Use any email address and any six-digit code except `000000`. No email is sent. |
-| Existing customer | `anna@example.com` has sample eSIMs, orders, and referral history. |
-| New customer | Any other email address starts with an empty account. |
-| Starting balance | `$24.50` for every demo account. |
-| Failed purchase | The Thailand 3 GB plan (`TH_3_30`) simulates a supplier failure and refund. |
-| Balance top-up | PayPal and crypto payments progress through simulated states. No real payment is made. |
-
 To build a **demo** Android APK locally with mock data, use `flutter build apk --dart-define=FLAVOR=prod --dart-define=USE_MOCK_API=true`. This builds a demo, not a production-ready payment or eSIM service. Without `USE_MOCK_API=true`, the production flavor cannot start until real API repositories are implemented.
 
 ## Project structure
