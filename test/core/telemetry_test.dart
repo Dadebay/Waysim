@@ -1,0 +1,277 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:waysim/app/cubit/locale_cubit.dart';
+import 'package:waysim/app/cubit/theme_cubit.dart';
+import 'package:waysim/app/telemetry_coordinator.dart';
+import 'package:waysim/core/services/analytics_service.dart';
+import 'package:waysim/core/services/crash_report.dart';
+import 'package:waysim/core/services/crash_reporter.dart';
+import 'package:waysim/core/services/firestore_crash_reporter.dart';
+import 'package:waysim/core/services/push_service.dart';
+import 'package:waysim/core/di/injector.dart';
+import 'package:waysim/core/storage/local_storage.dart';
+import 'package:waysim/core/utils/formatters/money.dart';
+import 'package:waysim/features/auth/domain/entities/user.dart';
+import 'package:waysim/features/auth/domain/repositories/auth_repository.dart';
+import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:waysim/features/notification/presentation/cubit/notification_prefs_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/test_dependencies.dart';
+
+class _MemoryStore implements CrashReportStore {
+  final saved = <CrashReport>[];
+
+  @override
+  Future<void> save(CrashReport report) async => saved.add(report);
+}
+
+class _FailingStore implements CrashReportStore {
+  @override
+  Future<void> save(CrashReport report) async => throw StateError('offline');
+}
+
+class _RecordingCrashes implements CrashReporter {
+  final errors = <Object>[];
+  String? userId;
+
+  @override
+  void recordError(Object error, StackTrace? stack, {bool fatal = false}) =>
+      errors.add(error);
+
+  @override
+  void setUserId(String? publicId) => userId = publicId;
+}
+
+class _RecordingPush extends NoopPushService {
+  bool? news;
+  var synced = 0;
+
+  @override
+  Future<void> setNewsEnabled({required bool enabled}) async => news = enabled;
+
+  @override
+  Future<void> syncToken() async => synced++;
+}
+
+const _device = DeviceContext(
+  platform: 'ios',
+  osVersion: 'iOS 18.2',
+  model: 'iPhone16,2',
+  appVersion: '1.0.0',
+  buildNumber: '7',
+  locale: 'en-US',
+  flavor: 'prod',
+);
+
+void main() {
+  group('crash reports in Firestore', () {
+    test('say who, on which phone, on which screen — and nothing personal', () {
+      final store = _MemoryStore();
+      final reporter = FirestoreCrashReporter(
+        store: store,
+        device: _device,
+        currentScreen: () => 'destination',
+      )..setUserId('A0123');
+
+      reporter.recordError(StateError('boom'), StackTrace.current, fatal: true);
+
+      final report = store.saved.single;
+      expect(report.publicId, 'A0123');
+      expect(report.screen, 'destination');
+      expect(report.fatal, isTrue);
+      expect(report.error, contains('boom'));
+      expect(report.device.model, 'iPhone16,2');
+
+      final map = report.toMap();
+      expect(map['deviceModel'], 'iPhone16,2');
+      expect(map['osVersion'], 'iOS 18.2');
+      expect(map['appVersion'], '1.0.0');
+      for (final key in map.keys) {
+        expect(key.toLowerCase(), isNot(contains('email')));
+        expect(key.toLowerCase(), isNot(contains('token')));
+      }
+    });
+
+    test('the same crash is written once, however often it repeats', () {
+      final store = _MemoryStore();
+      final reporter = FirestoreCrashReporter(store: store, device: _device);
+      final stack = StackTrace.fromString('#0 a\n#1 b\n#2 c');
+
+      for (var i = 0; i < 50; i++) {
+        reporter.recordError(StateError('same'), stack);
+      }
+
+      expect(store.saved, hasLength(1));
+    });
+
+    test('a run writes at most maxPerRun different crashes', () {
+      final store = _MemoryStore();
+      final reporter = FirestoreCrashReporter(
+        store: store,
+        device: _device,
+        maxPerRun: 3,
+      );
+
+      for (var i = 0; i < 10; i++) {
+        reporter.recordError(StateError('crash $i'), null);
+      }
+
+      expect(store.saved, hasLength(3));
+    });
+
+    test('long errors and stacks are clipped', () {
+      final store = _MemoryStore();
+      FirestoreCrashReporter(
+        store: store,
+        device: _device,
+      ).recordError('x' * 10000, StackTrace.fromString('y' * 20000));
+      expect(store.saved.single.error.length, lessThan(1600));
+      expect(store.saved.single.stack.length, lessThan(4100));
+    });
+
+    test('a store that fails does not throw into the app', () async {
+      final reporter = FirestoreCrashReporter(
+        store: _FailingStore(),
+        device: _device,
+      );
+      expect(
+        () => reporter.recordError(StateError('x'), null),
+        returnsNormally,
+      );
+      await Future<void>.delayed(Duration.zero);
+    });
+
+    test('the composite keeps going when one reporter throws', () {
+      final good = _RecordingCrashes();
+      final bad = _ThrowingReporter();
+      final composite = CompositeCrashReporter([bad, good]);
+
+      composite.recordError(StateError('x'), null);
+      composite.setUserId('A1');
+
+      expect(good.errors, hasLength(1));
+      expect(good.userId, 'A1');
+    });
+  });
+
+  group('analytics', () {
+    test('money goes out in dollars, as a number', () {
+      final a = RecordingAnalytics()
+        ..purchased(
+          transactionId: 'esim_1',
+          packageId: 'TR_5_30',
+          destination: 'TR',
+          price: const Money(599),
+          addOn: false,
+        );
+      final event = a.named('purchase').single;
+      expect(event['value'], 5.99);
+      expect(event['currency'], 'USD');
+      expect(event['transaction_id'], 'esim_1');
+      expect(event['item_id'], 'TR_5_30');
+    });
+
+    test(
+      'the route observer reports screens and remembers the current one',
+      () {
+        final a = RecordingAnalytics();
+        final observer = AnalyticsRouteObserver(a);
+        Route<void> route(String? name) => MaterialPageRoute<void>(
+          settings: RouteSettings(name: name),
+          builder: (_) => const SizedBox(),
+        );
+
+        observer.didPush(route('home'), null);
+        observer.didPush(route('destination'), route('home'));
+        observer.didPush(route(null), route('destination')); // unnamed: ignored
+        expect(AnalyticsRouteObserver.currentScreen, 'destination');
+
+        observer.didPop(route('destination'), route('home'));
+        expect(AnalyticsRouteObserver.currentScreen, 'home');
+        expect(a.screens, ['home', 'destination', 'home']);
+      },
+    );
+  });
+
+  group('TelemetryCoordinator', () {
+    late RecordingAnalytics analytics;
+    late _RecordingCrashes crashes;
+    late _RecordingPush push;
+    late AuthCubit auth;
+    late LocaleCubit locale;
+    late ThemeCubit theme;
+    late NotificationPrefsCubit prefs;
+
+    setUp(() async {
+      await setUpTestDependencies();
+      SharedPreferences.setMockInitialValues({});
+      analytics = RecordingAnalytics();
+      crashes = _RecordingCrashes();
+      push = _RecordingPush();
+      auth = AuthCubit(getIt<AuthRepository>());
+      locale = LocaleCubit(
+        LocalStorageImpl(await SharedPreferences.getInstance()),
+      );
+      theme = ThemeCubit();
+      prefs = NotificationPrefsCubit();
+      TelemetryCoordinator(
+        auth: auth,
+        locale: locale,
+        theme: theme,
+        notifications: prefs,
+        analytics: analytics,
+        crashes: crashes,
+        push: push,
+      ).start();
+    });
+
+    test('knows the language and theme from the start', () {
+      expect(analytics.properties['language'], 'en');
+      expect(analytics.properties['theme'], 'light');
+      expect(push.news, isTrue);
+    });
+
+    test(
+      'signing in sets the user everywhere and registers the push token',
+      () async {
+        auth.signedIn(const User(publicId: 'A0123', email: 'a@b.co'));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(analytics.userId, 'A0123');
+        expect(crashes.userId, 'A0123');
+        expect(analytics.properties['account'], 'signed_in');
+        expect(push.synced, 1);
+        // The e-mail address never reaches analytics.
+        expect(analytics.properties.values, isNot(contains('a@b.co')));
+      },
+    );
+
+    test(
+      'language, theme and the news switch are reported when they change',
+      () async {
+        locale.setLocale(const Locale('ru'));
+        theme.setThemeMode(ThemeMode.dark);
+        prefs.setNews(false);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(analytics.properties['language'], 'ru');
+        expect(analytics.properties['theme'], 'dark');
+        expect(push.news, isFalse);
+        expect(
+          analytics.named('setting_changed').map((e) => e['setting']),
+          containsAll(['language', 'theme', 'news_push']),
+        );
+      },
+    );
+  });
+}
+
+class _ThrowingReporter implements CrashReporter {
+  @override
+  void recordError(Object error, StackTrace? stack, {bool fatal = false}) =>
+      throw StateError('reporter down');
+
+  @override
+  void setUserId(String? publicId) => throw StateError('reporter down');
+}

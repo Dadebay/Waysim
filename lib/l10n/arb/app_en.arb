@@ -1,0 +1,824 @@
+{
+  "@@locale": "en",
+  "appName": "Waysim",
+  "@appName": {
+    "description": "Brand name. Never translated."
+  },
+  "tabHome": "Home",
+  "@tabHome": {
+    "description": "Bottom tab: home / catalog"
+  },
+  "tabMyEsim": "My eSIM",
+  "@tabMyEsim": {
+    "description": "Bottom tab: purchased eSIMs"
+  },
+  "tabProfile": "Profile",
+  "@tabProfile": {
+    "description": "Bottom tab: account"
+  },
+  "greetingNamed": "Hi, {name}!",
+  "@greetingNamed": {
+    "description": "Home header greeting for a signed-in user with a name",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greeting": "Hi!",
+  "@greeting": {
+    "description": "Home header greeting when no name is known"
+  },
+  "signIn": "Sign in",
+  "@signIn": {
+    "description": "Guest header button / sign-in action"
+  },
+  "searchHint": "Where do you need an eSIM?",
+  "supportFabLabel": "Support",
+  "homeLocal": "Local",
+  "homeRegional": "Regional",
+  "priceFrom": "from {price}",
+  "@priceFrom": {
+    "description": "Lowest price of a country or region, e.g. 'from $1.99'",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "myEsimTitle": "My eSIM",
+  "myEsimCurrent": "Current",
+  "myEsimArchive": "Archive",
+  "myEsimEmptyTitle": "No eSIMs yet",
+  "myEsimEmptyBody": "Buy a plan for your trip — it only takes a couple of minutes.",
+  "buyEsim": "Get an eSIM",
+  "howEsimWorks": "How eSIM works",
+  "profileTitle": "Profile",
+  "profileGuestTitle": "Sign in to buy eSIMs",
+  "profileGuestBody": "Purchases, balance and eSIMs are saved to your account.",
+  "signUp": "Sign up",
+  "settings": "Settings",
+  "more": "More",
+  "settingsLanguage": "Language",
+  "settingsTheme": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "actionRetry": "Retry",
+  "offlineBanner": "No connection",
+  "errorNetwork": "No internet connection. Check your network and try again.",
+  "errorTimeout": "The request timed out. Please try again.",
+  "errorServer": "Something went wrong on our side. Please try again later.",
+  "errorUnauthorized": "Your session has expired. Please sign in again.",
+  "errorNotFound": "We couldn't find what you were looking for.",
+  "errorUnknown": "Something went wrong. Please try again.",
+  "comingSoon": "Coming soon",
+  "@comingSoon": {
+    "description": "Placeholder for screens not built yet"
+  },
+  "actionCopy": "Copy",
+  "toastCopied": "Copied",
+  "actionContinue": "Continue",
+  "actionCancel": "Cancel",
+  "actionClose": "Close",
+  "actionGotIt": "Got it",
+  "actionLater": "Later",
+  "actionPasteCode": "Paste code",
+  "settingsGallery": "Design gallery (debug)",
+  "unitGb": "{value} GB",
+  "@unitGb": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unitMb": "{value} MB",
+  "@unitMb": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "durationDays": "{count, plural, one{{count} day} other{{count} days}}",
+  "@durationDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataUnlimited": "Unlimited",
+  "dailyAllowance": "{size} a day",
+  "@dailyAllowance": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "unlimitedPlan": "Unlimited · {daily} · {days}",
+  "@unlimitedPlan": {
+    "placeholders": {
+      "daily": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "regionCountries": "{count, plural, one{{count} country} other{{count} countries}}",
+  "@regionCountries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bannerEsimTitle": "What is eSIM?",
+  "bannerEsimBody": "A digital SIM card: set up in minutes, no plastic",
+  "bannerEsimAction": "How it works →",
+  "bannerInviteTitle": "Invite a friend — get {reward}",
+  "@bannerInviteTitle": {
+    "placeholders": {
+      "reward": {
+        "type": "String"
+      }
+    }
+  },
+  "bannerInviteAction": "Invite →",
+  "bannerTravelTitle": "Online on every trip",
+  "bannerTravelBody": "Local plans for popular destinations",
+  "bannerTravelAction": "See countries →",
+  "catalogEmpty": "No destinations yet",
+  "searchRecent": "Recent searches",
+  "searchClear": "Clear",
+  "searchCountries": "Countries",
+  "searchRegions": "Regions",
+  "searchNoResults": "Nothing found for “{query}”",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNoResultsHint": "Try a country name or code, like “Turkey” or “US”.",
+  "searchBack": "Back",
+  "compatLabel": "Device supports eSIM:",
+  "compatYes": "Yes",
+  "compatNo": "No",
+  "compatUnknown": "Unknown",
+  "compatHowToCheck": "How to check",
+  "compatSheetTitle": "Does my phone support eSIM?",
+  "compatSheetIos": "iPhone XS, XR and newer support eSIM. Check it: Settings → General → About and look for “Digital SIM” or an EID number. The phone must also be unlocked from the carrier.",
+  "compatSheetAndroid": "Open the dialer and enter *#06#. If you see an EID number, your phone supports eSIM. You can also check Settings → Connections → SIM manager. The phone must be unlocked from the carrier.",
+  "compatWarningTitle": "Your phone may not support eSIM",
+  "compatWarningBody": "You can still buy this plan, but the eSIM won’t work on a phone without eSIM support. Continue anyway?",
+  "actionContinueAnyway": "Continue anyway",
+  "packagesUnlimited": "Unlimited",
+  "packagesLimited": "Data plans",
+  "packagesChoose": "Choose a plan",
+  "packagesEmpty": "No plans in this category",
+  "packageDetailsLink": "Package details",
+  "buyFor": "Buy for {price}",
+  "@buyFor": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "purchaseDisclaimer": "By placing the order you confirm that your device is eSIM-compatible and not locked to a carrier.",
+  "oneTimePurchase": "One-time purchase — no subscription or auto-renewal.",
+  "detailCoverage": "Coverage",
+  "detailData": "Data",
+  "detailDataFull": "{size} at full speed",
+  "@detailDataFull": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "detailDataUnlimited": "Unlimited, {size} a day at full speed",
+  "@detailDataUnlimited": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "detailValidity": "Validity",
+  "detailValidityNote": "Starts from the first connection of the eSIM to a network at your destination",
+  "detailNetwork": "Network",
+  "detailHotspot": "Hotspot",
+  "detailTopUp": "Top-up",
+  "detailCalls": "Calls & SMS",
+  "detailInstall": "Installation",
+  "detailAvailable": "Available",
+  "detailUnavailable": "Not available",
+  "detailDataOnly": "Data only",
+  "detailCallsIncluded": "Included",
+  "detailInstallWithin": "{count, plural, one{Within {count} day} other{Within {count} days}}",
+  "@detailInstallWithin": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageCountries": "Countries covered",
+  "confirmTitle": "Confirm purchase",
+  "confirmPrice": "Price",
+  "confirmBalanceNow": "Balance now",
+  "confirmBalanceAfter": "Balance after purchase",
+  "confirmConsent": "I want the eSIM issued right away and understand I can’t cancel the purchase once it is installed. One-time purchase — no subscription or auto-renewal.",
+  "confirmPay": "Pay {price}",
+  "@confirmPay": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "insufficientTitle": "Not enough balance",
+  "insufficientBody": "You need {missing} more to buy this plan.",
+  "@insufficientBody": {
+    "placeholders": {
+      "missing": {
+        "type": "String"
+      }
+    }
+  },
+  "insufficientAction": "Top up {amount}",
+  "@insufficientAction": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "orderPreparing": "Setting up your eSIM…",
+  "orderPreparingHint": "This usually takes a few seconds.",
+  "orderSlow": "This is taking longer than usual. We’ll send a notification when your eSIM is ready.",
+  "orderFailedTitle": "Couldn’t complete the order",
+  "orderFailedBody": "If you were charged, the money has been returned to your balance.",
+  "orderPriceChanged": "The price changed to {price}. Review it and try again.",
+  "@orderPriceChanged": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "orderBackToPlans": "Back to plans",
+  "actionGoToMyEsim": "Go to My eSIM",
+  "esimReadyTitle": "eSIM is ready!",
+  "esimReadyBody": "Install it now while you have Wi-Fi. The plan’s days only start counting once you connect at your destination.",
+  "esimInstall": "Install eSIM",
+  "maintenanceBanner": "Purchases and top-ups are temporarily paused.",
+  "errorMaintenance": "Purchases are temporarily paused. Please try again later.",
+  "errorPackageUnavailable": "This plan is no longer available.",
+  "errorOrderFailed": "The order couldn’t be completed. If you were charged, the money has been returned to your balance.",
+  "errorTooManyRequests": "Too many requests. Please wait a moment.",
+  "errorBoundToOtherDevice": "This eSIM is already linked to another device.",
+  "agoJustNow": "just now",
+  "agoMinutes": "{count, plural, one{{count} min ago} other{{count} min ago}}",
+  "@agoMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoHours": "{count, plural, one{{count} h ago} other{{count} h ago}}",
+  "@agoHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoDays": "{count, plural, one{{count} day ago} other{{count} days ago}}",
+  "@agoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "balanceLabel": "Balance",
+  "statusProvisioning": "Processing",
+  "statusNotInstalled": "Not installed",
+  "statusInstalled": "Installed",
+  "statusActive": "Active",
+  "statusUsedUp": "Used up",
+  "statusExpired": "Expired",
+  "statusFailedRefunded": "Failed, refunded",
+  "myEsimArchiveEmpty": "Nothing in the archive",
+  "esimLeftOf": "{left} of {total} left",
+  "@esimLeftOf": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "esimDaysLeft": "{count, plural, one{{count} day left} other{{count} days left}}",
+  "@esimDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "esimInstallBy": "Install by {date}",
+  "@esimInstallBy": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "esimValidityFromFirst": "Validity starts on first connection",
+  "esimDeviceUpdated": "{device} · Updated {ago}",
+  "@esimDeviceUpdated": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "esimUpdated": "Updated {ago}",
+  "@esimUpdated": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "esimRegionTitle": "{name} ({count, plural, one{{count} country} other{{count} countries}})",
+  "@esimRegionTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "esimPackageLine": "{volume} · {duration}",
+  "@esimPackageLine": {
+    "placeholders": {
+      "volume": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "actionInstall": "Install",
+  "howTitle": "How eSIM works",
+  "howStep1Title": "Choose a plan",
+  "howStep1Body": "Find your destination and pick the data and number of days you need.",
+  "howStep2Title": "Pay from your balance",
+  "howStep2Body": "Top up your balance with PayPal or crypto and buy a plan in one tap.",
+  "howStep3Title": "Install before you travel",
+  "howStep3Body": "Scan the QR code or install in one tap while you have Wi-Fi. Then don’t delete the eSIM.",
+  "howStep4Title": "Turn it on when you land",
+  "howStep4Body": "Select the Waysim eSIM for mobile data and turn on data roaming for it.",
+  "esimDetailTitle": "eSIM details",
+  "installOneTap": "Install in one tap",
+  "installOneTapNote": "For iPhone with iOS 17.4 or later · Install by {date}",
+  "@installOneTapNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "installByQr": "Install by QR code",
+  "installQrNote": "Scan the QR code with the camera of the phone you’ll travel with: open this screen on another device or print the code.",
+  "installManual": "Manual installation",
+  "esimSmdp": "SM-DP+ address",
+  "esimActivationCode": "Activation code",
+  "esimIccid": "ICCID",
+  "esimKeepWarning": "Don’t delete the eSIM from your phone while the plan is active. You can only reinstall it on this same phone.",
+  "esimRoamingWarning": "To avoid roaming charges from your home carrier, turn off data roaming for your main SIM.",
+  "instructionsTitle": "Instructions",
+  "tabIphone": "iPhone",
+  "tabAndroid": "Android",
+  "iosStep1": "Connect to Wi-Fi.",
+  "iosStep2": "Open Settings → Cellular → Add eSIM.",
+  "iosStep3": "Choose “Use QR Code” or “Enter Details Manually”.",
+  "iosStep4": "Name the line “Waysim”. Keep your main number for calls and iMessage.",
+  "iosStep5": "When you land, turn on the Waysim line and Data Roaming, and select it for cellular data.",
+  "androidStep1": "Connect to Wi-Fi.",
+  "androidStep2": "Open Settings → Network & internet → SIMs → Add eSIM (names vary by phone).",
+  "androidStep3": "Choose “Scan QR code” or enter the details manually.",
+  "androidStep4": "Name the line “Waysim” and keep your main SIM for calls.",
+  "androidStep5": "When you land, turn on the Waysim line and Data roaming, and use it for mobile data.",
+  "usageTitle": "Data usage",
+  "usageUnlimitedNote": "Unlimited plan — usage is shown by the carrier",
+  "topUpPackage": "Top up package",
+  "topUpPlansTitle": "Add data",
+  "topUpPlansSubtitle": "Choose a plan to add to this eSIM",
+  "topUpPlansEmpty": "No add-on plans are available for this eSIM.",
+  "topUpAddedTitle": "Plan added",
+  "topUpAddedBody": "The new data and days are now on your eSIM.",
+  "loginTitle": "Sign in or sign up",
+  "loginBody": "We’ll send a 6-digit code to your e-mail. No password needed.",
+  "emailLabel": "E-mail",
+  "emailHint": "name@example.com",
+  "demoAccounts": "Test accounts",
+  "demoNewAccount": "New account",
+  "demoExistingAccount": "Account with history",
+  "demoCodeHint": "Test code: {code} (no e-mail is sent)",
+  "@demoCodeHint": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteLabel": "Invite code (optional)",
+  "termsConsent": "I am 18 or older and accept the Terms of Use. How we process data is in the Privacy Policy.",
+  "termsConsentStart": "I am 18 or older and accept the ",
+  "termsOfUseLink": "Terms of Use",
+  "termsConsentMiddle": ". How we process data is in the ",
+  "privacyPolicyLink": "Privacy Policy",
+  "termsConsentEnd": ".",
+  "loginErrorEmail": "Enter a valid e-mail address",
+  "loginErrorTerms": "Please accept the terms to continue",
+  "codeTitle": "Enter the code",
+  "codeInstructions": "Enter the 6-digit code to continue.",
+  "codeBody": "We sent a 6-digit code to {email}",
+  "@codeBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "codeLabel": "Code from the e-mail",
+  "resendIn": "Send again in {time}",
+  "@resendIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "resendNow": "Send again",
+  "changeEmail": "Change e-mail",
+  "checkSpam": "No e-mail? Check your Spam folder.",
+  "codeErrorWrong": "Wrong code. Try again.",
+  "codeErrorExpired": "This code has expired. Request a new one.",
+  "codeErrorTooMany": "Too many attempts. Please try again later.",
+  "nameTitle": "What should we call you?",
+  "nameBody": "Optional — we’ll use it to greet you.",
+  "nameHint": "Your name",
+  "actionSkip": "Skip",
+  "profileId": "ID {id}",
+  "@profileId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "actionTopUp": "Top up",
+  "orders": "Orders",
+  "inviteFriends": "Invite friends",
+  "myDevices": "My devices",
+  "deleteAccount": "Delete account",
+  "signOut": "Sign out",
+  "signOutConfirmTitle": "Sign out?",
+  "signOutConfirmBody": "Are you sure you want to sign out of your account?",
+  "settingsNotifications": "Notifications",
+  "notifEsimTitle": "Notifications",
+  "notifEsimBody": "eSIM status, balance and data usage",
+  "notifNewsTitle": "News & offers",
+  "notifNewsBody": "Discounts and new countries",
+  "aboutVersion": "Version {version} ({build})",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutTagline": "Mobile internet for travel",
+  "aboutApp": "About the app",
+  "devicesTitle": "My devices",
+  "devicesNote": "An eSIM is tied to the phone you install it on.",
+  "deviceThis": "This device",
+  "deviceLastSeen": "Last active {ago}",
+  "@deviceLastSeen": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTitle": "Delete account",
+  "deleteWarnTitle": "This can’t be undone",
+  "deleteBullet1": "Your balance ({balance}) and bonuses will be lost.",
+  "@deleteBullet1": {
+    "placeholders": {
+      "balance": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBullet2": "Plans that aren’t installed yet will be cancelled without a refund.",
+  "deleteBullet3": "eSIMs that are already installed keep working until the plan ends.",
+  "deleteBullet4": "Personal data is anonymized within 30 days. Payment records are kept for as long as the law requires.",
+  "deleteRefundNote": "Want a refund of an unused top-up? Contact support before deleting.",
+  "deleteSupportLink": "Contact support",
+  "deleteCodeBody": "Enter the 6-digit code we sent to {email} to confirm.",
+  "@deleteCodeBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteConfirm": "Delete my account",
+  "deleteDone": "Account deleted",
+  "topUpTitle": "Top up balance",
+  "topUpCurrentBalance": "Current balance",
+  "topUpChooseAmount": "Choose amount",
+  "topUpOtherAmount": "Other amount",
+  "topUpAmountHint": "Amount in USD",
+  "topUpAmountRange": "From {min} to {max}",
+  "@topUpAmountRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "topUpAmountInvalid": "Enter an amount from {min} to {max}",
+  "@topUpAmountInvalid": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "topUpMethod": "Payment method",
+  "topUpPaypalTitle": "PayPal",
+  "topUpPaypalBody": "PayPal balance or card via PayPal",
+  "topUpCryptoTitle": "Cryptocurrency",
+  "topUpCryptoBody": "Choose a coin and network",
+  "topUpNote": "Your balance is spent only on eSIM plans and can’t be withdrawn. An unused top-up can be refunded under the Refund Policy. The payment service may charge a fee.",
+  "topUpButton": "Top up {amount}",
+  "@topUpButton": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "topUpPaypalWaitingTitle": "Waiting for PayPal",
+  "topUpPaypalWaitingBody": "Complete the payment in the PayPal window. This screen updates by itself.",
+  "topUpReopenPaypal": "Open PayPal again",
+  "cryptoTitle": "Pay with crypto",
+  "cryptoCoin": "Coin",
+  "cryptoNetwork": "Network",
+  "cryptoWaitingPayment": "Waiting for payment",
+  "cryptoStepWaiting": "Waiting",
+  "cryptoStepConfirmations": "Confirmations",
+  "cryptoStepCredited": "Credited",
+  "cryptoConfirmationsOf": "{n} of {m}",
+  "@cryptoConfirmationsOf": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "cryptoSendExactly": "Send exactly",
+  "cryptoToAddress": "To address",
+  "cryptoRateLocked": "Rate locked: {rate} · Top-up of {amount}",
+  "@cryptoRateLocked": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "cryptoWarning": "Send only {coin} on the {network} network, the exact amount in one transaction. Add the wallet fee on top — the full amount must reach us.",
+  "@cryptoWarning": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      },
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "cryptoCloseNote": "You can close this screen — we’ll send a notification when the payment is credited.",
+  "cryptoExpiresIn": "Expires in {time}",
+  "@cryptoExpiresIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "topUpDoneTitle": "Balance topped up",
+  "topUpDoneBody": "{amount} was added to your balance.",
+  "@topUpDoneBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "actionDone": "Done",
+  "topUpExpiredTitle": "Payment expired",
+  "topUpExpiredBody": "If you already sent the money, it will be credited after a check. Otherwise start again.",
+  "actionTryAgain": "Try again",
+  "ordersTitle": "Orders",
+  "ordersTabPurchases": "Purchases",
+  "ordersTabTopUps": "Top-ups",
+  "ordersEmptyPurchases": "No purchases yet",
+  "ordersEmptyTopUps": "No top-ups yet",
+  "orderNumberDate": "Order {number} · {date}",
+  "@orderNumberDate": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "orderCompleted": "Completed",
+  "orderPurchaseTitle": "{place} · {plan}",
+  "@orderPurchaseTitle": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "orderAddOnTitle": "Package top-up · {place} +{plan}",
+  "@orderAddOnTitle": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTopUpPaypal": "Balance top-up · PayPal",
+  "orderTopUpCrypto": "Balance top-up · Crypto",
+  "referralTitle": "Invite friends",
+  "referralHeroTitle": "Get {reward} for every friend",
+  "@referralHeroTitle": {
+    "placeholders": {
+      "reward": {
+        "type": "String"
+      }
+    }
+  },
+  "referralHeroBody": "A friend signs up with your link or code — you get {reward} added to your balance.",
+  "@referralHeroBody": {
+    "placeholders": {
+      "reward": {
+        "type": "String"
+      }
+    }
+  },
+  "referralYourCode": "Your code",
+  "referralShare": "Share link",
+  "referralShareText": "Get an eSIM for your trip with Waysim: {link}",
+  "@referralShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "referralStatInvited": "Invited",
+  "referralStatCredited": "Credited",
+  "referralStatPending": "Under review",
+  "referralStatRejected": "Rejected",
+  "referralRulesTitle": "Rules",
+  "referralRule1": "The bonus can only be spent on eSIM plans and can’t be withdrawn.",
+  "referralRule2": "Only new Waysim users count — one bonus per device.",
+  "referralRule3": "No more than 10 bonuses a month.",
+  "referralRule4": "Invitations are checked automatically. Inviting yourself and fake accounts are rejected.",
+  "referralRule5": "The bonus amount is fixed when your friend signs up.",
+  "referralFullTerms": "Full terms",
+  "referralYourInvites": "Your invites",
+  "referralInviteCredited": "+{reward} credited",
+  "@referralInviteCredited": {
+    "placeholders": {
+      "reward": {
+        "type": "String"
+      }
+    }
+  },
+  "referralInviteSignedUp": "Signed up: {date}",
+  "@referralInviteSignedUp": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "referralEmpty": "No invitations yet",
+  "supportSheetTitle": "How can we help?",
+  "supportAiTitle": "Online AI chat",
+  "supportAiBody": "Instant answers 24/7",
+  "supportMailTitle": "Write to us",
+  "supportMailBody": "A person will reply by e-mail",
+  "supportMailSubject": "Waysim — request, ID {id}",
+  "@supportMailSubject": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "supportMailTemplate": "Describe your question here.\n\n— Technical details —\nID: {id}\nApp: {app}\nSystem: {system}",
+  "@supportMailTemplate": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      },
+      "system": {
+        "type": "String"
+      }
+    }
+  },
+  "supportMailFallback": "No mail app found. Our address is {email}.",
+  "@supportMailFallback": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "actionCopyAddress": "Copy address",
+  "chatTitle": "Waysim assistant",
+  "chatBadge": "AI-powered",
+  "chatDisclaimer": "AI can make mistakes. It can’t see your payments or change your balance. Don’t send passwords or card details.",
+  "chatGreeting": "Hi! I’m the Waysim AI assistant. Ask me about choosing a plan, installing an eSIM or connecting abroad.",
+  "chatChipInstall": "How do I install an eSIM?",
+  "chatChipChoose": "Which plan should I choose?",
+  "chatChipNetwork": "My eSIM won’t connect",
+  "chatNotHelped": "Didn’t help?",
+  "chatContactHuman": "Contact support",
+  "chatInputHint": "Type a message",
+  "chatHistoryNote": "Chat history is kept for 30 days",
+  "legalSectionTitle": "Documents",
+  "updateRequiredTitle": "Please update the app",
+  "updateRequiredBody": "This version is no longer supported. Update Waysim to keep buying and using your eSIMs.",
+  "updateRequiredAction": "Update",
+  "integrityWarningTitle": "This device can’t earn referral bonuses",
+  "integrityWarningBody": "Your phone looks modified (root, jailbreak or emulator). Everything else works as usual.",
+  "noConnectionTitle": "You're offline",
+  "noConnectionBody": "Waysim needs the internet to load plans and your eSIMs. Check Wi‑Fi or mobile data and try again.",
+  "noConnectionWaiting": "Waiting for a connection…",
+  "noConnectionContinue": "Continue offline"
+}

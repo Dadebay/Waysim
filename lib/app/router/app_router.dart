@@ -1,0 +1,232 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../core/constants/app_environment.dart';
+import '../../core/di/injector.dart';
+import '../../core/services/analytics_service.dart';
+import '../../core/storage/local_storage.dart';
+import '../../core/storage/storage_keys.dart';
+import '../../features/auth/presentation/view/delete_account_page.dart';
+import '../../features/auth/presentation/view/devices_page.dart';
+import '../../features/auth/presentation/view/login_page.dart';
+import '../../features/catalog/presentation/view/destination_page.dart';
+import '../../features/catalog/presentation/view/search_page.dart';
+import '../../features/esim/presentation/view/esim_detail_page.dart';
+import '../../features/esim/presentation/view/esim_top_up_page.dart';
+import '../../features/esim/presentation/view/my_esim_page.dart';
+import '../../features/gallery/presentation/view/gallery_page.dart';
+import '../../features/home/presentation/view/home_page.dart';
+import '../../features/legal/domain/entities/legal_document.dart';
+import '../../features/legal/presentation/view/legal_pages.dart';
+import '../../features/profile/presentation/view/profile_page.dart';
+import '../../features/profile/presentation/view/settings_page.dart';
+import '../../features/purchase/presentation/purchase_subject.dart';
+import '../../features/purchase/presentation/view/purchase_page.dart';
+import '../../features/referral/presentation/view/referral_page.dart';
+import '../../features/support/presentation/view/chat_page.dart';
+import '../../features/wallet/presentation/cubit/wallet_cubit.dart';
+import '../../features/wallet/presentation/view/balance_top_up_page.dart';
+import '../../features/wallet/presentation/view/orders_page.dart';
+import '../view/home_shell.dart';
+import 'app_routes.dart';
+
+/// App-wide navigation. Three tab roots live in a [StatefulShellRoute] so each
+/// keeps its own stack and scroll position; every other page is a sibling
+/// route that opens above the tab bar.
+abstract final class AppRouter {
+  static AnalyticsRouteObserver _observer() =>
+      AnalyticsRouteObserver(getIt<AnalyticsService>());
+
+  /// A fresh router per app instance, so tests and hot restarts never share
+  /// navigation state.
+  static GoRouter create() => GoRouter(
+    navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'root'),
+    // Every screen the customer sees is reported (and remembered for crash
+    // reports). A NavigatorObserver belongs to one navigator, so each of the
+    // root and the three tab stacks gets its own.
+    observers: [_observer()],
+    initialLocation: AppEnvironment.initialRoute,
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => HomeShell(navigationShell: shell),
+        branches: [
+          StatefulShellBranch(
+            observers: [_observer()],
+            routes: [
+              GoRoute(
+                path: AppRoute.home.path,
+                name: AppRoute.home.routeName,
+                builder: (_, _) => const HomePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            observers: [_observer()],
+            routes: [
+              GoRoute(
+                path: AppRoute.myEsim.path,
+                name: AppRoute.myEsim.routeName,
+                builder: (_, _) => const MyEsimPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            observers: [_observer()],
+            routes: [
+              GoRoute(
+                path: AppRoute.profile.path,
+                name: AppRoute.profile.routeName,
+                builder: (_, _) => const ProfilePage(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoute.search.path,
+        name: AppRoute.search.routeName,
+        // No slide: the page fades in under the search box, which flies up
+        // from Home into the app bar (a Hero), then the content settles in.
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          name: state.name,
+          transitionDuration: const Duration(milliseconds: 420),
+          reverseTransitionDuration: const Duration(milliseconds: 340),
+          child: const SearchPage(),
+          transitionsBuilder: (context, animation, secondary, child) =>
+              FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: const Interval(0, 0.55, curve: Curves.easeOut),
+                  reverseCurve: const Interval(0.35, 1, curve: Curves.easeIn),
+                ),
+                child: child,
+              ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.destination.path,
+        name: AppRoute.destination.routeName,
+        builder: (_, state) =>
+            DestinationPage(code: state.pathParameters['code']!),
+      ),
+      GoRoute(
+        path: AppRoute.purchase.path,
+        name: AppRoute.purchase.routeName,
+        // The subject travels as `extra`; a rebuilt route without one (a
+        // restored session) has nothing to buy, so it goes home.
+        redirect: (_, state) =>
+            state.extra is PurchaseSubject ? null : AppRoute.home.path,
+        builder: (_, state) =>
+            PurchasePage(subject: state.extra! as PurchaseSubject),
+      ),
+      GoRoute(
+        path: AppRoute.esim.path,
+        name: AppRoute.esim.routeName,
+        builder: (_, state) => EsimDetailPage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoute.esimTopUp.path,
+        name: AppRoute.esimTopUp.routeName,
+        builder: (_, state) =>
+            EsimTopUpPage(esimId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoute.login.path,
+        name: AppRoute.login.routeName,
+        builder: (_, _) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoute.balanceTopUp.path,
+        name: AppRoute.balanceTopUp.routeName,
+        builder: (_, state) => BalanceTopUpPage(
+          initialCents: state.extra is int ? state.extra! as int : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.orders.path,
+        name: AppRoute.orders.routeName,
+        builder: (_, _) => const OrdersPage(),
+      ),
+      GoRoute(
+        path: AppRoute.referral.path,
+        name: AppRoute.referral.routeName,
+        builder: (_, _) => const ReferralPage(),
+      ),
+      GoRoute(
+        path: AppRoute.devices.path,
+        name: AppRoute.devices.routeName,
+        builder: (_, _) => const DevicesPage(),
+      ),
+      GoRoute(
+        path: AppRoute.deleteAccount.path,
+        name: AppRoute.deleteAccount.routeName,
+        builder: (_, _) => const DeleteAccountPage(),
+      ),
+      GoRoute(
+        path: AppRoute.settings.path,
+        name: AppRoute.settings.routeName,
+        builder: (_, _) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: AppRoute.legal.path,
+        name: AppRoute.legal.routeName,
+        builder: (_, _) => const LegalListPage(),
+      ),
+      GoRoute(
+        path: AppRoute.legalDocument.path,
+        name: AppRoute.legalDocument.routeName,
+        builder: (_, state) => LegalDocumentPage(
+          id: state.pathParameters['id']!,
+          document: state.extra is LegalDocument
+              ? state.extra! as LegalDocument
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.supportChat.path,
+        name: AppRoute.supportChat.routeName,
+        builder: (_, _) => const ChatPage(),
+      ),
+      // https://waysim.co/r/CODE and waysim://r/CODE: remember the code for
+      // the sign-up form, then open the app normally. Nothing is applied
+      // here — a link never acts without the customer confirming.
+      GoRoute(
+        path: AppRoute.invite.path,
+        name: AppRoute.invite.routeName,
+        redirect: (_, state) {
+          final code = state.pathParameters['code'] ?? '';
+          final valid = RegExp(r'^[A-Za-z0-9]{4,12}$').hasMatch(code);
+          if (valid) {
+            getIt<LocalStorage>().setString(
+              StorageKeys.pendingInvite,
+              code.toUpperCase(),
+            );
+            // "Where do they come from": the install source is automatic; an
+            // invitation link is ours to record.
+            getIt<AnalyticsService>()
+              ..inviteLinkOpened(code.toUpperCase())
+              ..setUserProperty('acquisition', 'invite');
+          }
+          return AppRoute.home.path;
+        },
+      ),
+      // https://waysim.co/pay/return: PayPal sent the customer back through
+      // the browser. The payment is confirmed by the server, never by this
+      // link, so all it does is refresh the balance and show the app.
+      GoRoute(
+        path: AppRoute.payReturn.path,
+        name: AppRoute.payReturn.routeName,
+        redirect: (_, _) {
+          getIt<WalletCubit>().refresh();
+          return AppRoute.home.path;
+        },
+      ),
+      GoRoute(
+        path: AppRoute.gallery.path,
+        name: AppRoute.gallery.routeName,
+        builder: (_, _) => const GalleryPage(),
+      ),
+    ],
+  );
+}

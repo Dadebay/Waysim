@@ -1,0 +1,193 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:waysim/app/app.dart';
+import 'package:waysim/app/session_coordinator.dart';
+import 'package:waysim/core/di/injector.dart';
+import 'package:waysim/core/constants/app_icons.dart';
+import 'package:waysim/core/utils/result.dart';
+import 'package:waysim/core/widgets/app_bottom_sheet.dart';
+import 'package:waysim/features/auth/domain/repositories/auth_repository.dart';
+import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
+import 'package:waysim/features/wallet/presentation/cubit/wallet_cubit.dart';
+import 'package:waysim/mock/mock_backend.dart';
+
+import '../helpers/load_fonts.dart';
+import '../helpers/test_dependencies.dart';
+
+void main() {
+  setUpAll(loadAppFonts);
+
+  void phone(WidgetTester tester) {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+  }
+
+  /// Signs the demo customer in without going through the screens.
+  Future<void> signInAnna(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      // The mock server reads the test's fake clock, so "PayPal confirms
+      // after 3 s" is a matter of pumping time.
+      await setUpTestDependencies(
+        backend: MockBackend(
+          now: () => tester.binding.clock.now(),
+          latency: Duration.zero,
+          purchaseLatency: Duration.zero,
+        ),
+      );
+      await getIt<CatalogCubit>().load();
+      final result = await getIt<AuthRepository>().verifyCode(
+        email: 'anna@example.com',
+        code: '123456',
+      );
+      getIt<AuthCubit>().signedIn((result as Success).data.user);
+      getIt<SessionCoordinator>().start();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+  }
+
+  testWidgets('My eSIM lists current eSIMs and archives the spent ones', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('My eSIM').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Türkiye'), findsOneWidget);
+    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('3.2 GB of 5 GB left'), findsOneWidget);
+    // Not installed: offers the install button.
+    expect(find.text('Install'), findsOneWidget);
+    expect(find.text('Installed'), findsOneWidget);
+    // Spent and expired ones are not in the current list…
+    expect(find.text('Thailand'), findsNothing);
+
+    // …but in the archive.
+    await tester.tap(find.text('Archive'));
+    await tester.pumpAndSettle();
+    expect(find.text('Thailand'), findsOneWidget);
+    expect(find.text('Japan'), findsOneWidget);
+    expect(find.text('Expired'), findsOneWidget);
+    expect(find.text('Used up'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('an eSIM page shows the QR code and the manual details', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('My eSIM').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Türkiye'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('eSIM details'), findsOneWidget);
+    expect(find.byType(QrImageView), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('SM-DP+ address'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('smdp.example.com'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('the balance pill opens top-up and PayPal credits the balance', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    expect(find.text(r'$24.50'), findsOneWidget);
+    await tester.tap(find.text(r'$24.50'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Top up balance'), findsWidgets);
+    final currentBalance = tester.widget<Text>(find.text(r'$24.50').last);
+    expect(currentBalance.style?.fontWeight, FontWeight.w700);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).decoration?.hintText,
+      'Amount in USD',
+    );
+    for (final method in ['payment-paypal', 'payment-crypto']) {
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey(method)),
+          matching: find.byType(HugeIcon),
+        ),
+        findsOneWidget,
+      );
+    }
+    expect(
+      tester.widget<Text>(find.text(r'$20')).style?.fontWeight,
+      FontWeight.w700,
+    );
+    await tester.tap(find.text(r'$20'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'Top up $20'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Waiting for PayPal'), findsOneWidget);
+
+    // PayPal confirms after ~3 s; the screen polls every 2 s.
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(seconds: 2));
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Balance topped up'), findsOneWidget);
+    expect(getIt<WalletCubit>().state.balance?.cents, 4450);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('crypto choice stays on the card and opens its invoice', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(r'$24.50'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'$20'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('payment-crypto')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(AppSheetFrame), findsOneWidget);
+    expect(find.text('USDT'), findsNWidgets(2));
+    expect(find.text('USDC'), findsOneWidget);
+    expect(find.text('TRC-20'), findsOneWidget);
+    expect(find.text('ERC-20'), findsNWidgets(2));
+
+    await tester.tap(find.text('USDC'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AppSheetFrame), findsNothing);
+    expect(find.text('USDC · ERC-20'), findsOneWidget);
+
+    await tester.tap(find.text(r'Top up $20'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('USDC'), findsOneWidget);
+    expect(find.text('ERC-20'), findsOneWidget);
+    expect(find.byType(QrImageView), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+}

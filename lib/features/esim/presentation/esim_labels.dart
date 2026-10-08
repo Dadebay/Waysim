@@ -1,0 +1,48 @@
+import '../../../core/widgets/status_badge.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../core/utils/formatters/labels.dart';
+import '../../catalog/domain/entities/esim_package.dart';
+import '../domain/entities/esim.dart';
+
+extension EsimStatusPresentation on EsimStatus {
+  String label(AppLocalizations l10n) => switch (this) {
+    EsimStatus.provisioning => l10n.statusProvisioning,
+    EsimStatus.notInstalled => l10n.statusNotInstalled,
+    EsimStatus.installed => l10n.statusInstalled,
+    EsimStatus.active => l10n.statusActive,
+    EsimStatus.usedUp => l10n.statusUsedUp,
+    EsimStatus.expired => l10n.statusExpired,
+  };
+
+  StatusTone get tone => switch (this) {
+    EsimStatus.provisioning => StatusTone.info,
+    EsimStatus.notInstalled => StatusTone.warning,
+    EsimStatus.installed => StatusTone.info,
+    EsimStatus.active => StatusTone.success,
+    EsimStatus.usedUp => StatusTone.neutral,
+    EsimStatus.expired => StatusTone.neutral,
+  };
+}
+
+extension EsimLabels on AppLocalizations {
+  /// "Türkiye", or "Europe (35 countries)" for a region.
+  String esimTitle(Esim e) {
+    final name = e.nameFor(localeName);
+    final count = e.countryCount;
+    return count == null ? name : esimRegionTitle(name, count);
+  }
+
+  /// "5 GB · 30 days"; "Unlimited · 1 GB a day · 7 days".
+  String esimPlan(Esim e) {
+    if (e.kind == PackageKind.unlimited) {
+      final daily = e.dailyBytes;
+      return daily == null
+          ? '$dataUnlimited · ${durationDays(e.days)}'
+          : unlimitedPlan(
+              dailyAllowance(dataSize(daily)),
+              durationDays(e.days),
+            );
+    }
+    return esimPackageLine(dataSize(e.volumeBytes ?? 0), durationDays(e.days));
+  }
+}

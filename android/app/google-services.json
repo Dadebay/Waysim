@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "330932086251",
+    "project_id": "waysim",
+    "storage_bucket": "waysim.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330932086251:android:5cf965aa203f049f7de5ae",
+        "android_client_info": {
+          "package_name": "com.waysim.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP9q411oSFDqLhyW0kRh6jTmsvMj0P_j8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
