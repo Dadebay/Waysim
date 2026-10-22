@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_icons.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/app_version.dart';
 import '../../core/utils/extensions/context_extensions.dart';
+import '../../core/utils/safe_url.dart';
 import '../../core/widgets/app_button.dart';
 import '../../features/config/domain/entities/app_config.dart';
 import '../../features/config/presentation/cubit/config_cubit.dart';
@@ -96,7 +98,8 @@ class _UpdateScreen extends StatelessWidget {
               AppButton(
                 label: l10n.updateRequiredAction,
                 onPressed: () => launchUrl(
-                  Uri.parse(config.storeUrl),
+                  safeHttpsUri(config.storeUrl) ??
+                      Uri.https(AppConstants.webHost, '/app'),
                   mode: LaunchMode.externalApplication,
                 ),
               ),

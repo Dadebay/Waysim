@@ -72,10 +72,6 @@
   "signedOutOnDevice": "You were signed out on this device. Please sign in again.",
   "errorNotFound": "We couldn't find what you were looking for.",
   "errorUnknown": "Something went wrong. Please try again.",
-  "comingSoon": "Coming soon",
-  "@comingSoon": {
-    "description": "Placeholder for screens not built yet"
-  },
   "actionCopy": "Copy",
   "toastCopied": "Copied",
   "actionContinue": "Continue",
@@ -463,14 +459,6 @@
   "loginErrorTerms": "Please accept the terms to continue",
   "codeTitle": "Enter the code",
   "codeInstructions": "Enter the 6-digit code to continue.",
-  "codeBody": "We sent a 6-digit code to {email}",
-  "@codeBody": {
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
-  },
   "codeLabel": "Code from the e-mail",
   "resendIn": "Send again in {time}",
   "@resendIn": {
@@ -570,17 +558,6 @@
   "topUpChooseAmount": "Choose amount",
   "topUpOtherAmount": "Other amount",
   "topUpAmountHint": "Amount in USD",
-  "topUpAmountRange": "From {min} to {max}",
-  "@topUpAmountRange": {
-    "placeholders": {
-      "min": {
-        "type": "String"
-      },
-      "max": {
-        "type": "String"
-      }
-    }
-  },
   "topUpAmountInvalid": "Enter an amount from {min} to {max}",
   "@topUpAmountInvalid": {
     "placeholders": {
@@ -660,14 +637,6 @@
   "cryptoChangeCurrencyTitle": "Change coin or network?",
   "cryptoChangeCurrencyBody": "A different coin or network needs a new payment address. The current payment request remains active until it expires. If you already sent crypto, wait for this payment to finish.",
   "cryptoChangeCurrencyAction": "Create new payment",
-  "cryptoExpiresIn": "Expires in {time}",
-  "@cryptoExpiresIn": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "topUpDoneTitle": "Balance topped up",
   "topUpDoneBody": "{amount} was added to your balance.",
   "@topUpDoneBody": {
@@ -871,7 +840,6 @@
   "chatContactHuman": "Contact support",
   "chatInputHint": "Type a message",
   "chatHistoryNote": "Chat history is kept for 30 days",
-  "legalSectionTitle": "Documents",
   "updateRequiredTitle": "Please update the app",
   "updateRequiredBody": "This version is no longer supported. Update Waysim to keep buying and using your eSIMs.",
   "updateRequiredAction": "Update",

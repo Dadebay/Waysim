@@ -23,7 +23,9 @@ class OfflineBanner extends StatelessWidget {
         return AnimatedSize(
           duration: const Duration(milliseconds: 250),
           alignment: Alignment.topCenter,
-          child: offline ? const _Strip() : const SizedBox(width: double.infinity),
+          child: offline
+              ? const _Strip()
+              : const SizedBox(width: double.infinity),
         );
       },
     );
@@ -39,7 +41,10 @@ class _Strip extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: c.warningSubtle,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.page,
+        vertical: AppSpacing.sm,
+      ),
       child: SafeArea(
         bottom: false,
         child: Row(
@@ -49,7 +54,10 @@ class _Strip extends StatelessWidget {
             Expanded(
               child: Text(
                 context.l10n.offlineBanner,
-                style: context.text.bodySm.copyWith(color: c.warning, fontWeight: FontWeight.w600),
+                style: context.text.bodySm.copyWith(
+                  color: c.warning,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

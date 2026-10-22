@@ -108,7 +108,9 @@ Future<void> _registerExternal() async {
     ..registerSingleton<SharedPreferences>(prefs)
     ..registerLazySingleton<FlutterSecureStorage>(
       () => const FlutterSecureStorage(
-        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+        iOptions: IOSOptions(
+          accessibility: KeychainAccessibility.first_unlock_this_device,
+        ),
       ),
     )
     ..registerLazySingleton<Connectivity>(Connectivity.new)
@@ -175,7 +177,9 @@ void _registerCore() {
     ..registerLazySingleton<PushPermissionGate>(
       () => PushPermissionGate(getIt<PushService>(), getIt<LocalStorage>()),
     )
-    ..registerLazySingleton<DeviceIntegrity>(NoopDeviceIntegrity.new)
+    ..registerLazySingleton<DeviceIntegrity>(
+      () => DeviceContextIntegrity(getIt<DeviceContext>()),
+    )
     ..registerLazySingleton<DeviceIntegrityCubit>(
       () => DeviceIntegrityCubit(getIt<DeviceIntegrity>()),
     )

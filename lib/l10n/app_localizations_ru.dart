@@ -132,9 +132,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get errorUnknown => 'Что-то пошло не так. Попробуйте ещё раз.';
 
   @override
-  String get comingSoon => 'Скоро';
-
-  @override
   String get actionCopy => 'Скопировать';
 
   @override
@@ -801,11 +798,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get codeInstructions => 'Введите 6-значный код, чтобы продолжить.';
 
   @override
-  String codeBody(String email) {
-    return 'Мы отправили 6-значный код на $email';
-  }
-
-  @override
   String get codeLabel => 'Код из письма';
 
   @override
@@ -985,11 +977,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get topUpAmountHint => 'Сумма в USD';
 
   @override
-  String topUpAmountRange(String min, String max) {
-    return 'От $min до $max';
-  }
-
-  @override
   String topUpAmountInvalid(String min, String max) {
     return 'Введите сумму от $min до $max';
   }
@@ -1099,11 +1086,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cryptoChangeCurrencyAction => 'Создать новый счёт';
-
-  @override
-  String cryptoExpiresIn(String time) {
-    return 'Истекает через $time';
-  }
 
   @override
   String get topUpDoneTitle => 'Баланс пополнен';
@@ -1435,9 +1417,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get chatHistoryNote => 'История чата хранится 30 дней';
-
-  @override
-  String get legalSectionTitle => 'Документы';
 
   @override
   String get updateRequiredTitle => 'Обновите приложение';

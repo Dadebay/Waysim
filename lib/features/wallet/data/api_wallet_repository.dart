@@ -5,6 +5,7 @@ import '../../../core/network/api_response.dart';
 import '../../../core/utils/formatters/money.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/result.dart';
+import '../../../core/utils/safe_url.dart';
 import '../domain/entities/wallet_entities.dart';
 import '../domain/repositories/wallet_repository.dart';
 
@@ -208,9 +209,7 @@ TopUpSession paymentFromApi(Map<String, dynamic> j) {
     method: j.str('provider') == 'paypal'
         ? TopUpMethod.paypal
         : TopUpMethod.crypto,
-    checkoutUrl: j.strOrNull('checkoutUrl') == null
-        ? null
-        : Uri.tryParse(j.str('checkoutUrl')),
+    checkoutUrl: safeHttpsUri(j.strOrNull('checkoutUrl')),
     status: paymentStatus(j.str('status')),
     creditedAmount: j.intOrNull('creditedCents') == null
         ? null

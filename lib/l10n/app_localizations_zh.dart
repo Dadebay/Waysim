@@ -127,9 +127,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorUnknown => '出错了，请重试。';
 
   @override
-  String get comingSoon => '即将推出';
-
-  @override
   String get actionCopy => '复制';
 
   @override
@@ -746,11 +743,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get codeInstructions => '输入 6 位验证码以继续。';
 
   @override
-  String codeBody(String email) {
-    return '我们已向 $email 发送 6 位验证码';
-  }
-
-  @override
   String get codeLabel => '邮件中的验证码';
 
   @override
@@ -924,11 +916,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get topUpAmountHint => '美元金额';
 
   @override
-  String topUpAmountRange(String min, String max) {
-    return '$min 至 $max';
-  }
-
-  @override
   String topUpAmountInvalid(String min, String max) {
     return '请输入 $min 至 $max 之间的金额';
   }
@@ -1035,11 +1022,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cryptoChangeCurrencyAction => '创建新付款';
-
-  @override
-  String cryptoExpiresIn(String time) {
-    return '$time 后过期';
-  }
 
   @override
   String get topUpDoneTitle => '余额已充值';
@@ -1360,9 +1342,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chatHistoryNote => '聊天记录保存 30 天';
-
-  @override
-  String get legalSectionTitle => '文件';
 
   @override
   String get updateRequiredTitle => '请更新应用';

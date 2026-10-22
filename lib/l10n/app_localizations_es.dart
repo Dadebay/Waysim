@@ -134,9 +134,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get errorUnknown => 'Algo salió mal. Inténtalo de nuevo.';
 
   @override
-  String get comingSoon => 'Próximamente';
-
-  @override
   String get actionCopy => 'Copiar';
 
   @override
@@ -793,11 +790,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Introduce el código de 6 dígitos para continuar.';
 
   @override
-  String codeBody(String email) {
-    return 'Hemos enviado un código de 6 dígitos a $email';
-  }
-
-  @override
   String get codeLabel => 'Código del correo';
 
   @override
@@ -976,11 +968,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get topUpAmountHint => 'Importe en USD';
 
   @override
-  String topUpAmountRange(String min, String max) {
-    return 'De $min a $max';
-  }
-
-  @override
   String topUpAmountInvalid(String min, String max) {
     return 'Introduce un importe de $min a $max';
   }
@@ -1091,11 +1078,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cryptoChangeCurrencyAction => 'Crear nuevo pago';
-
-  @override
-  String cryptoExpiresIn(String time) {
-    return 'Caduca en $time';
-  }
 
   @override
   String get topUpDoneTitle => 'Saldo recargado';
@@ -1427,9 +1409,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chatHistoryNote => 'El historial del chat se guarda 30 días';
-
-  @override
-  String get legalSectionTitle => 'Documentos';
 
   @override
   String get updateRequiredTitle => 'Actualiza la aplicación';

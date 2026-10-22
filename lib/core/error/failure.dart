@@ -88,8 +88,6 @@ abstract final class ApiCodes {
   static const priceChanged = 'price_mismatch';
   static const packageUnavailable = 'package_unavailable';
   static const maintenance = 'maintenance';
-  static const countryRestricted = 'country_restricted';
-  static const referralDisabled = 'referral_disabled';
   static const tooManyRequests = 'rate_limited';
 }
 

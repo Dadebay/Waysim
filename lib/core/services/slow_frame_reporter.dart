@@ -23,7 +23,13 @@ class NoopSlowFrameReporter implements SlowFrameReporter {
 }
 
 class SlowFrameReport {
-  const SlowFrameReport({required this.screen, required this.device, required this.buildMs, required this.rasterMs, this.publicId});
+  const SlowFrameReport({
+    required this.screen,
+    required this.device,
+    required this.buildMs,
+    required this.rasterMs,
+    this.publicId,
+  });
 
   final String screen;
   final DeviceContext device;
@@ -31,7 +37,14 @@ class SlowFrameReport {
   final int rasterMs;
   final String? publicId;
 
-  Map<String, Object?> toMap() => {'screen': screen, 'publicId': publicId, 'buildMs': buildMs, 'rasterMs': rasterMs, 'frameMs': buildMs + rasterMs, ...device.toMap()};
+  Map<String, Object?> toMap() => {
+    'screen': screen,
+    'publicId': publicId,
+    'buildMs': buildMs,
+    'rasterMs': rasterMs,
+    'frameMs': buildMs + rasterMs,
+    ...device.toMap(),
+  };
 }
 
 abstract interface class SlowFrameReportStore {
@@ -39,13 +52,19 @@ abstract interface class SlowFrameReportStore {
 }
 
 class FirestoreSlowFrameReportStore implements SlowFrameReportStore {
-  FirestoreSlowFrameReportStore([FirebaseFirestore? firestore]) : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreSlowFrameReportStore([FirebaseFirestore? firestore])
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const collection = 'performance_reports';
   final FirebaseFirestore _firestore;
 
   @override
-  Future<void> save(SlowFrameReport report) => _firestore.collection(collection).add({...report.toMap(), 'createdAt': FieldValue.serverTimestamp(), 'status': 'new'});
+  Future<void> save(SlowFrameReport report) =>
+      _firestore.collection(collection).add({
+        ...report.toMap(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'status': 'new',
+      });
 }
 
 /// Reports severe UI/GPU stalls. One report per screen per minute and at most
@@ -59,7 +78,8 @@ class FirestoreSlowFrameReporter implements SlowFrameReporter {
     this.threshold = const Duration(milliseconds: 150),
     this.minimumInterval = const Duration(minutes: 1),
     this.maxPerRun = 20,
-  }) : _currentScreen = currentScreen ?? (() => AnalyticsScreenTracker.currentScreen),
+  }) : _currentScreen =
+           currentScreen ?? (() => AnalyticsScreenTracker.currentScreen),
        _now = now ?? DateTime.now;
 
   final SlowFrameReportStore _store;
@@ -97,7 +117,9 @@ class FirestoreSlowFrameReporter implements SlowFrameReporter {
     recordFrame(slowest.buildDuration, slowest.rasterDuration);
   }
 
-  static int _work(FrameTiming timing) => timing.buildDuration.inMicroseconds + timing.rasterDuration.inMicroseconds;
+  static int _work(FrameTiming timing) =>
+      timing.buildDuration.inMicroseconds +
+      timing.rasterDuration.inMicroseconds;
 
   /// Exposed for deterministic tests; the scheduler callback uses this path.
   void recordFrame(Duration build, Duration raster) {
@@ -109,7 +131,13 @@ class FirestoreSlowFrameReporter implements SlowFrameReporter {
     _lastSaved[screen] = now;
     _saved++;
 
-    final report = SlowFrameReport(screen: screen, device: _device, buildMs: (build.inMicroseconds / 1000).round(), rasterMs: (raster.inMicroseconds / 1000).round(), publicId: _publicId);
+    final report = SlowFrameReport(
+      screen: screen,
+      device: _device,
+      buildMs: (build.inMicroseconds / 1000).round(),
+      rasterMs: (raster.inMicroseconds / 1000).round(),
+      publicId: _publicId,
+    );
     try {
       _store.save(report).catchError((Object error) {
         AppLogger.w('Slow frame report not saved: $error');

@@ -19,46 +19,6 @@ abstract final class ApiEnvelope {
   }
 }
 
-/// `{ "totalCount": 57, "page": 1, "items": [ ] }`
-class Paginated<T> {
-  const Paginated({
-    required this.items,
-    required this.totalCount,
-    required this.page,
-  });
-
-  factory Paginated.fromJson(
-    dynamic json,
-    T Function(Map<String, dynamic> item) fromItem,
-  ) {
-    if (json is! Map<String, dynamic>) {
-      throw const ParsingException('Expected a paginated object');
-    }
-    final items = (json['items'] as List? ?? const [])
-        .whereType<Map<String, dynamic>>()
-        .map(fromItem)
-        .toList();
-    return Paginated(
-      items: items,
-      totalCount: (json['totalCount'] as num?)?.toInt() ?? items.length,
-      page: (json['page'] as num?)?.toInt() ?? 1,
-    );
-  }
-
-  final List<T> items;
-  final int totalCount;
-  final int page;
-
-  /// Whether another page exists after [page], given the size just asked for.
-  bool hasMore(int size) => page * size < totalCount;
-
-  Paginated<T> merge(Paginated<T> next) => Paginated(
-    items: [...items, ...next.items],
-    totalCount: next.totalCount,
-    page: next.page,
-  );
-}
-
 /// Small guards so `fromJson` bodies stay readable.
 extension JsonMap on Map<String, dynamic> {
   String str(String key, [String fallback = '']) =>
@@ -78,8 +38,6 @@ extension JsonMap on Map<String, dynamic> {
   num numVal(String key, [num fallback = 0]) => (this[key] as num?) ?? fallback;
 
   num? numOrNull(String key) => this[key] as num?;
-
-  double? doubleOrNull(String key) => (this[key] as num?)?.toDouble();
 
   bool boolVal(String key, {bool fallback = false}) =>
       this[key] is bool ? this[key] as bool : fallback;

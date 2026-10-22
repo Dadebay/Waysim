@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/safe_url.dart';
 import '../../../catalog/domain/entities/esim_package.dart';
 
 /// Where an eSIM stands, in the customer's terms. The backend maps the
@@ -111,11 +112,14 @@ class Esim extends Equatable {
   String get lpa => lpaString ?? 'LPA:1\$$smdpAddress\$$activationCode';
 
   /// iOS 17.4+: opens Apple's installer straight from a link.
-  Uri get appleInstallUri => appleUniversalLink != null
-      ? Uri.parse(appleUniversalLink!)
-      : Uri.https('esimsetup.apple.com', '/esim_qrcode_provisioning', {
-          'carddata': lpa,
-        });
+  ///
+  /// A link from the server is used only when it points at Apple's installer;
+  /// anything else is rebuilt from the LPA string.
+  Uri get appleInstallUri =>
+      safeHttpsUriOn(appleUniversalLink, 'esimsetup.apple.com') ??
+      Uri.https('esimsetup.apple.com', '/esim_qrcode_provisioning', {
+        'carddata': lpa,
+      });
 
   Esim copyWith({
     EsimStatus? status,

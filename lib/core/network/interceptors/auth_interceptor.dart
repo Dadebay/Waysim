@@ -58,7 +58,10 @@ class AuthInterceptor extends QueuedInterceptor {
       final id = await _storage.readDeviceId();
       if (id != null) options.headers['X-Device-Id'] = id;
     }
-    if (token != null && token.isNotEmpty) {
+    // The token belongs to our API only: a request to any other host (an
+    // absolute URL slipped into a data source) must never carry it.
+    final ownHost = options.uri.host == Uri.tryParse(options.baseUrl)?.host;
+    if (ownHost && token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);

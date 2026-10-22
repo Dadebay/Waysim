@@ -22,7 +22,6 @@ abstract final class StorageKeys {
 
   /// Settings toggles (docs/01-product-spec.md §6).
   static const notifyEsim = 'notify_esim';
-  static const notifyNews = 'notify_news';
 
   /// Set once the user has been asked for push permission (after the first
   /// purchase), so the prompt never repeats.

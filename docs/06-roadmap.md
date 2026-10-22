@@ -37,6 +37,7 @@ Sayaç: `dart run tool/roadmap_status.dart` (aşağıdaki onay kutularını okur
 - **Tasarım (5)** — "Daha fazla" alt kartı: ortalı uygulama ikonu + ad + slogan + sürüm hapı + "Uygulama hakkında" satırı; "Hakkında" penceresi uygulama ikonunu (`assets/brand/app_icon.png`, 512×512) 128 dp gösterir. Benim cihazlarım, Davet et, Siparişler ve Bakiye yükleme başlıkları ortalandı. Kripto seçimi diyalog yerine alt sheet (coin rozeti, ağ hapı, radyo). 134 test.
 - **Tasarım (6)** — eSIM sayfası PDF s.10 düzenine getirildi: gri sayfa + beyaz bölüm kartları (başlık+tek dokunuş, QR, manuel kurulum, talimat, kullanım), turuncu uyarı + mavi bilgi kutusu, beyaz kopyala düğmesi, ortalı başlık.
 - **Açılış bağlantı kontrolü** — `ConnectionGate`: uygulama açılırken bağlantı yoksa "Нет подключения" ekranı (kodla çizilmiş animasyon: süzülen eSIM kartı, yayılan sinyal halkaları, sallanan çevrimdışı rozeti; "Hareketi azalt"ta durağan). Bağlantı gelince kendiliğinden devam eder; "Tekrar dene" ve "Çevrimdışı devam et" düğmeleri var. Sadece açılışı kapılar; sonradan kopmayı `OfflineBanner` karşılar. 5 dilde metin, 7 test (toplam 141).
+- **Güvenlik denetimi ve sertleştirme** — release'te log/mock kapalı, `https` zorunlu, token yalnız kendi host'una, sunucu bağlantıları doğrulanır, galeri rotası release'te yok, çökme raporları temizlenir, Firestore kuralları sıkılaştırıldı, Android yedek kapalı + upload imzası, iOS Keychain cihaza bağlı, root tespiti arayüze bağlandı; kullanılmayan 3 paket, ölü kod ve 5 ARB metni kaldırıldı. 227 test. Ayrıntı ve elle yapılacak adımlar: [10-security.md](10-security.md).
 - **T5.1–T5.3** — referral (sunucu bayrağıyla gizlenir), destek sayfası + `mailto`, AI sohbeti (mock).
 
 ### Tamamlanmayanlar ve nedeni
@@ -46,12 +47,12 @@ Sayaç: `dart run tool/roadmap_status.dart` (aşağıdaki onay kutularını okur
 | T0.11 | kısmen | `flutter analyze` + testler yeşil; **cihazda/simülatörde çalıştırma proje sahibine bırakıldı** |
 | T6.6 / T7.2 | kısmen | dosyalar yazıldı, ilk çalıştırma: `flutter test integration_test --dart-define=USE_MOCK_API=true` cihazda; CI için GitHub deposu gerekli |
 | T6.1 App Check | kısmen | SDK bağlı (debug/Play Integrity/App Attest); konsolda uygulamaları kaydetme + zorlama backend gelince |
-| T6.2 Root/jailbreak | kısmen | arayüz ve davranış hazır; gerçek tespit için RASP paketi (ör. freeRASP) eklenecek |
+| T6.2 Root/jailbreak | kısmen | `root_jailbreak_detector` sonucu arayüze bağlı; daha güçlü tespit için RASP paketi (ör. freeRASP) eklenebilir |
 | T5.4/T6.3 | cihazda doğrula | kod hazır; APNs anahtarı, Firestore veritabanı + kuralları konsolda kurulmalı ([09](09-firebase.md)) |
 | T5.5 Deep link | kısmen | `/r/KOD` + manifest hazır; iOS Associated Domains hesap bekliyor |
 | T7.1 Gerçek API | dış girdi | backend OpenAPI'si yok |
 | T7.3 Mağaza | kısmen | metinler hazır; ekran görüntüleri ve inceleme hesabı backend ve hesaplar gelince |
-| T7.4 Pentest/yayın | dış girdi | pentest ve mağaza hesapları |
+| T7.4 Pentest/yayın | dış girdi | pentest ve mağaza hesapları; sertifika sabitleme gerçek sertifika özetleri gelince ([10](10-security.md)) |
 
 ## Faz 0 — Proje kurulumu *(TZ aşama 0–2'nin mobil tarafı)*
 

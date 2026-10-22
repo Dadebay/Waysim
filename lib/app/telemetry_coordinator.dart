@@ -47,7 +47,11 @@ class TelemetryCoordinator {
   NotificationPrefs? _hydratedPrefs;
   void _save({String? locale, bool? esim, bool? marketing}) {
     _sync = _sync.then((_) async {
-      await _preferences?.updatePreferences(locale: locale, esim: esim, marketing: marketing);
+      await _preferences?.updatePreferences(
+        locale: locale,
+        esim: esim,
+        marketing: marketing,
+      );
     });
   }
 
@@ -106,8 +110,12 @@ class TelemetryCoordinator {
     // device token reaches them.
     if (state.status == AuthStatus.signedIn && _lastStatus != state.status) {
       final user = state.user;
-      if (user != null && (user.notifyEsim != null || user.notifyMarketing != null)) {
-        _hydratedPrefs = NotificationPrefs(esim: user.notifyEsim ?? true, news: user.notifyMarketing ?? true);
+      if (user != null &&
+          (user.notifyEsim != null || user.notifyMarketing != null)) {
+        _hydratedPrefs = NotificationPrefs(
+          esim: user.notifyEsim ?? true,
+          news: user.notifyMarketing ?? true,
+        );
         _notifications.applyServerPreferences(_hydratedPrefs!);
       }
       unawaited(_config?.refresh());

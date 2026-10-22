@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -262,11 +263,14 @@ abstract final class AppRouter {
           return AppRoute.home.path;
         },
       ),
-      GoRoute(
-        path: AppRoute.gallery.path,
-        name: AppRoute.gallery.routeName,
-        builder: (_, _) => const GalleryPage(),
-      ),
+      // Design gallery: a developer tool, not reachable from a deep link in a
+      // store build.
+      if (!kReleaseMode)
+        GoRoute(
+          path: AppRoute.gallery.path,
+          name: AppRoute.gallery.routeName,
+          builder: (_, _) => const GalleryPage(),
+        ),
     ],
   );
 }

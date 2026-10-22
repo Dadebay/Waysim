@@ -12,14 +12,18 @@ class MockCatalogRepository implements CatalogRepository {
   List<CatalogBanner>? get banners => null;
   @override
   Future<Result<Destination>> location(String code) async {
-    final d = CatalogFixtures.destinations().where((d) => d.code == code).firstOrNull;
+    final d = CatalogFixtures.destinations()
+        .where((d) => d.code == code)
+        .firstOrNull;
     return d == null ? const Error(NotFoundFailure()) : Success(d);
   }
 
   @override
   Future<Result<EsimPackage>> package(String id) async {
     for (final d in CatalogFixtures.destinations()) {
-      final p = CatalogFixtures.packages(d.code).where((p) => p.id == id).firstOrNull;
+      final p = CatalogFixtures.packages(
+        d.code,
+      ).where((p) => p.id == id).firstOrNull;
       if (p != null) return Success(p);
     }
     return const Error(NotFoundFailure());
@@ -28,9 +32,13 @@ class MockCatalogRepository implements CatalogRepository {
   @override
   Future<Result<List<Destination>>> search(String query) => destinations();
   @override
-  Future<Result<EsimPackage>> detail(EsimPackage package) async => Success(package);
+  Future<Result<EsimPackage>> detail(EsimPackage package) async =>
+      Success(package);
 
-  MockCatalogRepository({this.latency = const Duration(milliseconds: 450), required this._destinationOfEsim});
+  MockCatalogRepository({
+    this.latency = const Duration(milliseconds: 450),
+    required this._destinationOfEsim,
+  });
 
   final Duration latency;
   final String? Function(String esimId) _destinationOfEsim;

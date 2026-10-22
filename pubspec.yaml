@@ -41,7 +41,6 @@ dependencies:
   intl: ^0.20.2
 
   # -------------------------------------------------------------------- ui --
-  cupertino_icons: ^1.0.8
   hugeicons: ^1.1.7
   cached_network_image: ^3.4.1
   flutter_svg: ^2.3.0
@@ -94,9 +93,6 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-
-  bloc_test: ^10.0.0
-  mocktail: ^1.0.4
 
   flutter_native_splash: ^2.4.7
 

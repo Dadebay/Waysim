@@ -332,12 +332,6 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get errorUnknown;
 
-  /// Placeholder for screens not built yet
-  ///
-  /// In en, this message translates to:
-  /// **'Coming soon'**
-  String get comingSoon;
-
   /// No description provided for @actionCopy.
   ///
   /// In en, this message translates to:
@@ -1394,12 +1388,6 @@ abstract class AppLocalizations {
   /// **'Enter the 6-digit code to continue.'**
   String get codeInstructions;
 
-  /// No description provided for @codeBody.
-  ///
-  /// In en, this message translates to:
-  /// **'We sent a 6-digit code to {email}'**
-  String codeBody(String email);
-
   /// No description provided for @codeLabel.
   ///
   /// In en, this message translates to:
@@ -1718,12 +1706,6 @@ abstract class AppLocalizations {
   /// **'Amount in USD'**
   String get topUpAmountHint;
 
-  /// No description provided for @topUpAmountRange.
-  ///
-  /// In en, this message translates to:
-  /// **'From {min} to {max}'**
-  String topUpAmountRange(String min, String max);
-
   /// No description provided for @topUpAmountInvalid.
   ///
   /// In en, this message translates to:
@@ -1915,12 +1897,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create new payment'**
   String get cryptoChangeCurrencyAction;
-
-  /// No description provided for @cryptoExpiresIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Expires in {time}'**
-  String cryptoExpiresIn(String time);
 
   /// No description provided for @topUpDoneTitle.
   ///
@@ -2509,12 +2485,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chat history is kept for 30 days'**
   String get chatHistoryNote;
-
-  /// No description provided for @legalSectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Documents'**
-  String get legalSectionTitle;
 
   /// No description provided for @updateRequiredTitle.
   ///

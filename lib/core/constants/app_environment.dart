@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
 /// Build-time configuration. Pass values with `--dart-define`:
 ///
 /// ```sh
@@ -32,11 +34,9 @@ abstract final class AppEnvironment {
     defaultValue: 'auto',
   );
 
-  static bool get useMockApi => switch (_useMockApi) {
-    'true' => true,
-    'false' => false,
-    _ => false,
-  };
+  /// Never true in a release build: the in-memory backend accepts a fixed
+  /// demo code, so a store build must always talk to the real API.
+  static bool get useMockApi => !kReleaseMode && _useMockApi == 'true';
 
   /// Where the router starts. `--dart-define=INITIAL_ROUTE=/gallery` opens the
   /// design gallery straight away (debug builds).
@@ -53,5 +53,19 @@ abstract final class AppEnvironment {
   );
 
   static bool get isProd => flavor == Flavor.prod;
-  static bool get enableLogging => !isProd;
+
+  /// Console logging (requests, bloc states). Off in every release build
+  /// whatever the flavor says: a release built without `FLAVOR=prod` would
+  /// otherwise print e-mails and eSIM state to the device log.
+  static bool get enableLogging => !isProd && !kReleaseMode;
+
+  /// A release build never talks to the API over plain HTTP: the bearer
+  /// token and the OTP code would travel in clear text.
+  static void ensureSecureApiBaseUrl() {
+    if (kReleaseMode && !apiBaseUrl.startsWith('https://')) {
+      throw StateError(
+        'API_BASE_URL must be an https:// URL in a release build',
+      );
+    }
+  }
 }

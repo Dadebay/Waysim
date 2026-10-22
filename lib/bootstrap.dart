@@ -8,6 +8,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'core/bloc/app_bloc_observer.dart';
+import 'core/constants/app_environment.dart';
 import 'core/di/injector.dart';
 import 'app/session_coordinator.dart';
 import 'app/telemetry_coordinator.dart';
@@ -27,6 +28,7 @@ import 'features/config/presentation/cubit/config_cubit.dart';
 /// `main.dart` stays a two-liner and tests can reuse this setup.
 Future<void> bootstrap(Widget Function() builder) async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppEnvironment.ensureSecureApiBaseUrl();
 
   FlutterError.onError = (details) {
     AppLogger.e(details.exceptionAsString(), details.exception, details.stack);
