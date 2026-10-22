@@ -113,12 +113,14 @@ class ApiLogInterceptor extends Interceptor {
       'activationCode',
       'lpaString',
       'qrCodeUrl',
+      'appleUniversalLink',
       'smdpAddress',
       'iccid',
       'eid',
       'text',
       'payAddress',
       'payExtraId',
+      'qrValue',
     };
     if (value is Map) {
       return value.map(

@@ -22,4 +22,5 @@ abstract interface class WalletRepository {
   Future<Result<TopUpProgress>> topUpProgress(String sessionId);
 
   Future<Result<List<WalletOrder>>> orders(OrderType type);
+  Future<Result<WalletOrder>> order(String id);
 }

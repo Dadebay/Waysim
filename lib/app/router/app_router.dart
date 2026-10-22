@@ -30,6 +30,8 @@ import '../../features/support/presentation/view/chat_page.dart';
 import '../../features/wallet/presentation/cubit/wallet_cubit.dart';
 import '../../features/wallet/presentation/view/balance_top_up_page.dart';
 import '../../features/wallet/presentation/view/orders_page.dart';
+import '../../features/wallet/presentation/view/order_activity_detail_page.dart';
+import '../../features/wallet/presentation/view/payment_detail_page.dart';
 import '../view/home_shell.dart';
 import 'app_routes.dart';
 
@@ -164,6 +166,27 @@ abstract final class AppRouter {
         path: AppRoute.orders.path,
         name: AppRoute.orders.routeName,
         builder: (_, _) => const OrdersPage(),
+      ),
+      GoRoute(
+        path: AppRoute.orderDetail.path,
+        name: AppRoute.orderDetail.routeName,
+        builder: (_, state) => OrderDetailPage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoute.paymentDetail.path,
+        name: AppRoute.paymentDetail.routeName,
+        builder: (_, state) =>
+            PaymentDetailPage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoute.activityDetail.path,
+        name: AppRoute.activityDetail.routeName,
+        builder: (_, state) => ActivityDetailPage(
+          id: state.pathParameters['id']!,
+          initialEntry: state.extra is Map<String, dynamic>
+              ? state.extra! as Map<String, dynamic>
+              : null,
+        ),
       ),
       GoRoute(
         path: AppRoute.referral.path,

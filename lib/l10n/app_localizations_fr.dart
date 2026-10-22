@@ -1007,6 +1007,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get topUpCryptoBody => 'Choisissez la devise et le réseau';
 
   @override
+  String get topUpMinimumLabel => 'Recharge minimale';
+
+  @override
+  String get topUpPaymentFeeIncluded =>
+      'Les frais sont inclus dans le montant à envoyer';
+
+  @override
   String get topUpNote =>
       'Le solde ne sert qu’à acheter des forfaits eSIM et ne peut pas être retiré. Une recharge non utilisée peut être remboursée selon la Politique de remboursement. Le service de paiement peut prélever des frais.';
 
@@ -1138,6 +1145,121 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ordersEmptyActivity => 'Aucun mouvement de solde pour l’instant';
+
+  @override
+  String get paymentDetailTitle => 'Détails du paiement';
+
+  @override
+  String get paymentDetailBreakdown => 'Détail du paiement';
+
+  @override
+  String get paymentDetailTransaction => 'Détails de la transaction';
+
+  @override
+  String get orderDetailTitle => 'Détails de la commande';
+
+  @override
+  String get activityDetailTitle => 'Détails de l’activité';
+
+  @override
+  String get detailOrderNumber => 'Numéro de commande';
+
+  @override
+  String get detailStatus => 'Statut';
+
+  @override
+  String get detailPackage => 'Forfait';
+
+  @override
+  String get detailFailureReason => 'Motif de l’échec';
+
+  @override
+  String get detailCompletedAt => 'Terminé le';
+
+  @override
+  String get detailEsimId => 'ID eSIM';
+
+  @override
+  String get detailOrderId => 'ID de commande';
+
+  @override
+  String get detailViewEsim => 'Voir l’eSIM';
+
+  @override
+  String get detailType => 'Type';
+
+  @override
+  String get detailNote => 'Note';
+
+  @override
+  String get detailBalanceAfter => 'Solde après';
+
+  @override
+  String get detailReference => 'Élément associé';
+
+  @override
+  String get detailEntryId => 'ID du mouvement';
+
+  @override
+  String get detailViewReference => 'Voir les détails associés';
+
+  @override
+  String get paymentDetailTopUpAmount => 'Montant de la recharge';
+
+  @override
+  String get paymentDetailNumber => 'Numéro de paiement';
+
+  @override
+  String get paymentDetailDate => 'Créé le';
+
+  @override
+  String get paymentDetailCurrency => 'Cryptomonnaie et réseau';
+
+  @override
+  String get paymentDetailExpected => 'Montant demandé';
+
+  @override
+  String get paymentDetailReceived => 'Montant reçu';
+
+  @override
+  String get paymentDetailFee => 'Frais de paiement';
+
+  @override
+  String get paymentDetailTotal => 'Total en USD';
+
+  @override
+  String get paymentDetailProviderStatus => 'Statut du prestataire';
+
+  @override
+  String get paymentDetailTransactionId => 'ID de transaction';
+
+  @override
+  String get paymentDetailCredited => 'Ajouté au solde';
+
+  @override
+  String get paymentDetailCreditedAt => 'Date de crédit';
+
+  @override
+  String get paymentDetailId => 'ID du paiement';
+
+  @override
+  String get paymentDetailContinue => 'Voir les instructions de paiement';
+
+  @override
+  String get paymentDetailReview =>
+      'Ce paiement doit être vérifié manuellement avant la mise à jour du solde.';
+
+  @override
+  String get paymentDetailOverpaid =>
+      'Le prestataire a reçu plus que le montant demandé. L’assistance vérifiera le paiement avant de mettre à jour votre solde.';
+
+  @override
+  String get paymentDetailUnderpaid =>
+      'Le prestataire a reçu moins que le montant demandé. L’assistance vérifiera le paiement avant de mettre à jour votre solde.';
+
+  @override
+  String get paymentDetailLate =>
+      'Le paiement est arrivé après la fin du délai. L’assistance le vérifiera avant de mettre à jour votre solde.';
 
   @override
   String orderNumberDate(String number, String date) {

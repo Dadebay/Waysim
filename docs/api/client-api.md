@@ -400,7 +400,7 @@ User. `?cursor` → `Page<Payment>`.
 
 ### GET /v1/payments/:id
 
-User. → `Payment` (`status`: pending, confirming, credited, review_underpaid, review_overpaid, review_late, expired, cancelled, refunded, disputed; `checkoutUrl` is `null` once finished). For an open crypto payment the backend pulls NOWPayments first (at most every 10 s), so poll this while the payment screen is visible.
+User. `:id` = UUID or payment number (`publicNo`) → `Payment` (`status`: pending, confirming, credited, review_underpaid, review_overpaid, review_late, expired, cancelled, refunded, disputed; `checkoutUrl` is `null` once finished). For an open crypto payment the backend pulls NOWPayments first (at most every 10 s), so poll this while the payment screen is visible. The order history can open this endpoint using its payment number to show requested and received amounts, network, fees, and review status.
 
 ### GET /v1/referral
 

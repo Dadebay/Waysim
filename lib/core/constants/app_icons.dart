@@ -22,6 +22,7 @@ abstract final class AppIcons {
   static const AppIconData check = HugeIcons.strokeRoundedTick02;
   static const AppIconData close = HugeIcons.strokeRoundedCancel01;
   static const AppIconData add = HugeIcons.strokeRoundedAdd01;
+  static const AppIconData minus = HugeIcons.strokeRoundedMinus;
   static const AppIconData copy = HugeIcons.strokeRoundedCopy01;
   static const AppIconData share = HugeIcons.strokeRoundedShare08;
   static const AppIconData delete = HugeIcons.strokeRoundedDelete02;

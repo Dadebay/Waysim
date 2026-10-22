@@ -97,19 +97,19 @@ class _MyEsimPageState extends State<MyEsimPage> {
             child: RefreshIndicator(
               onRefresh: () => getIt<EsimListCubit>().load(silent: true),
               child: shown.isEmpty
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        const SizedBox(height: AppSpacing.xxxl),
-                        EmptyState(
-                          icon: AppIcons.myEsim,
-                          title: _tab == 0
-                              ? l10n.myEsimEmptyTitle
-                              : l10n.myEsimArchiveEmpty,
-                          body: _tab == 0 ? l10n.myEsimEmptyBody : null,
-                        ),
-                      ],
-                    )
+                  ? _tab == 0
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              const SizedBox(height: AppSpacing.xxxl),
+                              EmptyState(
+                                icon: AppIcons.myEsim,
+                                title: l10n.myEsimEmptyTitle,
+                                body: l10n.myEsimEmptyBody,
+                              ),
+                            ],
+                          )
+                        : const _ArchiveEmptyState()
                   : ListView.separated(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.only(bottom: 104),
@@ -121,6 +121,57 @@ class _MyEsimPageState extends State<MyEsimPage> {
                         onInstall: () => installEsim(context, shown[i]),
                       ),
                     ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ArchiveEmptyState extends StatelessWidget {
+  const _ArchiveEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 188,
+                      height: 188,
+                      decoration: BoxDecoration(
+                        color: c.primarySubtle.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/illustrations/esim_archive_empty.png',
+                      key: const ValueKey('esim-archive-empty-illustration'),
+                      width: 240,
+                      height: 240,
+                      fit: BoxFit.contain,
+                      excludeFromSemantics: true,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  context.l10n.myEsimArchiveEmpty,
+                  style: context.text.h2,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
         ),

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/localization/failure_localizer.dart';
@@ -157,46 +158,6 @@ class _FormState extends State<_Form> {
     await launchUrl(url, mode: LaunchMode.inAppBrowserView);
   }
 
-  Future<void> _chooseCrypto(TopUpCubit cubit, CryptoOption current) async {
-    final l10n = context.l10n;
-    final selected = await showAppSheet<CryptoOption>(
-      context,
-      title: l10n.topUpCryptoTitle,
-      subtitle: l10n.topUpCryptoBody,
-      closeLabel: l10n.actionClose,
-      builder: (sheetContext) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.page,
-          0,
-          AppSpacing.page,
-          AppSpacing.xxl,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final option
-                in cubit.state.options?.currencies ??
-                    const <CryptoOption>[]) ...[
-              if (option != cubit.state.options!.currencies.first)
-                const SizedBox(height: AppSpacing.md),
-              _CryptoChoice(
-                option: option,
-                selected: option == current,
-                onTap: (cubit.state.amount?.cents ?? 0) < (option.minCents ?? 0)
-                    ? null
-                    : () => Navigator.of(sheetContext).pop(option),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-    if (!mounted || selected == null) return;
-    cubit
-      ..setMethod(TopUpMethod.crypto)
-      ..setCrypto(selected);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -207,6 +168,24 @@ class _FormState extends State<_Form> {
     final balance = context.watch<WalletCubit>().state.balance;
     final min = Money(state.minCents);
     final max = Money(state.options?.maxCents ?? config.maxTopUpCents);
+    final currencies = state.options?.currencies ?? const <CryptoOption>[];
+    final coins = currencies.map((option) => option.coin).toSet().toList();
+    final networks = currencies
+        .where((option) => option.coin == state.crypto.coin)
+        .toList();
+    final singleCrypto =
+        state.options?.methods.length == 1 &&
+        (state.options?.methods.contains(TopUpMethod.crypto) ?? false);
+    final presets =
+        <int>[
+              if (min.cents > _presets.first) ((min.cents + 99) ~/ 100) * 100,
+              ..._presets,
+              20000,
+              50000,
+            ]
+            .where((cents) => cents >= min.cents && cents <= max.cents)
+            .toSet()
+            .take(4);
 
     final amount = state.amount;
     final inRange =
@@ -216,148 +195,303 @@ class _FormState extends State<_Form> {
     final customText = _custom.text.trim();
     final customInvalid = customText.isNotEmpty && (amount == null || !inRange);
 
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.page),
+    return Column(
       children: [
-        AppCard(
-          color: c.surface,
-          child: Row(
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.page),
             children: [
-              Expanded(
-                child: Text(
-                  l10n.topUpCurrentBalance,
-                  style: context.text.bodyMed.copyWith(color: c.textSecondary),
+              AppCard(
+                color: c.primarySubtle,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl,
+                  vertical: AppSpacing.lg,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: c.background,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      alignment: Alignment.center,
+                      child: HugeIcon(
+                        icon: AppIcons.wallet,
+                        size: 23,
+                        color: c.primary,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.topUpCurrentBalance,
+                            style: context.text.bodySm.copyWith(
+                              color: c.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            balance?.format() ?? '—',
+                            style: context.text.h1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text(balance?.format() ?? '—', style: context.text.h1),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        Text(
-          l10n.topUpChooseAmount.toUpperCase(),
-          style: context.text.caption.copyWith(
-            color: c.textSecondary,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.6,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.md,
-          crossAxisSpacing: AppSpacing.md,
-          childAspectRatio: 2.6,
-          children: [
-            for (final cents in _presets)
-              _AmountChip(
-                label: Money(cents).format(withCents: false),
-                selected: amount?.cents == cents && customText.isEmpty,
-                onTap: () {
-                  _custom.clear();
-                  cubit.setAmount(Money(cents));
+              const SizedBox(height: AppSpacing.xxl),
+              Text(l10n.topUpMethod, style: context.text.h3),
+              const SizedBox(height: AppSpacing.md),
+              if ((state.options?.methods.contains(TopUpMethod.paypal) ??
+                  false))
+                _MethodCard(
+                  key: const ValueKey('payment-paypal'),
+                  icon: AppIcons.paypal,
+                  title: l10n.topUpPaypalTitle,
+                  body: l10n.topUpPaypalBody,
+                  selected: state.method == TopUpMethod.paypal,
+                  onTap: () => cubit.setMethod(TopUpMethod.paypal),
+                ),
+              if ((state.options?.methods.contains(TopUpMethod.paypal) ??
+                      false) &&
+                  (state.options?.methods.contains(TopUpMethod.crypto) ??
+                      false))
+                const SizedBox(height: AppSpacing.sm),
+              if ((state.options?.methods.contains(TopUpMethod.crypto) ??
+                      false) &&
+                  !singleCrypto)
+                _MethodCard(
+                  key: const ValueKey('payment-crypto'),
+                  icon: AppIcons.crypto,
+                  title: l10n.topUpCryptoTitle,
+                  body: l10n.topUpCryptoBody,
+                  selected: state.method == TopUpMethod.crypto,
+                  onTap: () => cubit.setMethod(TopUpMethod.crypto),
+                ),
+              if (state.method == TopUpMethod.crypto &&
+                  (state.options?.methods.contains(TopUpMethod.crypto) ??
+                      false)) ...[
+                const SizedBox(height: AppSpacing.md),
+                AppCard(
+                  color: c.surface,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (singleCrypto) ...[
+                        Row(
+                          children: [
+                            HugeIcon(
+                              icon: AppIcons.crypto,
+                              size: 22,
+                              color: c.primary,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(l10n.topUpCryptoTitle, style: context.text.h3),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _TopUpSelector<String>(
+                              key: const ValueKey('top-up-coin-selector'),
+                              label: l10n.cryptoCoin,
+                              value: coins.contains(state.crypto.coin)
+                                  ? state.crypto.coin
+                                  : null,
+                              options: coins,
+                              optionLabel: (coin) => coin,
+                              onChanged: (coin) {
+                                if (coin == null) return;
+                                final matching = currencies
+                                    .where((option) => option.coin == coin)
+                                    .toList();
+                                if (matching.isEmpty) return;
+                                cubit.setCrypto(
+                                  matching
+                                          .where(
+                                            (option) =>
+                                                option.network ==
+                                                state.crypto.network,
+                                          )
+                                          .firstOrNull ??
+                                      matching.first,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: _TopUpSelector<CryptoOption>(
+                              key: const ValueKey('top-up-network-selector'),
+                              label: l10n.cryptoNetwork,
+                              value: networks.contains(state.crypto)
+                                  ? state.crypto
+                                  : null,
+                              options: networks,
+                              optionLabel: (option) => option.network,
+                              onChanged: (option) {
+                                if (option != null) cubit.setCrypto(option);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: c.primarySubtle,
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                        ),
+                        child: Text(
+                          '${l10n.topUpMinimumLabel} · ${min.format()}',
+                          style: context.text.caption.copyWith(
+                            color: c.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        l10n.topUpPaymentFeeIncluded,
+                        style: context.text.caption.copyWith(
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.xxl),
+              Text(l10n.topUpChooseAmount, style: context.text.h3),
+              const SizedBox(height: AppSpacing.md),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: AppSpacing.md,
+                crossAxisSpacing: AppSpacing.md,
+                childAspectRatio: 2.6,
+                children: [
+                  for (final cents in presets)
+                    _AmountChip(
+                      label: Money(cents).format(withCents: false),
+                      selected: amount?.cents == cents && customText.isEmpty,
+                      onTap: () {
+                        _custom.clear();
+                        cubit.setAmount(Money(cents));
+                        setState(() {});
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                label: l10n.topUpOtherAmount,
+                hint: l10n.topUpAmountHint,
+                controller: _custom,
+                prefix: Text(r'$', style: context.text.bodyMed),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                ],
+                errorText: customInvalid
+                    ? l10n.topUpAmountInvalid(
+                        min.format(withCents: false),
+                        max.format(withCents: false),
+                      )
+                    : null,
+                onChanged: (text) {
+                  final cents = parseDollars(text);
+                  cubit.setAmount(cents == null ? null : Money(cents));
                   setState(() {});
                 },
               ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        AppTextField(
-          label: l10n.topUpOtherAmount,
-          hint: l10n.topUpAmountHint,
-          controller: _custom,
-          prefix: Text(r'$', style: context.text.bodyMed),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-          ],
-          helperText: l10n.topUpAmountRange(
-            min.format(withCents: false),
-            max.format(withCents: false),
+              const SizedBox(height: AppSpacing.lg),
+              AppCard(
+                color: c.surface,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    HugeIcon(
+                      icon: AppIcons.info,
+                      size: 18,
+                      color: c.textSecondary,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        l10n.topUpNote,
+                        style: context.text.caption.copyWith(
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (state.failure != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.md),
+                  child: Text(
+                    state.failure!.localize(l10n),
+                    style: context.text.bodySm.copyWith(color: c.error),
+                  ),
+                ),
+              if (config.maintenance)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Text(
+                    l10n.maintenanceBanner,
+                    textAlign: TextAlign.center,
+                    style: context.text.bodySm.copyWith(color: c.warning),
+                  ),
+                ),
+            ],
           ),
-          errorText: customInvalid
-              ? l10n.topUpAmountInvalid(
-                  min.format(withCents: false),
-                  max.format(withCents: false),
-                )
-              : null,
-          onChanged: (text) {
-            final cents = parseDollars(text);
-            cubit.setAmount(cents == null ? null : Money(cents));
-            setState(() {});
-          },
         ),
-        const SizedBox(height: AppSpacing.xl),
-        Text(
-          l10n.topUpMethod.toUpperCase(),
-          style: context.text.caption.copyWith(
-            color: c.textSecondary,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.6,
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: c.background,
+            border: Border(top: BorderSide(color: c.border)),
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if ((state.options?.methods.contains(TopUpMethod.paypal) ?? false))
-          _MethodCard(
-            key: const ValueKey('payment-paypal'),
-            icon: AppIcons.paypal,
-            title: l10n.topUpPaypalTitle,
-            body: l10n.topUpPaypalBody,
-            selected: state.method == TopUpMethod.paypal,
-            onTap: () => cubit.setMethod(TopUpMethod.paypal),
-          ),
-        if ((state.options?.methods.contains(TopUpMethod.paypal) ?? false) &&
-            (state.options?.methods.contains(TopUpMethod.crypto) ?? false))
-          const SizedBox(height: AppSpacing.sm),
-        if ((state.options?.methods.contains(TopUpMethod.crypto) ?? false))
-          _MethodCard(
-            key: const ValueKey('payment-crypto'),
-            icon: AppIcons.crypto,
-            title: l10n.topUpCryptoTitle,
-            body: state.method == TopUpMethod.crypto
-                ? state.crypto.label
-                : l10n.topUpCryptoBody,
-            selected: state.method == TopUpMethod.crypto,
-            onTap: () => _chooseCrypto(cubit, state.crypto),
-          ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          l10n.topUpNote,
-          style: context.text.caption.copyWith(color: c.textSecondary),
-        ),
-        if (state.failure != null)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.md),
-            child: Text(
-              state.failure!.localize(l10n),
-              style: context.text.bodySm.copyWith(color: c.error),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.md,
+              AppSpacing.page,
+              AppSpacing.lg,
+            ),
+            child: AppButton(
+              label: inRange
+                  ? l10n.topUpButton(
+                      amount.format(withCents: amount.cents % 100 != 0),
+                    )
+                  : l10n.topUpTitle,
+              loading:
+                  state.optionsLoading || state.phase == TopUpPhase.creating,
+              onPressed: state.options == null && !state.optionsLoading
+                  ? () => cubit.initialize()
+                  : inRange && state.canPay && !config.maintenance
+                  ? () => cubit.submit(openUrl: _openCheckout)
+                  : null,
             ),
           ),
-        const SizedBox(height: AppSpacing.xl),
-        AppButton(
-          label: inRange
-              ? l10n.topUpButton(
-                  amount.format(withCents: amount.cents % 100 != 0),
-                )
-              : l10n.topUpTitle,
-          loading: state.optionsLoading || state.phase == TopUpPhase.creating,
-          onPressed: state.options == null && !state.optionsLoading
-              ? () => cubit.initialize()
-              : inRange && state.canPay && !config.maintenance
-              ? () => cubit.submit(openUrl: _openCheckout)
-              : null,
         ),
-        if (config.maintenance)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: Text(
-              l10n.maintenanceBanner,
-              textAlign: TextAlign.center,
-              style: context.text.bodySm.copyWith(color: c.warning),
-            ),
-          ),
       ],
     );
   }
@@ -475,6 +609,76 @@ class _MethodCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TopUpSelector<T> extends StatelessWidget {
+  const _TopUpSelector({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.optionLabel,
+    required this.onChanged,
+  });
+
+  final String label;
+  final T? value;
+  final List<T> options;
+  final String Function(T) optionLabel;
+  final ValueChanged<T?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: context.text.caption.copyWith(color: c.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Container(
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: c.background,
+            border: Border.all(color: c.border),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<T>(
+              isExpanded: true,
+              value: value,
+              hint: const Text('—'),
+              icon: HugeIcon(
+                icon: AppIcons.chevronDown,
+                size: 18,
+                color: c.textSecondary,
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              dropdownColor: c.surface,
+              style: context.text.bodyMed.copyWith(
+                color: c.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+              items: [
+                for (final option in options)
+                  DropdownMenuItem<T>(
+                    value: option,
+                    child: Text(
+                      optionLabel(option),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+              onChanged: options.isEmpty ? null : onChanged,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1085,17 +1289,7 @@ class _Credited extends StatelessWidget {
       child: Column(
         children: [
           const Spacer(),
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: c.successSubtle,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: HugeIcon(icon: AppIcons.check, size: 44, color: c.success),
-            ),
-          ),
+          const _SuccessCheck(key: ValueKey('top-up-success-check')),
           const SizedBox(height: AppSpacing.xxl),
           Text(
             l10n.topUpDoneTitle,
@@ -1114,6 +1308,110 @@ class _Credited extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Plays once when the backend reports that the top-up was credited.
+class _SuccessCheck extends StatefulWidget {
+  const _SuccessCheck({super.key});
+
+  @override
+  State<_SuccessCheck> createState() => _SuccessCheckState();
+}
+
+class _SuccessCheckState extends State<_SuccessCheck>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: AppConstants.animationSlow,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller
+        ..stop()
+        ..value = 1;
+    } else if (_controller.value == 0) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return SizedBox.square(
+      dimension: 88,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final value = _controller.value;
+          final entrance = Curves.easeOutCubic.transform(value);
+          final stroke = Curves.easeOutCubic.transform(
+            ((value - 0.2) / 0.8).clamp(0.0, 1.0),
+          );
+          return Opacity(
+            opacity: (value * 4).clamp(0.0, 1.0),
+            child: Transform.scale(
+              scale: 0.94 + 0.06 * entrance,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: c.successSubtle,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: SizedBox.square(
+                    dimension: 44,
+                    child: CustomPaint(
+                      painter: _SuccessCheckPainter(
+                        progress: stroke,
+                        color: c.success,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SuccessCheckPainter extends CustomPainter {
+  const _SuccessCheckPainter({required this.progress, required this.color});
+
+  final double progress;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width * 0.22, size.height * 0.52)
+      ..lineTo(size.width * 0.43, size.height * 0.70)
+      ..lineTo(size.width * 0.79, size.height * 0.32);
+    final segment = path.computeMetrics().first;
+    canvas.drawPath(
+      segment.extractPath(0, segment.length * progress),
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SuccessCheckPainter oldDelegate) =>
+      progress != oldDelegate.progress || color != oldDelegate.color;
 }
 
 class _Expired extends StatelessWidget {

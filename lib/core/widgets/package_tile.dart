@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
+import '../constants/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 import 'app_card.dart';
@@ -112,7 +113,13 @@ class PackageTile extends StatelessWidget {
                     onPressed: selectedDays! <= minDays!
                         ? null
                         : () => onDaysChanged!(selectedDays! - 1),
-                    icon: const Icon(Icons.remove_rounded),
+                    icon: HugeIcon(
+                      icon: AppIcons.minus,
+                      size: 22,
+                      color: selectedDays! <= minDays!
+                          ? c.textSecondary
+                          : c.textPrimary,
+                    ),
                   ),
                   IconButton(
                     tooltip: selectedDays! >= maxDays!
@@ -121,7 +128,13 @@ class PackageTile extends StatelessWidget {
                     onPressed: selectedDays! >= maxDays!
                         ? null
                         : () => onDaysChanged!(selectedDays! + 1),
-                    icon: const Icon(Icons.add_rounded),
+                    icon: HugeIcon(
+                      icon: AppIcons.add,
+                      size: 22,
+                      color: selectedDays! >= maxDays!
+                          ? c.textSecondary
+                          : c.textPrimary,
+                    ),
                   ),
                 ],
               ),

@@ -154,7 +154,11 @@ void main() {
         );
       }
       expect((await b.balance()).dataOrNull, const Money(4450));
-      expect((await b.orders(OrderType.topUp)).dataOrNull, hasLength(1));
+      final topUps = (await b.orders(OrderType.topUp)).dataOrNull!;
+      expect(topUps, hasLength(1));
+      final details = (await b.payment(topUps.single.number)).dataOrNull!;
+      expect(details.status, TopUpStatus.credited);
+      expect(details.creditedAmount, const Money(2000));
     });
 
     test('crypto goes waiting → confirming → credited', () async {

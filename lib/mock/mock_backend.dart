@@ -214,6 +214,64 @@ class MockBackend {
     return Success(progress);
   }
 
+  Future<Result<TopUpSession>> payment(String id) async {
+    await _wait();
+    if (!signedIn) return Error(_unauthorized);
+    final active = _topUps[id];
+    if (active != null) {
+      final progress = (await topUpProgress(id)).dataOrNull!;
+      return Success(
+        TopUpSession(
+          id: id,
+          method: active.session.method,
+          amount: active.session.amount,
+          crypto: active.session.crypto,
+          status: progress.status,
+          creditedAmount: progress.creditedAmount,
+          createdAt: active.createdAt,
+        ),
+      );
+    }
+    final order = _orders
+        .where(
+          (item) =>
+              item.type == OrderType.topUp &&
+              item.method != null &&
+              item.number == id,
+        )
+        .firstOrNull;
+    if (order == null) return const Error(NotFoundFailure());
+    final status = switch (order.outcome) {
+      OrderOutcome.completed => TopUpStatus.credited,
+      OrderOutcome.pending => TopUpStatus.waiting,
+      OrderOutcome.review => TopUpStatus.review,
+      OrderOutcome.failed || OrderOutcome.failedRefunded => TopUpStatus.failed,
+    };
+    return Success(
+      TopUpSession(
+        id: id,
+        publicNo: int.tryParse(id),
+        method: order.method ?? TopUpMethod.crypto,
+        amount: order.amount,
+        status: status,
+        creditedAmount: status == TopUpStatus.credited ? order.amount : null,
+        createdAt: order.createdAt,
+        creditedAt: status == TopUpStatus.credited ? order.createdAt : null,
+      ),
+    );
+  }
+
+  Future<Result<WalletOrder>> order(String id) async {
+    await _wait();
+    if (!signedIn) return Error(_unauthorized);
+    final found = _orders
+        .where(
+          (item) => item.method == null && (item.id == id || item.number == id),
+        )
+        .firstOrNull;
+    return found == null ? const Error(NotFoundFailure()) : Success(found);
+  }
+
   Future<Result<List<WalletOrder>>> orders(OrderType type) async {
     await _wait();
     if (!signedIn) return Error(_unauthorized);

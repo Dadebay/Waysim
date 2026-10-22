@@ -949,6 +949,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get topUpCryptoBody => '选择币种和网络';
 
   @override
+  String get topUpMinimumLabel => '最低充值金额';
+
+  @override
+  String get topUpPaymentFeeIncluded => '支付手续费已包含在应发送金额中';
+
+  @override
   String get topUpNote => '余额仅可用于购买 eSIM 套餐，不可提现。未使用的充值可按退款政策退还。支付服务商可能收取手续费。';
 
   @override
@@ -1075,6 +1081,117 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ordersEmptyActivity => '暂无余额变动记录';
+
+  @override
+  String get paymentDetailTitle => '付款详情';
+
+  @override
+  String get paymentDetailBreakdown => '付款明细';
+
+  @override
+  String get paymentDetailTransaction => '交易详情';
+
+  @override
+  String get orderDetailTitle => '订单详情';
+
+  @override
+  String get activityDetailTitle => '交易详情';
+
+  @override
+  String get detailOrderNumber => '订单编号';
+
+  @override
+  String get detailStatus => '状态';
+
+  @override
+  String get detailPackage => '套餐';
+
+  @override
+  String get detailFailureReason => '失败原因';
+
+  @override
+  String get detailCompletedAt => '完成时间';
+
+  @override
+  String get detailEsimId => 'eSIM ID';
+
+  @override
+  String get detailOrderId => '订单 ID';
+
+  @override
+  String get detailViewEsim => '查看 eSIM';
+
+  @override
+  String get detailType => '类型';
+
+  @override
+  String get detailNote => '备注';
+
+  @override
+  String get detailBalanceAfter => '交易后余额';
+
+  @override
+  String get detailReference => '关联记录';
+
+  @override
+  String get detailEntryId => '交易 ID';
+
+  @override
+  String get detailViewReference => '查看关联详情';
+
+  @override
+  String get paymentDetailTopUpAmount => '充值金额';
+
+  @override
+  String get paymentDetailNumber => '付款编号';
+
+  @override
+  String get paymentDetailDate => '创建时间';
+
+  @override
+  String get paymentDetailCurrency => '币种和网络';
+
+  @override
+  String get paymentDetailExpected => '应付金额';
+
+  @override
+  String get paymentDetailReceived => '实收金额';
+
+  @override
+  String get paymentDetailFee => '支付手续费';
+
+  @override
+  String get paymentDetailTotal => '美元总额';
+
+  @override
+  String get paymentDetailProviderStatus => '支付服务商状态';
+
+  @override
+  String get paymentDetailTransactionId => '交易 ID';
+
+  @override
+  String get paymentDetailCredited => '已充入余额';
+
+  @override
+  String get paymentDetailCreditedAt => '入账时间';
+
+  @override
+  String get paymentDetailId => '付款 ID';
+
+  @override
+  String get paymentDetailContinue => '查看付款说明';
+
+  @override
+  String get paymentDetailReview => '此付款需人工审核后才能更新余额。';
+
+  @override
+  String get paymentDetailOverpaid => '支付服务商收到的金额高于应付金额。客服审核后会更新您的余额。';
+
+  @override
+  String get paymentDetailUnderpaid => '支付服务商收到的金额低于应付金额。客服审核后会更新您的余额。';
+
+  @override
+  String get paymentDetailLate => '付款在支付期限结束后到账。客服审核后会更新您的余额。';
 
   @override
   String orderNumberDate(String number, String date) {

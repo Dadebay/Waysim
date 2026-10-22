@@ -16,6 +16,11 @@ class WalletOrder extends Equatable {
     required this.amount,
     required this.createdAt,
     required this.destinationNames,
+    this.id,
+    this.slug,
+    this.esimId,
+    this.failedReason,
+    this.doneAt,
     this.volumeBytes,
     this.days,
     this.unlimited = false,
@@ -25,6 +30,11 @@ class WalletOrder extends Equatable {
   });
 
   final String number;
+  final String? id;
+  final String? slug;
+  final String? esimId;
+  final String? failedReason;
+  final DateTime? doneAt;
   final OrderType type;
   final OrderOutcome outcome;
 
@@ -49,6 +59,11 @@ class WalletOrder extends Equatable {
   @override
   List<Object?> get props => [
     number,
+    id,
+    slug,
+    esimId,
+    failedReason,
+    doneAt,
     type,
     outcome,
     amount,
@@ -73,6 +88,10 @@ class TopUpSession extends Equatable {
     required this.id,
     required this.method,
     required this.amount,
+    this.publicNo,
+    this.rawStatus,
+    this.createdAt,
+    this.creditedAt,
     this.checkoutUrl,
     this.crypto,
     this.status = TopUpStatus.waiting,
@@ -80,8 +99,12 @@ class TopUpSession extends Equatable {
   });
 
   final String id;
+  final int? publicNo;
   final TopUpMethod method;
   final Money amount;
+  final String? rawStatus;
+  final DateTime? createdAt;
+  final DateTime? creditedAt;
 
   /// PayPal: the page to open in the in-app browser.
   final Uri? checkoutUrl;
@@ -92,7 +115,23 @@ class TopUpSession extends Equatable {
   final Money? creditedAmount;
 
   @override
-  List<Object?> get props => [id, method, amount, checkoutUrl, crypto, status];
+  List<Object?> get props => [
+    id,
+    publicNo,
+    method,
+    amount,
+    rawStatus,
+    createdAt,
+    creditedAt,
+    checkoutUrl,
+    crypto,
+    status,
+    creditedAmount,
+  ];
+
+  @override
+  String toString() =>
+      'TopUpSession(id: $id, publicNo: $publicNo, status: ${status.name}, amount: $amount)';
 }
 
 class CryptoInvoice extends Equatable {
@@ -104,6 +143,11 @@ class CryptoInvoice extends Equatable {
     required this.rateText,
     required this.expiresAt,
     required this.requiredConfirmations,
+    this.paidAmountText,
+    this.providerStatus,
+    this.feeCents,
+    this.totalCents,
+    this.txid,
     this.memo,
     this.qrValue,
   });
@@ -114,6 +158,11 @@ class CryptoInvoice extends Equatable {
 
   /// Exact amount to send, as a string ("20.00") — never a double.
   final String amountText;
+  final String? paidAmountText;
+  final String? providerStatus;
+  final int? feeCents;
+  final int? totalCents;
+  final String? txid;
 
   /// "1 USDT = $1.00".
   final String rateText;
@@ -128,12 +177,21 @@ class CryptoInvoice extends Equatable {
     network,
     address,
     amountText,
+    paidAmountText,
+    providerStatus,
+    feeCents,
+    totalCents,
+    txid,
     rateText,
     expiresAt,
     requiredConfirmations,
     memo,
     qrValue,
   ];
+
+  @override
+  String toString() =>
+      'CryptoInvoice(coin: $coin, network: $network, amount: $amountText, paid: $paidAmountText)';
 }
 
 /// Where a top-up stands.
@@ -169,6 +227,7 @@ class CryptoOption extends Equatable {
   final String? logoUrl;
 
   static const usdtTrc20 = CryptoOption('USDT', 'TRC-20');
+  static const usdtBep20 = CryptoOption('USDT', 'BEP-20');
 
   String get label => '$coin · $network';
 

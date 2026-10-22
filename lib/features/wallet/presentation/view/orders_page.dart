@@ -14,6 +14,7 @@ import '../../../../core/widgets/segmented_tabs.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/tab_switcher.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../app/router/app_routes.dart';
 import '../../domain/entities/wallet_entities.dart';
 import '../../domain/repositories/wallet_repository.dart';
 
@@ -135,7 +136,15 @@ class _ActivityList extends StatelessWidget {
                   itemCount: data.length,
                   separatorBuilder: (_, _) =>
                       Divider(color: context.colors.border, height: 1),
-                  itemBuilder: (_, i) => _ActivityTile(entry: data[i]),
+                  itemBuilder: (_, i) => _ActivityTile(
+                    entry: data[i],
+                    onTap: () => context.push(
+                      AppRoute.activityDetail.withParams({
+                        'id': '${data[i]['id']}',
+                      }),
+                      extra: data[i],
+                    ),
+                  ),
                 ),
               ),
     };
@@ -143,9 +152,10 @@ class _ActivityList extends StatelessWidget {
 }
 
 class _ActivityTile extends StatelessWidget {
-  const _ActivityTile({required this.entry});
+  const _ActivityTile({required this.entry, required this.onTap});
 
   final Map<String, dynamic> entry;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -155,47 +165,56 @@ class _ActivityTile extends StatelessWidget {
     final date = DateTime.tryParse(entry['createdAt'] as String? ?? '');
     final title = entry['title'] as String?;
     final note = entry['note'] as String?;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title?.isNotEmpty == true ? title! : l10n.ordersTabActivity,
-                  style: context.text.bodyMed.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (note?.isNotEmpty == true)
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    note!,
-                    style: context.text.caption.copyWith(
-                      color: c.textSecondary,
+                    title?.isNotEmpty == true ? title! : l10n.ordersTabActivity,
+                    style: context.text.bodyMed.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                if (date != null)
-                  Text(
-                    l10n.orderDate(date),
-                    style: context.text.caption.copyWith(
-                      color: c.textSecondary,
+                  if (note?.isNotEmpty == true)
+                    Text(
+                      note!,
+                      style: context.text.caption.copyWith(
+                        color: c.textSecondary,
+                      ),
                     ),
-                  ),
-              ],
+                  if (date != null)
+                    Text(
+                      l10n.orderDate(date),
+                      style: context.text.caption.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Text(
-            '${cents > 0 ? '+' : ''}${Money(cents).format()}',
-            style: context.text.bodyMed.copyWith(
-              fontWeight: FontWeight.w700,
-              color: cents > 0 ? c.success : null,
+            const SizedBox(width: AppSpacing.md),
+            Text(
+              '${cents > 0 ? '+' : ''}${Money(cents).format()}',
+              style: context.text.bodyMed.copyWith(
+                fontWeight: FontWeight.w700,
+                color: cents > 0 ? c.success : null,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.xs),
+            HugeIcon(
+              icon: AppIcons.chevronRight,
+              size: 18,
+              color: c.textSecondary,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -237,7 +256,22 @@ class _OrderList extends StatelessWidget {
                   itemCount: data.length,
                   separatorBuilder: (_, _) =>
                       Divider(color: context.colors.border, height: 1),
-                  itemBuilder: (_, i) => _OrderTile(order: data[i]),
+                  itemBuilder: (_, i) => _OrderTile(
+                    order: data[i],
+                    onTap: () async {
+                      final order = data[i];
+                      await context.push(
+                        order.method != null
+                            ? AppRoute.paymentDetail.withParams({
+                                'id': order.id ?? order.number,
+                              })
+                            : AppRoute.orderDetail.withParams({
+                                'id': order.id ?? order.number,
+                              }),
+                      );
+                      if (context.mounted) await cubit.load(silent: true);
+                    },
+                  ),
                 ),
               ),
     };
@@ -304,9 +338,10 @@ class _OrdersEmptyState extends StatelessWidget {
 }
 
 class _OrderTile extends StatelessWidget {
-  const _OrderTile({required this.order});
+  const _OrderTile({required this.order, this.onTap});
 
   final WalletOrder order;
+  final VoidCallback? onTap;
 
   String _title(AppLocalizations l10n) {
     if (order.serverTitle?.isNotEmpty == true) return order.serverTitle!;
@@ -334,71 +369,84 @@ class _OrderTile extends StatelessWidget {
         order.method != null &&
         order.outcome == OrderOutcome.completed;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _title(l10n),
+                    style: context.text.bodyMed.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.orderNumberDate(
+                      order.number,
+                      l10n.orderDate(order.createdAt),
+                    ),
+                    style: context.text.caption.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  _title(l10n),
+                  credit
+                      ? '+${order.amount.format()}'
+                      : order.outcome != OrderOutcome.completed
+                      ? order.amount.format()
+                      : '−${order.amount.format()}',
                   style: context.text.bodyMed.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    color: credit ? c.success : null,
+                    decoration: failed ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  l10n.orderNumberDate(
-                    order.number,
-                    l10n.orderDate(order.createdAt),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 140),
+                  child: Text(
+                    switch (order.outcome) {
+                      OrderOutcome.completed => l10n.orderCompleted,
+                      OrderOutcome.failedRefunded => l10n.statusFailedRefunded,
+                      OrderOutcome.pending => l10n.paymentPending,
+                      OrderOutcome.review => l10n.paymentReview,
+                      OrderOutcome.failed => l10n.statusFailed,
+                    },
+                    textAlign: TextAlign.end,
+                    style: context.text.caption.copyWith(
+                      color: order.outcome == OrderOutcome.completed
+                          ? c.success
+                          : c.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  style: context.text.caption.copyWith(color: c.textSecondary),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                credit
-                    ? '+${order.amount.format()}'
-                    : order.outcome != OrderOutcome.completed
-                    ? order.amount.format()
-                    : '−${order.amount.format()}',
-                style: context.text.bodyMed.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: credit ? c.success : null,
-                  decoration: failed ? TextDecoration.lineThrough : null,
-                ),
-              ),
-              const SizedBox(height: 2),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 140),
-                child: Text(
-                  switch (order.outcome) {
-                    OrderOutcome.completed => l10n.orderCompleted,
-                    OrderOutcome.failedRefunded => l10n.statusFailedRefunded,
-                    OrderOutcome.pending => l10n.paymentPending,
-                    OrderOutcome.review => l10n.paymentReview,
-                    OrderOutcome.failed => l10n.statusFailed,
-                  },
-                  textAlign: TextAlign.end,
-                  style: context.text.caption.copyWith(
-                    color: order.outcome == OrderOutcome.completed
-                        ? c.success
-                        : c.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+            if (onTap != null) ...[
+              const SizedBox(width: AppSpacing.xs),
+              HugeIcon(
+                icon: AppIcons.chevronRight,
+                size: 18,
+                color: c.textSecondary,
               ),
             ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

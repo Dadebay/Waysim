@@ -1008,6 +1008,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get topUpCryptoBody => 'Choose a coin and network';
 
   @override
+  String get topUpMinimumLabel => 'Minimum top-up';
+
+  @override
+  String get topUpPaymentFeeIncluded =>
+      'Payment fee is included in the amount to send';
+
+  @override
   String get topUpNote =>
       'Your balance is spent only on eSIM plans and can’t be withdrawn. An unused top-up can be refunded under the Refund Policy. The payment service may charge a fee.';
 
@@ -1138,6 +1145,121 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ordersEmptyActivity => 'No balance activity yet';
+
+  @override
+  String get paymentDetailTitle => 'Payment details';
+
+  @override
+  String get paymentDetailBreakdown => 'Payment breakdown';
+
+  @override
+  String get paymentDetailTransaction => 'Transaction details';
+
+  @override
+  String get orderDetailTitle => 'Order details';
+
+  @override
+  String get activityDetailTitle => 'Activity details';
+
+  @override
+  String get detailOrderNumber => 'Order number';
+
+  @override
+  String get detailStatus => 'Status';
+
+  @override
+  String get detailPackage => 'Package';
+
+  @override
+  String get detailFailureReason => 'Failure reason';
+
+  @override
+  String get detailCompletedAt => 'Completed at';
+
+  @override
+  String get detailEsimId => 'eSIM ID';
+
+  @override
+  String get detailOrderId => 'Order ID';
+
+  @override
+  String get detailViewEsim => 'View eSIM';
+
+  @override
+  String get detailType => 'Type';
+
+  @override
+  String get detailNote => 'Note';
+
+  @override
+  String get detailBalanceAfter => 'Balance after';
+
+  @override
+  String get detailReference => 'Related record';
+
+  @override
+  String get detailEntryId => 'Activity ID';
+
+  @override
+  String get detailViewReference => 'View related details';
+
+  @override
+  String get paymentDetailTopUpAmount => 'Top-up amount';
+
+  @override
+  String get paymentDetailNumber => 'Payment number';
+
+  @override
+  String get paymentDetailDate => 'Created';
+
+  @override
+  String get paymentDetailCurrency => 'Coin and network';
+
+  @override
+  String get paymentDetailExpected => 'Amount requested';
+
+  @override
+  String get paymentDetailReceived => 'Amount received';
+
+  @override
+  String get paymentDetailFee => 'Payment fee';
+
+  @override
+  String get paymentDetailTotal => 'Total in USD';
+
+  @override
+  String get paymentDetailProviderStatus => 'Provider status';
+
+  @override
+  String get paymentDetailTransactionId => 'Transaction ID';
+
+  @override
+  String get paymentDetailCredited => 'Added to balance';
+
+  @override
+  String get paymentDetailCreditedAt => 'Credited';
+
+  @override
+  String get paymentDetailId => 'Payment ID';
+
+  @override
+  String get paymentDetailContinue => 'View payment instructions';
+
+  @override
+  String get paymentDetailReview =>
+      'This payment needs a manual review before the balance can be updated.';
+
+  @override
+  String get paymentDetailOverpaid =>
+      'The payment provider received more than requested. Support will review the payment before updating your balance.';
+
+  @override
+  String get paymentDetailUnderpaid =>
+      'The payment provider received less than requested. Support will review the payment before updating your balance.';
+
+  @override
+  String get paymentDetailLate =>
+      'The payment arrived after the payment window ended. Support will review it before updating your balance.';
 
   @override
   String orderNumberDate(String number, String date) {

@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../core/utils/formatters/money.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/wallet_entities.dart';
@@ -30,7 +31,7 @@ class TopUpState extends Equatable {
   const TopUpState({
     this.amount,
     this.method = TopUpMethod.paypal,
-    this.crypto = CryptoOption.usdtTrc20,
+    this.crypto = CryptoOption.usdtBep20,
     this.phase = TopUpPhase.form,
     this.session,
     this.progress = const TopUpProgress(TopUpStatus.waiting),
@@ -92,6 +93,13 @@ class TopUpState extends Equatable {
     progress,
     failure,
   ];
+
+  @override
+  String toString() =>
+      'TopUpState(amount: $amount, method: ${method.name}, '
+      'currency: ${crypto.label}, phase: ${phase.name}, '
+      'status: ${progress.status.name}, paymentId: ${session?.id}, '
+      'failure: ${failure?.code})';
 }
 
 /// Tops up the balance: form → payment → credited. One screen, one cubit.
@@ -112,6 +120,7 @@ class TopUpCubit extends Cubit<TopUpState> {
 
   Timer? _poll;
   bool _checking = false;
+  bool _loggedFirstStatusCheck = false;
   bool _visible = true;
   String _key = const Uuid().v4();
 
@@ -125,26 +134,69 @@ class TopUpCubit extends Cubit<TopUpState> {
         final method = data.methods.contains(state.method)
             ? state.method
             : (data.methods.firstOrNull ?? TopUpMethod.crypto);
+        final crypto =
+            data.currencies
+                .where(
+                  (option) =>
+                      option.coin == state.crypto.coin &&
+                      option.network == state.crypto.network,
+                )
+                .firstOrNull ??
+            data.currencies.firstOrNull ??
+            state.crypto;
+        final minCents =
+            crypto.minCents != null && crypto.minCents! > data.minCents
+            ? crypto.minCents!
+            : data.minCents;
+        final bep20Available = data.currencies.any(
+          (option) => option.coin == 'USDT' && option.network == 'BEP-20',
+        );
+        AppLogger.group(
+          '[TOPUP] Payment options loaded',
+          level: Level.info,
+          lines: [
+            'selected=${crypto.label} code=${crypto.code ?? 'missing'}',
+            'minimum=${Money(minCents).format()} maximum=${Money(data.maxCents).format()}',
+            'USDT/BEP-20 available=$bep20Available',
+          ],
+        );
         emit(
           state.copyWith(
             options: data,
             optionsLoading: false,
             method: method,
-            crypto: data.currencies.firstOrNull ?? state.crypto,
+            crypto: crypto,
             failure: () => null,
           ),
         );
-        final pending = paymentId == null
-            ? data.pending
-            : (await _repository.payment(paymentId)).dataOrNull;
+        var pending = data.pending;
+        if (paymentId != null) {
+          final paymentResult = await _repository.payment(paymentId);
+          if (paymentResult case Error(:final failure)) {
+            _logFailure('Existing payment load failed', failure, Level.warning);
+          }
+          pending = paymentResult.dataOrNull;
+        }
         if (isClosed) return;
-        if (pending != null) _openSession(pending);
+        if (pending != null) {
+          AppLogger.group(
+            '[TOPUP] Existing payment resumed',
+            level: Level.info,
+            lines: [
+              'paymentId=${pending.id} status=${pending.status.name}',
+              'amount=${pending.amount.format()} method=${pending.method.name}',
+            ],
+          );
+          _openSession(pending);
+        }
       case Error(:final failure):
+        _logFailure('Payment options failed', failure);
         emit(state.copyWith(optionsLoading: false, failure: () => failure));
     }
   }
 
   void _openSession(TopUpSession session) {
+    _loggedFirstStatusCheck = false;
     final selectedCrypto = state.options?.currencies
         .where(
           (option) =>
@@ -190,6 +242,14 @@ class TopUpCubit extends Cubit<TopUpState> {
 
   void setAmount(Money? amount) {
     _key = const Uuid().v4();
+    if (amount != null &&
+        amount.cents != state.amount?.cents &&
+        state.options != null &&
+        amount.cents < state.minCents) {
+      AppLogger.w(
+        '[TOPUP] ${amount.format()} is below the ${Money(state.minCents).format()} minimum; payment request blocked',
+      );
+    }
     emit(state.copyWith(amount: () => amount, failure: () => null));
   }
 
@@ -200,6 +260,14 @@ class TopUpCubit extends Cubit<TopUpState> {
 
   void setCrypto(CryptoOption option) {
     _key = const Uuid().v4();
+    AppLogger.group(
+      '[TOPUP] Currency selected',
+      level: Level.info,
+      lines: [
+        'coin=${option.coin} network=${option.network} code=${option.code ?? 'missing'}',
+        'networkMinimum=${option.minCents == null ? 'unknown' : Money(option.minCents!).format()}',
+      ],
+    );
     emit(state.copyWith(crypto: option));
   }
 
@@ -214,8 +282,25 @@ class TopUpCubit extends Cubit<TopUpState> {
         !state.canPay ||
         amount.cents < state.minCents ||
         amount.cents > state.options!.maxCents) {
+      AppLogger.group(
+        '[TOPUP] Payment request blocked',
+        level: Level.warning,
+        lines: [
+          'amount=${amount?.format() ?? 'missing'} minimum=${Money(state.minCents).format()} maximum=${Money(state.options!.maxCents).format()}',
+          'method=${state.method.name} currency=${state.crypto.label} available=${state.canPay}',
+        ],
+      );
       return;
     }
+    AppLogger.group(
+      '[TOPUP] Creating payment',
+      level: Level.debug,
+      lines: [
+        'amount=${amount.format()} method=${state.method.name}',
+        if (state.method == TopUpMethod.crypto)
+          'currency=${state.crypto.label} code=${state.crypto.code ?? 'missing'}',
+      ],
+    );
     emit(state.copyWith(phase: TopUpPhase.creating, failure: () => null));
 
     final result = await _repository.createTopUp(
@@ -232,6 +317,16 @@ class TopUpCubit extends Cubit<TopUpState> {
 
     switch (result) {
       case Success(:final data):
+        AppLogger.group(
+          '[TOPUP] Payment created',
+          level: Level.info,
+          lines: [
+            'paymentId=${data.id} status=${data.status.name}',
+            'expectedBalanceCredit=${data.amount.format()}',
+            if (data.crypto != null)
+              'send=${data.crypto!.amountText} ${data.crypto!.coin} network=${data.crypto!.network}',
+          ],
+        );
         _analytics.startedTopUp(method: state.method.name, amount: amount);
         _openSession(data);
         final url = data.checkoutUrl;
@@ -243,6 +338,7 @@ class TopUpCubit extends Cubit<TopUpState> {
           }
         }
       case Error(:final failure):
+        _logFailure('Payment creation failed', failure);
         emit(state.copyWith(phase: TopUpPhase.form, failure: () => failure));
     }
   }
@@ -271,6 +367,23 @@ class TopUpCubit extends Cubit<TopUpState> {
       return;
     }
     if (result case Success(:final data)) {
+      if (!_loggedFirstStatusCheck || data.status != state.progress.status) {
+        AppLogger.group(
+          '[TOPUP] Payment status received',
+          level:
+              data.status == TopUpStatus.failed ||
+                  data.status == TopUpStatus.expired ||
+                  data.status == TopUpStatus.review
+              ? Level.warning
+              : Level.info,
+          lines: [
+            'paymentId=$sessionId status=${data.status.name} previous=${state.progress.status.name}',
+            if (data.creditedAmount != null)
+              'credited=${data.creditedAmount!.format()}',
+          ],
+        );
+      }
+      _loggedFirstStatusCheck = true;
       switch (data.status) {
         case TopUpStatus.credited:
           _poll?.cancel();
@@ -296,7 +409,26 @@ class TopUpCubit extends Cubit<TopUpState> {
             TopUpStatus.review:
           emit(state.copyWith(progress: data));
       }
+    } else if (result case Error(:final failure)) {
+      _logFailure('Payment status check failed', failure, Level.warning);
     }
+  }
+
+  void _logFailure(
+    String action,
+    Failure failure, [
+    Level level = Level.error,
+  ]) {
+    final serverMinimum = failure.details?['minCents'];
+    AppLogger.group(
+      '[TOPUP] $action',
+      level: level,
+      lines: [
+        'code=${failure.code} http=${failure.statusCode ?? 'n/a'}',
+        if (serverMinimum is num)
+          'serverMinimum=${Money(serverMinimum.toInt()).format()}',
+      ],
+    );
   }
 
   /// Leave an unpaid crypto invoice and choose another amount. The invoice

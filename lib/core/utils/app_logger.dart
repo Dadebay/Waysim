@@ -104,7 +104,7 @@ class _ConsolePrinter extends LogPrinter {
     final headline = message is LogGroup ? message.title : '$message';
     final lines = <String>[
       if (message is LogGroup) AnsiColor.paint(_rule, AnsiColor.dim),
-      '${AnsiColor.paint('$color${AnsiColor.bold}$label', color)} '
+      '${AnsiColor.paint('${AnsiColor.bold}$label', color)} '
           '${AnsiColor.paint(time, AnsiColor.grey)} '
           '${AnsiColor.paint(headline, color)}',
       if (message is LogGroup)

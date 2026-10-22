@@ -156,7 +156,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('crypto choice stays on the card and opens its invoice', (
+  testWidgets('coin and network selectors open the chosen crypto invoice', (
     tester,
   ) async {
     phone(tester);
@@ -166,23 +166,49 @@ void main() {
 
     await tester.tap(find.text(r'$24.50'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(r'$20'));
-    await tester.pumpAndSettle();
+    expect(find.text(r'From $5 to $500'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('payment-crypto')));
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.byType(AppSheetFrame), findsOneWidget);
-    expect(find.text('USDT'), findsNWidgets(2));
-    expect(find.text('USDC'), findsOneWidget);
-    expect(find.text('TRC-20'), findsOneWidget);
-    expect(find.text('ERC-20'), findsNWidgets(2));
-
-    await tester.tap(find.text('USDC'));
-    await tester.pumpAndSettle();
     expect(find.byType(AppSheetFrame), findsNothing);
-    expect(find.text('USDC · ERC-20'), findsOneWidget);
+    expect(find.text('Coin'), findsOneWidget);
+    expect(find.text('Network'), findsOneWidget);
+    expect(find.text('USDT'), findsOneWidget);
+    expect(find.text('TRC-20'), findsOneWidget);
+    expect(find.text(r'Minimum top-up · $5.00'), findsOneWidget);
+    expect(
+      find.text('Payment fee is included in the amount to send'),
+      findsOneWidget,
+    );
 
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('top-up-network-selector')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('top-up-network-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ERC-20').last);
+    await tester.pumpAndSettle();
+    expect(find.text('ERC-20'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('top-up-coin-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('USDC').last);
+    await tester.pumpAndSettle();
+    expect(find.text('USDC'), findsOneWidget);
+    expect(find.text('ERC-20'), findsOneWidget);
+
+    await tester.ensureVisible(find.text(r'$20'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'$20'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(r'Top up $20'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text(r'Top up $20'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
@@ -207,7 +233,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('payment-crypto')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('USDC'));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('top-up-coin-selector')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('top-up-coin-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('USDC').last);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(r'Top up $20'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text(r'Top up $20'));
     await tester.pump();
@@ -236,9 +274,23 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(QrImageView), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text(r'Top up $20'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.text(r'Top up $20'), findsOneWidget);
 
+    await tester.ensureVisible(find.text(r'$50'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(r'$50'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(r'Top up $50'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text(r'Top up $50'));
     await tester.pump();
@@ -266,7 +318,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('payment-crypto')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('TRC-20'));
+    expect(find.text('TRC-20'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(r'Top up $20'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text(r'Top up $20'));
     await tester.pump();

@@ -746,11 +746,11 @@ void main() {
         repository: repo,
         wallet: wallet,
         analytics: RecordingAnalytics(),
-        initialAmount: const Money(500),
       );
       addTearDown(cubit.close);
       addTearDown(wallet.close);
       await cubit.initialize();
+      cubit.setAmount(const Money(200));
       await cubit.submit();
       expect(cubit.state.minCents, 879);
       expect(adapter.requests.where((o) => o.method == 'POST'), isEmpty);
@@ -761,6 +761,106 @@ void main() {
       cubit.setVisible(false);
     },
   );
+
+  test(
+    'payment details load by public number with received amount and fee',
+    () async {
+      final adapter = ContractAdapter(
+        (request) => switch (request.path) {
+          '/v1/payments/58008' => {
+            ...payment('review_overpaid'),
+            'publicNo': 58008,
+            'amountCents': 100,
+            'creditedCents': null,
+            'creditedAt': null,
+            'crypto': {
+              ...payment()['crypto'] as Map<String, dynamic>,
+              'payAmount': '1.02803431',
+              'paidAmount': '4.99',
+              'providerStatus': 'finished',
+              'feeCents': 3,
+              'totalCents': 103,
+            },
+          },
+          _ => throw StateError('Unexpected ${request.path}'),
+        },
+      );
+      final repo = ApiWalletRepository(ApiClient(transport(adapter)));
+      final details = (await repo.payment('58008')).dataOrNull!;
+
+      expect(adapter.requests.single.path, '/v1/payments/58008');
+      expect(details.publicNo, 58008);
+      expect(details.status, TopUpStatus.review);
+      expect(details.rawStatus, 'review_overpaid');
+      expect(details.amount.cents, 100);
+      expect(details.creditedAmount, isNull);
+      expect(details.crypto!.amountText, '1.02803431');
+      expect(details.crypto!.paidAmountText, '4.99');
+      expect(details.crypto!.providerStatus, 'finished');
+      expect(details.crypto!.feeCents, 3);
+      expect(details.crypto!.totalCents, 103);
+      expect(details.toString(), isNot(contains('public-address')));
+    },
+  );
+
+  test('purchase order details load by UUID', () async {
+    final adapter = ContractAdapter(
+      (request) => switch (request.path) {
+        '/v1/orders/order-uuid' => {
+          'id': 'order-uuid',
+          'publicNo': 10234,
+          'kind': 'purchase',
+          'status': 'done',
+          'title': 'Türkiye 5 GB',
+          'slug': 'TR_5_30',
+          'amountCents': 599,
+          'esimId': 'esim-uuid',
+          'createdAt': '2026-10-22T10:00:00Z',
+          'doneAt': '2026-10-22T10:00:30Z',
+        },
+        _ => throw StateError('Unexpected ${request.path}'),
+      },
+    );
+    final repo = ApiWalletRepository(ApiClient(transport(adapter)));
+    final order = (await repo.order('order-uuid')).dataOrNull!;
+
+    expect(adapter.requests.single.path, '/v1/orders/order-uuid');
+    expect(order.number, '10234');
+    expect(order.outcome, OrderOutcome.completed);
+    expect(order.slug, 'TR_5_30');
+    expect(order.esimId, 'esim-uuid');
+    expect(order.doneAt, DateTime.utc(2026, 10, 22, 10, 0, 30));
+  });
+
+  test('purchase history reads order list and maps its status', () async {
+    final adapter = ContractAdapter(
+      (request) => switch (request.path) {
+        '/v1/orders' => {
+          'items': [
+            {
+              'id': 'order-uuid',
+              'publicNo': 10234,
+              'kind': 'purchase',
+              'status': 'processing',
+              'title': 'Türkiye 5 GB',
+              'amountCents': 599,
+              'createdAt': '2026-10-22T10:00:00Z',
+            },
+          ],
+          'nextCursor': null,
+        },
+        _ => throw StateError('Unexpected ${request.path}'),
+      },
+    );
+    final result = await ApiWalletRepository(
+      ApiClient(transport(adapter)),
+    ).orders(OrderType.purchase);
+
+    expect(adapter.requests.single.path, '/v1/orders');
+    expect(result.dataOrNull, hasLength(1));
+    expect(result.dataOrNull!.single.id, 'order-uuid');
+    expect(result.dataOrNull!.single.outcome, OrderOutcome.pending);
+  });
 
   test(
     'a late poll cannot reopen an invoice after choosing another amount',
@@ -900,15 +1000,19 @@ void main() {
         options.map((option) => option.code),
         currencies.map((item) => item['code']),
       );
+      expect(cubit.state.crypto.code, 'usdtbsc');
+      expect(cubit.state.minCents, 896);
 
       await cubit.submit();
-      expect(cubit.state.session!.crypto!.network, 'TRC-20');
+      expect(cubit.state.session!.crypto!.network, 'BEP-20');
+      expect(cubit.state.toString(), isNot(contains('address-usdtbsc')));
+      expect(cubit.state.toString(), isNot(contains('qr:usdtbsc')));
       final firstId = cubit.state.session!.id;
-      await cubit.changeCryptoInvoice(options[1]);
+      await cubit.changeCryptoInvoice(options[0]);
       expect(cubit.state.session!.id, isNot(firstId));
-      expect(cubit.state.session!.crypto!.address, 'address-usdtbsc');
-      expect(cubit.state.session!.crypto!.qrValue, 'qr:usdtbsc');
-      expect(body(adapter.requests.last)['payCurrency'], 'usdtbsc');
+      expect(cubit.state.session!.crypto!.address, 'address-usdttrc20');
+      expect(cubit.state.session!.crypto!.qrValue, 'qr:usdttrc20');
+      expect(body(adapter.requests.last)['payCurrency'], 'usdttrc20');
 
       await cubit.changeCryptoInvoice(options[2]);
       expect(created, 2); // This network requires more than the chosen $25.

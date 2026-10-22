@@ -3,6 +3,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_helpers.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/utils/formatters/money.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/result.dart';
 import '../../esim/data/api_esim_repository.dart';
 import '../domain/repositories/purchase_repository.dart';
@@ -56,7 +57,18 @@ class ApiPurchaseRepository implements PurchaseRepository {
   }) => apiResult(() async {
     Map<String, dynamic> order;
     var interval = 2000;
+    final elapsed = Stopwatch()..start();
+    final kind = path == '/v1/orders' ? 'purchase' : 'add-on';
+    final keyTag = key.length <= 8 ? key : key.substring(0, 8);
     final existing = _orders[key];
+    AppLogger.group(
+      '[ORDER] ${existing == null ? 'Create' : 'Resume'} $kind',
+      lines: [
+        'packageId=$packageId days=${days ?? '-'} key=$keyTag',
+        if (existing != null) 'orderId=$existing',
+      ],
+      level: Level.info,
+    );
     if (existing != null) {
       order = asMap(
         await api.get('/v1/orders/${Uri.encodeComponent(existing)}'),
@@ -73,22 +85,55 @@ class ApiPurchaseRepository implements PurchaseRepository {
       interval = result.intVal('pollAfterMs', 2000).clamp(1000, 10000);
       _orders[key] = order.str('id');
     }
+    final orderId = order.str('id');
+    var status = order.str('status');
+    var polls = 0;
+    AppLogger.group(
+      '[ORDER] Accepted $kind',
+      lines: [
+        'orderId=$orderId number=${order['publicNo'] ?? '-'} status=$status',
+        'amountCents=${order['amountCents'] ?? '-'} pollAfterMs=$interval',
+      ],
+      level: Level.info,
+    );
     final deadline = DateTime.now().add(const Duration(minutes: 10));
-    while (order.str('status') == 'pending' ||
-        order.str('status') == 'processing') {
+    while (status == 'pending' || status == 'processing') {
       if (cancelled?.call() ?? false) {
+        AppLogger.w(
+          '[ORDER] View closed; orderId=$orderId continues on server',
+        );
         throw const NetworkException('Order continues on the server');
       }
-      if (DateTime.now().isAfter(deadline)) throw const TimeoutException();
+      if (DateTime.now().isAfter(deadline)) {
+        AppLogger.w(
+          '[ORDER] Poll timeout orderId=$orderId status=$status polls=$polls',
+        );
+        throw const TimeoutException();
+      }
       await delay(Duration(milliseconds: interval));
       if (cancelled?.call() ?? false) {
+        AppLogger.w(
+          '[ORDER] View closed; orderId=$orderId continues on server',
+        );
         throw const NetworkException('Order continues on the server');
       }
       order = asMap(
-        await api.get('/v1/orders/${Uri.encodeComponent(order.str('id'))}'),
+        await api.get('/v1/orders/${Uri.encodeComponent(orderId)}'),
       );
+      polls++;
+      final nextStatus = order.str('status');
+      if (nextStatus != status) {
+        AppLogger.i(
+          '[ORDER] Status orderId=$orderId $status → $nextStatus '
+          'polls=$polls elapsedMs=${elapsed.elapsedMilliseconds}',
+        );
+      }
+      status = nextStatus;
     }
-    if (order.str('status') == 'failed_refunded') {
+    if (status == 'failed_refunded') {
+      AppLogger.w(
+        '[ORDER] Refunded orderId=$orderId reason=${order['failedReason'] ?? '-'}',
+      );
       throw ServerException(
         'Order failed and was refunded',
         code: 'order_failed_refunded',
@@ -96,7 +141,10 @@ class ApiPurchaseRepository implements PurchaseRepository {
       );
     }
     final esimId = order.strOrNull('esimId');
-    if (order.str('status') != 'done' || esimId == null) {
+    if (status != 'done' || esimId == null) {
+      AppLogger.w(
+        '[ORDER] Incomplete orderId=$orderId status=$status esimId=${esimId ?? '-'}',
+      );
       throw const ParsingException('Incomplete order');
     }
     final esim = await esims.get(esimId);
@@ -107,6 +155,11 @@ class ApiPurchaseRepository implements PurchaseRepository {
       );
     }
     final wallet = asMap(await api.get('/v1/wallet'));
+    AppLogger.i(
+      '[ORDER] Ready orderId=$orderId esimId=$esimId '
+      'balanceCents=${wallet.intVal('balanceCents')} '
+      'elapsedMs=${elapsed.elapsedMilliseconds}',
+    );
     return PurchaseReceipt(
       esim: esim.dataOrNull!,
       balanceAfter: Money(wallet.intVal('balanceCents')),

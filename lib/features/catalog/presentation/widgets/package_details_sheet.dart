@@ -50,23 +50,14 @@ class _Details extends StatelessWidget {
     final c = context.colors;
     final p = package;
 
-    final data = p.isUnlimited
-        ? (p.details ??
-              (p.dailyBytes == null
-                  ? l10n.dataUnlimited
-                  : l10n.detailDataUnlimited(l10n.dataSize(p.dailyBytes!))))
+    final dataDescription = p.details?.trim();
+    final dataValue = p.isUnlimited
+        ? (p.dailyBytes == null
+              ? l10n.dataUnlimited
+              : l10n.dailyAllowance(l10n.dataSize(p.dailyBytes!)))
         : l10n.detailDataFull(l10n.dataSize(p.volumeBytes ?? 0));
 
-    final rows = <_Row>[
-      _Row(l10n.detailCoverage, coverage),
-      _Row(l10n.detailData, data),
-      _Row(
-        l10n.detailValidity,
-        l10n.durationDays(p.days),
-        note: p.activationOnInstall
-            ? l10n.activationOnInstall
-            : l10n.detailValidityNote,
-      ),
+    final featureRows = <_Row>[
       if (p.network != null) _Row(l10n.detailNetwork, p.network!),
       _Row(
         l10n.detailHotspot,
@@ -135,9 +126,28 @@ class _Details extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          _DetailGroup(rows: rows.take(3).toList()),
+          _DetailGroup(
+            children: [
+              _Row(l10n.detailCoverage, coverage),
+              _DataDetail(
+                value: dataValue,
+                description: dataDescription?.isNotEmpty == true
+                    ? dataDescription
+                    : p.isUnlimited && p.dailyBytes != null
+                    ? l10n.detailDataUnlimited(l10n.dataSize(p.dailyBytes!))
+                    : null,
+              ),
+              _Row(
+                l10n.detailValidity,
+                l10n.durationDays(p.days),
+                note: p.activationOnInstall
+                    ? l10n.activationOnInstall
+                    : l10n.detailValidityNote,
+              ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.md),
-          _DetailGroup(rows: rows.skip(3).toList()),
+          _DetailGroup(children: featureRows),
           if (canBuy) ...[
             const SizedBox(height: AppSpacing.xl),
             AppButton(
@@ -158,9 +168,9 @@ class _Details extends StatelessWidget {
 }
 
 class _DetailGroup extends StatelessWidget {
-  const _DetailGroup({required this.rows});
+  const _DetailGroup({required this.children});
 
-  final List<_Row> rows;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -175,12 +185,45 @@ class _DetailGroup extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           children: [
-            for (final (index, row) in rows.indexed) ...[
+            for (final (index, child) in children.indexed) ...[
               if (index > 0) Divider(color: c.border, height: 1),
-              row,
+              child,
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DataDetail extends StatelessWidget {
+  const _DataDetail({required this.value, this.description});
+
+  final String value;
+  final String? description;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.detailData,
+            style: context.text.bodySm.copyWith(color: c.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(value, style: context.text.h2),
+          if (description != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              description!,
+              style: context.text.bodySm.copyWith(color: c.textSecondary),
+            ),
+          ],
+        ],
       ),
     );
   }

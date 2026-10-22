@@ -1010,6 +1010,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get topUpCryptoBody => 'Выберите монету и сеть';
 
   @override
+  String get topUpMinimumLabel => 'Минимальное пополнение';
+
+  @override
+  String get topUpPaymentFeeIncluded => 'Комиссия включена в сумму к отправке';
+
+  @override
   String get topUpNote =>
       'Баланс тратится только на eSIM-пакеты и не выводится. Неиспользованное пополнение можно вернуть по Политике возврата средств. Платёжный сервис может взять комиссию.';
 
@@ -1140,6 +1146,121 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get ordersEmptyActivity => 'Операций по балансу пока нет';
+
+  @override
+  String get paymentDetailTitle => 'Детали платежа';
+
+  @override
+  String get paymentDetailBreakdown => 'Расчёт платежа';
+
+  @override
+  String get paymentDetailTransaction => 'Детали транзакции';
+
+  @override
+  String get orderDetailTitle => 'Детали заказа';
+
+  @override
+  String get activityDetailTitle => 'Детали операции';
+
+  @override
+  String get detailOrderNumber => 'Номер заказа';
+
+  @override
+  String get detailStatus => 'Статус';
+
+  @override
+  String get detailPackage => 'Пакет';
+
+  @override
+  String get detailFailureReason => 'Причина ошибки';
+
+  @override
+  String get detailCompletedAt => 'Завершено';
+
+  @override
+  String get detailEsimId => 'ID eSIM';
+
+  @override
+  String get detailOrderId => 'ID заказа';
+
+  @override
+  String get detailViewEsim => 'Открыть eSIM';
+
+  @override
+  String get detailType => 'Тип';
+
+  @override
+  String get detailNote => 'Примечание';
+
+  @override
+  String get detailBalanceAfter => 'Баланс после';
+
+  @override
+  String get detailReference => 'Связанная запись';
+
+  @override
+  String get detailEntryId => 'ID операции';
+
+  @override
+  String get detailViewReference => 'Открыть связанные детали';
+
+  @override
+  String get paymentDetailTopUpAmount => 'Сумма пополнения';
+
+  @override
+  String get paymentDetailNumber => 'Номер платежа';
+
+  @override
+  String get paymentDetailDate => 'Создан';
+
+  @override
+  String get paymentDetailCurrency => 'Монета и сеть';
+
+  @override
+  String get paymentDetailExpected => 'Запрошенная сумма';
+
+  @override
+  String get paymentDetailReceived => 'Полученная сумма';
+
+  @override
+  String get paymentDetailFee => 'Комиссия за оплату';
+
+  @override
+  String get paymentDetailTotal => 'Итого в USD';
+
+  @override
+  String get paymentDetailProviderStatus => 'Статус провайдера';
+
+  @override
+  String get paymentDetailTransactionId => 'ID транзакции';
+
+  @override
+  String get paymentDetailCredited => 'Зачислено на баланс';
+
+  @override
+  String get paymentDetailCreditedAt => 'Дата зачисления';
+
+  @override
+  String get paymentDetailId => 'ID платежа';
+
+  @override
+  String get paymentDetailContinue => 'Посмотреть инструкции по оплате';
+
+  @override
+  String get paymentDetailReview =>
+      'Перед зачислением на баланс этот платёж нужно проверить вручную.';
+
+  @override
+  String get paymentDetailOverpaid =>
+      'Платёжный сервис получил больше запрошенной суммы. Поддержка проверит платёж перед зачислением на баланс.';
+
+  @override
+  String get paymentDetailUnderpaid =>
+      'Платёжный сервис получил меньше запрошенной суммы. Поддержка проверит платёж перед зачислением на баланс.';
+
+  @override
+  String get paymentDetailLate =>
+      'Платёж поступил после окончания срока оплаты. Поддержка проверит его перед зачислением на баланс.';
 
   @override
   String orderNumberDate(String number, String date) {

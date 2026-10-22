@@ -1760,6 +1760,18 @@ abstract class AppLocalizations {
   /// **'Choose a coin and network'**
   String get topUpCryptoBody;
 
+  /// No description provided for @topUpMinimumLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum top-up'**
+  String get topUpMinimumLabel;
+
+  /// No description provided for @topUpPaymentFeeIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment fee is included in the amount to send'**
+  String get topUpPaymentFeeIncluded;
+
   /// No description provided for @topUpNote.
   ///
   /// In en, this message translates to:
@@ -1987,6 +1999,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No balance activity yet'**
   String get ordersEmptyActivity;
+
+  /// No description provided for @paymentDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment details'**
+  String get paymentDetailTitle;
+
+  /// No description provided for @paymentDetailBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment breakdown'**
+  String get paymentDetailBreakdown;
+
+  /// No description provided for @paymentDetailTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction details'**
+  String get paymentDetailTransaction;
+
+  /// No description provided for @orderDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order details'**
+  String get orderDetailTitle;
+
+  /// No description provided for @activityDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity details'**
+  String get activityDetailTitle;
+
+  /// No description provided for @detailOrderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number'**
+  String get detailOrderNumber;
+
+  /// No description provided for @detailStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get detailStatus;
+
+  /// No description provided for @detailPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Package'**
+  String get detailPackage;
+
+  /// No description provided for @detailFailureReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Failure reason'**
+  String get detailFailureReason;
+
+  /// No description provided for @detailCompletedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed at'**
+  String get detailCompletedAt;
+
+  /// No description provided for @detailEsimId.
+  ///
+  /// In en, this message translates to:
+  /// **'eSIM ID'**
+  String get detailEsimId;
+
+  /// No description provided for @detailOrderId.
+  ///
+  /// In en, this message translates to:
+  /// **'Order ID'**
+  String get detailOrderId;
+
+  /// No description provided for @detailViewEsim.
+  ///
+  /// In en, this message translates to:
+  /// **'View eSIM'**
+  String get detailViewEsim;
+
+  /// No description provided for @detailType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get detailType;
+
+  /// No description provided for @detailNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get detailNote;
+
+  /// No description provided for @detailBalanceAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance after'**
+  String get detailBalanceAfter;
+
+  /// No description provided for @detailReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Related record'**
+  String get detailReference;
+
+  /// No description provided for @detailEntryId.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity ID'**
+  String get detailEntryId;
+
+  /// No description provided for @detailViewReference.
+  ///
+  /// In en, this message translates to:
+  /// **'View related details'**
+  String get detailViewReference;
+
+  /// No description provided for @paymentDetailTopUpAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Top-up amount'**
+  String get paymentDetailTopUpAmount;
+
+  /// No description provided for @paymentDetailNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment number'**
+  String get paymentDetailNumber;
+
+  /// No description provided for @paymentDetailDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get paymentDetailDate;
+
+  /// No description provided for @paymentDetailCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Coin and network'**
+  String get paymentDetailCurrency;
+
+  /// No description provided for @paymentDetailExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount requested'**
+  String get paymentDetailExpected;
+
+  /// No description provided for @paymentDetailReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount received'**
+  String get paymentDetailReceived;
+
+  /// No description provided for @paymentDetailFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment fee'**
+  String get paymentDetailFee;
+
+  /// No description provided for @paymentDetailTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total in USD'**
+  String get paymentDetailTotal;
+
+  /// No description provided for @paymentDetailProviderStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider status'**
+  String get paymentDetailProviderStatus;
+
+  /// No description provided for @paymentDetailTransactionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID'**
+  String get paymentDetailTransactionId;
+
+  /// No description provided for @paymentDetailCredited.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to balance'**
+  String get paymentDetailCredited;
+
+  /// No description provided for @paymentDetailCreditedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Credited'**
+  String get paymentDetailCreditedAt;
+
+  /// No description provided for @paymentDetailId.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment ID'**
+  String get paymentDetailId;
+
+  /// No description provided for @paymentDetailContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'View payment instructions'**
+  String get paymentDetailContinue;
+
+  /// No description provided for @paymentDetailReview.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment needs a manual review before the balance can be updated.'**
+  String get paymentDetailReview;
+
+  /// No description provided for @paymentDetailOverpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment provider received more than requested. Support will review the payment before updating your balance.'**
+  String get paymentDetailOverpaid;
+
+  /// No description provided for @paymentDetailUnderpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment provider received less than requested. Support will review the payment before updating your balance.'**
+  String get paymentDetailUnderpaid;
+
+  /// No description provided for @paymentDetailLate.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment arrived after the payment window ended. Support will review it before updating your balance.'**
+  String get paymentDetailLate;
 
   /// No description provided for @orderNumberDate.
   ///

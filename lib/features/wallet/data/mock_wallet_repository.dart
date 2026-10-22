@@ -1,6 +1,5 @@
 import '../../../core/utils/formatters/money.dart';
 import '../../../core/utils/result.dart';
-import '../../../core/error/failure.dart';
 import '../../../mock/mock_backend.dart';
 import '../domain/entities/wallet_entities.dart';
 import '../domain/repositories/wallet_repository.dart';
@@ -16,8 +15,7 @@ class MockWalletRepository implements WalletRepository {
   Future<Result<WalletOptions>> options() async =>
       const Success(WalletOptions());
   @override
-  Future<Result<TopUpSession>> payment(String id) async =>
-      const Error(NotFoundFailure());
+  Future<Result<TopUpSession>> payment(String id) => _backend.payment(id);
 
   @override
   Future<Result<Money>> balance() => _backend.balance();
@@ -45,4 +43,7 @@ class MockWalletRepository implements WalletRepository {
   @override
   Future<Result<List<WalletOrder>>> orders(OrderType type) =>
       _backend.orders(type);
+
+  @override
+  Future<Result<WalletOrder>> order(String id) => _backend.order(id);
 }

@@ -168,4 +168,9 @@ class Esim extends Equatable {
     countryCount,
     topUpSupported,
   ];
+
+  // Bloc transitions stringify eSIMs in debug logs. Installation credentials
+  // remain in props for equality, but must never appear in those logs.
+  @override
+  String toString() => 'Esim($id, $destinationCode, $kind, $days, $status)';
 }

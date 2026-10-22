@@ -3,6 +3,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_helpers.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/utils/formatters/money.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/result.dart';
 import '../domain/entities/wallet_entities.dart';
 import '../domain/repositories/wallet_repository.dart';
@@ -116,49 +117,68 @@ class ApiWalletRepository implements WalletRepository {
       });
 
   @override
-  Future<Result<List<WalletOrder>>> orders(
-    OrderType type,
-  ) => apiResult(() async {
-    final payment = type == OrderType.topUp;
-    final rows = await apiPages(api, payment ? '/v1/payments' : '/v1/orders');
-    return rows
-        .map(
-          (j) => WalletOrder(
-            number: '${j['publicNo']}',
-            type: type,
-            outcome: switch (j.str('status')) {
-              'done' || 'credited' => OrderOutcome.completed,
-              'failed_refunded' || 'refunded' => OrderOutcome.failedRefunded,
-              'pending' || 'processing' || 'confirming' => OrderOutcome.pending,
-              'review_underpaid' ||
-              'review_overpaid' ||
-              'review_late' => OrderOutcome.review,
-              _ => OrderOutcome.failed,
-            },
-            amount: Money(
-              payment && j.str('status') == 'credited'
-                  ? j.intVal('creditedCents', j.intVal('amountCents'))
-                  : j.intVal('amountCents'),
-            ),
-            createdAt:
-                j.dateOrNull('createdAt') ??
-                DateTime.fromMillisecondsSinceEpoch(0),
-            destinationNames: {'en': j.str('title')},
-            serverTitle: payment ? null : j.str('title'),
-            addOn: j.str('kind') == 'topup',
-            method: payment
-                ? (j.str('provider') == 'paypal'
-                      ? TopUpMethod.paypal
-                      : TopUpMethod.crypto)
-                : null,
-          ),
-        )
-        .toList();
+  Future<Result<List<WalletOrder>>> orders(OrderType type) => apiResult(
+    () async {
+      final payment = type == OrderType.topUp;
+      final rows = await apiPages(api, payment ? '/v1/payments' : '/v1/orders');
+      if (!payment) {
+        AppLogger.i('[ORDER] History loaded count=${rows.length}');
+      }
+      return rows.map((j) => walletOrderFromApi(j, type)).toList();
+    },
+  );
+
+  @override
+  Future<Result<WalletOrder>> order(String id) => apiResult(() async {
+    final response = asMap(
+      await api.get('/v1/orders/${Uri.encodeComponent(id)}'),
+    );
+    AppLogger.i(
+      '[ORDER] Detail loaded orderId=$id status=${response.str('status')}',
+    );
+    return walletOrderFromApi(response, OrderType.purchase);
   });
 
   @override
   Future<Result<List<Map<String, dynamic>>>> ledger() =>
       apiResult(() => apiPages(api, '/v1/wallet/ledger'));
+}
+
+WalletOrder walletOrderFromApi(Map<String, dynamic> j, OrderType type) {
+  final payment = type == OrderType.topUp;
+  return WalletOrder(
+    number: '${j['publicNo']}',
+    id: j.strOrNull('id'),
+    slug: j.strOrNull('slug'),
+    esimId: j.strOrNull('esimId'),
+    failedReason: j.strOrNull('failedReason'),
+    doneAt: j.dateOrNull('doneAt'),
+    type: type,
+    outcome: switch (j.str('status')) {
+      'done' || 'credited' => OrderOutcome.completed,
+      'failed_refunded' || 'refunded' => OrderOutcome.failedRefunded,
+      'pending' || 'processing' || 'confirming' => OrderOutcome.pending,
+      'review_underpaid' ||
+      'review_overpaid' ||
+      'review_late' => OrderOutcome.review,
+      _ => OrderOutcome.failed,
+    },
+    amount: Money(
+      payment && j.str('status') == 'credited'
+          ? j.intVal('creditedCents', j.intVal('amountCents'))
+          : j.intVal('amountCents'),
+    ),
+    createdAt:
+        j.dateOrNull('createdAt') ?? DateTime.fromMillisecondsSinceEpoch(0),
+    destinationNames: {'en': j.str('title')},
+    serverTitle: payment ? null : j.str('title'),
+    addOn: j.str('kind') == 'topup',
+    method: payment
+        ? (j.str('provider') == 'paypal'
+              ? TopUpMethod.paypal
+              : TopUpMethod.crypto)
+        : null,
+  );
 }
 
 TopUpStatus paymentStatus(String status) => switch (status) {
@@ -180,7 +200,11 @@ TopUpSession paymentFromApi(Map<String, dynamic> j) {
   }
   return TopUpSession(
     id: j.str('id'),
+    publicNo: j.intOrNull('publicNo'),
     amount: Money(j.intVal('amountCents')),
+    rawStatus: j.str('status'),
+    createdAt: j.dateOrNull('createdAt'),
+    creditedAt: j.dateOrNull('creditedAt'),
     method: j.str('provider') == 'paypal'
         ? TopUpMethod.paypal
         : TopUpMethod.crypto,
@@ -198,6 +222,11 @@ TopUpSession paymentFromApi(Map<String, dynamic> j) {
             network: c.str('network'),
             address: c.str('payAddress'),
             amountText: c.str('payAmount'),
+            paidAmountText: c.strOrNull('paidAmount'),
+            providerStatus: c.strOrNull('providerStatus'),
+            feeCents: c.intOrNull('feeCents'),
+            totalCents: c.intOrNull('totalCents'),
+            txid: c.strOrNull('txid'),
             rateText: c.strOrNull('rateUsd') == null
                 ? '—'
                 : "1 ${c.str('coin')} = \$${c.str('rateUsd')}",
