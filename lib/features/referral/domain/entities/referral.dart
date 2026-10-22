@@ -32,8 +32,12 @@ class ReferralInfo extends Equatable {
     required this.pending,
     required this.rejected,
     required this.invites,
+    this.enabled = true,
+    this.rulesText,
   });
 
+  final bool enabled;
+  final String? rulesText;
   final String code;
   final Uri link;
 

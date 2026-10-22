@@ -22,11 +22,13 @@ class WalletCubit extends Cubit<WalletState> {
   WalletCubit(this._repository) : super(const WalletState());
 
   final WalletRepository _repository;
+  int _generation = 0;
 
   Future<void> refresh() async {
+    final generation = ++_generation;
     emit(WalletState(balance: state.balance, loading: true));
     final result = await _repository.balance();
-    if (isClosed) return;
+    if (isClosed || generation != _generation) return;
     switch (result) {
       case Success(:final data):
         emit(WalletState(balance: data));
@@ -39,5 +41,8 @@ class WalletCubit extends Cubit<WalletState> {
   /// A purchase or top-up already told us the new balance.
   void set(Money balance) => emit(WalletState(balance: balance));
 
-  void clear() => emit(const WalletState());
+  void clear() {
+    _generation++;
+    emit(const WalletState());
+  }
 }

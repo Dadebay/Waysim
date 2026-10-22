@@ -19,6 +19,8 @@ abstract interface class PurchaseRepository {
     required String packageId,
     required String idempotencyKey,
     required Money expectedPrice,
+    int? days,
+    bool Function()? cancelled,
   });
 
   /// Adds [packageId] to the installed eSIM [esimId].
@@ -27,5 +29,7 @@ abstract interface class PurchaseRepository {
     required String packageId,
     required String idempotencyKey,
     required Money expectedPrice,
+    int? days,
+    bool Function()? cancelled,
   });
 }

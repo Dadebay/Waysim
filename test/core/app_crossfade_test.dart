@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:waysim/core/constants/app_constants.dart';
 import 'package:waysim/core/widgets/app_crossfade.dart';
 
 /// A screen whose text can be swapped from a button, standing in for a
@@ -37,6 +38,41 @@ class _HostState extends State<_Host> {
 }
 
 void main() {
+  testWidgets('every repeated transition starts with a fully opaque snapshot', (
+    tester,
+  ) async {
+    final photo = (await tester.runAsync(
+      () => createTestImage(width: 8, height: 8),
+    ))!;
+    AppCrossfadeState.debugCapture = () async => photo.clone();
+    addTearDown(() {
+      AppCrossfadeState.debugCapture = null;
+      photo.dispose();
+    });
+    await tester.pumpWidget(const _Host());
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byType(TextButton));
+      await tester.pump();
+      await tester.pump();
+      final fade = tester.widget<FadeTransition>(
+        find
+            .ancestor(
+              of: find.byType(RawImage),
+              matching: find.byType(FadeTransition),
+            )
+            .first,
+      );
+      expect(
+        fade.opacity.value,
+        1,
+        reason: 'Transition ${i + 1} must cover the theme change',
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(RawImage), findsNothing);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('the new text appears and the photograph fades away', (
     tester,
   ) async {
@@ -107,7 +143,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(AppConstants.themeFallbackAnimation);
     await tester.pump(const Duration(milliseconds: 150));
 
     expect(find.text('Привет'), findsOneWidget);
@@ -151,7 +187,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(AppConstants.themeFallbackAnimation);
     await tester.pump(const Duration(milliseconds: 150));
 
     expect(find.text('Привет'), findsOneWidget);

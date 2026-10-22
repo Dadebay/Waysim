@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_environment.dart';
+import '../../core/services/push_router.dart';
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../core/di/injector.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/storage/local_storage.dart';
@@ -11,6 +13,7 @@ import '../../features/auth/presentation/view/devices_page.dart';
 import '../../features/auth/presentation/view/login_page.dart';
 import '../../features/catalog/presentation/view/destination_page.dart';
 import '../../features/catalog/presentation/view/search_page.dart';
+import '../../features/catalog/presentation/view/package_link_page.dart';
 import '../../features/esim/presentation/view/esim_detail_page.dart';
 import '../../features/esim/presentation/view/esim_top_up_page.dart';
 import '../../features/esim/presentation/view/my_esim_page.dart';
@@ -34,24 +37,37 @@ import 'app_routes.dart';
 /// keeps its own stack and scroll position; every other page is a sibling
 /// route that opens above the tab bar.
 abstract final class AppRouter {
-  static AnalyticsRouteObserver _observer() =>
-      AnalyticsRouteObserver(getIt<AnalyticsService>());
-
   /// A fresh router per app instance, so tests and hot restarts never share
   /// navigation state.
   static GoRouter create() => GoRouter(
     navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'root'),
-    // Every screen the customer sees is reported (and remembered for crash
-    // reports). A NavigatorObserver belongs to one navigator, so each of the
-    // root and the three tab stacks gets its own.
-    observers: [_observer()],
     initialLocation: AppEnvironment.initialRoute,
+    redirect: (_, state) {
+      final normalized = PushRouter.routeForLink(state.uri.toString());
+      if (normalized != null && normalized != state.uri.toString()) {
+        return normalized;
+      }
+      if (!AppEnvironment.useMockApi &&
+          state.matchedLocation == AppRoute.supportChat.path &&
+          !getIt<AuthCubit>().state.isSignedIn) {
+        return AppRoute.login.path;
+      }
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: '/package/:id',
+        builder: (_, state) => PackageLinkPage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/payment/:id',
+        redirect: (_, state) =>
+            '${AppRoute.balanceTopUp.path}?paymentId=${Uri.encodeComponent(state.pathParameters["id"]!)}',
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => HomeShell(navigationShell: shell),
         branches: [
           StatefulShellBranch(
-            observers: [_observer()],
             routes: [
               GoRoute(
                 path: AppRoute.home.path,
@@ -61,7 +77,6 @@ abstract final class AppRouter {
             ],
           ),
           StatefulShellBranch(
-            observers: [_observer()],
             routes: [
               GoRoute(
                 path: AppRoute.myEsim.path,
@@ -71,7 +86,6 @@ abstract final class AppRouter {
             ],
           ),
           StatefulShellBranch(
-            observers: [_observer()],
             routes: [
               GoRoute(
                 path: AppRoute.profile.path,
@@ -107,8 +121,10 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoute.destination.path,
         name: AppRoute.destination.routeName,
-        builder: (_, state) =>
-            DestinationPage(code: state.pathParameters['code']!),
+        builder: (_, state) => DestinationPage(
+          code: state.pathParameters['code']!,
+          packageId: state.uri.queryParameters['packageId'],
+        ),
       ),
       GoRoute(
         path: AppRoute.purchase.path,
@@ -141,6 +157,7 @@ abstract final class AppRouter {
         name: AppRoute.balanceTopUp.routeName,
         builder: (_, state) => BalanceTopUpPage(
           initialCents: state.extra is int ? state.extra! as int : null,
+          paymentId: state.uri.queryParameters['paymentId'],
         ),
       ),
       GoRoute(

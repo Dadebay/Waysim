@@ -19,8 +19,10 @@ class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      BlocProvider(create: (_) => getIt<ChatCubit>(), child: const _View());
+  Widget build(BuildContext context) => BlocProvider(
+    create: (_) => getIt<ChatCubit>()..load(),
+    child: const _View(),
+  );
 }
 
 class _View extends StatefulWidget {
@@ -31,18 +33,30 @@ class _View extends StatefulWidget {
 }
 
 class _ViewState extends State<_View> {
+  late final AppLifecycleListener _lifecycle;
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(
+      onResume: () => context.read<ChatCubit>().setVisible(true),
+      onInactive: () => context.read<ChatCubit>().setVisible(false),
+      onPause: () => context.read<ChatCubit>().setVisible(false),
+    );
+  }
+
   final _input = TextEditingController();
   final _scroll = ScrollController();
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _input.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
   void _send(String text) {
-    if (text.trim().isEmpty) return;
+    if (text.trim().isEmpty || context.read<ChatCubit>().state.sending) return;
     context.read<ChatCubit>().send(
       text,
       language: Localizations.localeOf(context).languageCode,
@@ -115,7 +129,9 @@ class _ViewState extends State<_View> {
                         vertical: 1,
                       ),
                       child: Text(
-                        l10n.chatBadge,
+                        context.read<ChatCubit>().isLive
+                            ? l10n.supportTeam
+                            : l10n.chatBadge,
                         style: context.text.caption.copyWith(
                           color: c.link,
                           fontWeight: FontWeight.w700,
@@ -137,12 +153,19 @@ class _ViewState extends State<_View> {
               padding: const EdgeInsets.all(AppSpacing.page),
               children: [
                 Text(
-                  l10n.chatDisclaimer,
+                  context.read<ChatCubit>().isLive
+                      ? l10n.supportLiveDisclaimer
+                      : l10n.chatDisclaimer,
                   textAlign: TextAlign.center,
                   style: context.text.caption.copyWith(color: c.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                _Bubble(text: l10n.chatGreeting, mine: false),
+                _Bubble(
+                  text: context.read<ChatCubit>().isLive
+                      ? l10n.supportLiveGreeting
+                      : l10n.chatGreeting,
+                  mine: false,
+                ),
                 if (chat.messages.isEmpty) ...[
                   const SizedBox(height: AppSpacing.md),
                   Wrap(
@@ -197,17 +220,6 @@ class _ViewState extends State<_View> {
                       ),
                     ),
                 ],
-                if (chat.sending)
-                  const Padding(
-                    padding: EdgeInsets.only(top: AppSpacing.md),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2.5),
-                      ),
-                    ),
-                  ),
                 if (chat.failure != null)
                   Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.md),
@@ -248,6 +260,7 @@ class _ViewState extends State<_View> {
                             maxLength: ChatCubit.maxLength,
                             maxLines: 4,
                             minLines: 1,
+                            textAlignVertical: TextAlignVertical.center,
                             textInputAction: TextInputAction.send,
                             onSubmitted: _send,
                             onChanged: (_) => setState(() {}),
@@ -258,6 +271,9 @@ class _ViewState extends State<_View> {
                               counterText: '',
                               border: InputBorder.none,
                               isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                              ),
                               hintStyle: context.text.bodyMed.copyWith(
                                 color: c.textSecondary,
                               ),
@@ -267,7 +283,7 @@ class _ViewState extends State<_View> {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Material(
-                        color: _input.text.trim().isEmpty || chat.sending
+                        color: _input.text.trim().isEmpty && !chat.sending
                             ? c.border
                             : c.primary,
                         shape: const CircleBorder(),
@@ -277,11 +293,19 @@ class _ViewState extends State<_View> {
                           child: SizedBox.square(
                             dimension: 52,
                             child: Center(
-                              child: HugeIcon(
-                                icon: AppIcons.send,
-                                size: 22,
-                                color: c.textOnPrimary,
-                              ),
+                              child: chat.sending
+                                  ? SizedBox.square(
+                                      dimension: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: c.textOnPrimary,
+                                      ),
+                                    )
+                                  : HugeIcon(
+                                      icon: AppIcons.send,
+                                      size: 22,
+                                      color: c.textOnPrimary,
+                                    ),
                             ),
                           ),
                         ),

@@ -13,6 +13,8 @@ class MockPurchaseRepository implements PurchaseRepository {
     required String packageId,
     required String idempotencyKey,
     required Money expectedPrice,
+    int? days,
+    bool Function()? cancelled,
   }) => _backend.buy(packageId, idempotencyKey, expectedPrice);
 
   @override
@@ -21,5 +23,7 @@ class MockPurchaseRepository implements PurchaseRepository {
     required String packageId,
     required String idempotencyKey,
     required Money expectedPrice,
+    int? days,
+    bool Function()? cancelled,
   }) => _backend.topUp(esimId, packageId, idempotencyKey, expectedPrice);
 }

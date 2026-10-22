@@ -8,6 +8,13 @@ class MockSupportRepository implements SupportRepository {
   MockSupportRepository({this.latency = const Duration(milliseconds: 900)});
 
   final Duration latency;
+  @override
+  bool get isLive => false;
+  @override
+  Future<Result<List<ChatMessage>>> messages({String? after}) async =>
+      const Success([]);
+  @override
+  Future<Result<void>> markRead(String? id) async => const Success(null);
 
   @override
   Future<Result<ChatMessage>> ask({

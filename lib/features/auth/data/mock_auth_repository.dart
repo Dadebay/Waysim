@@ -5,10 +5,13 @@ import '../domain/entities/user.dart';
 import '../domain/repositories/auth_repository.dart';
 
 class MockAuthRepository implements AuthRepository {
+  @override
+  int get resendAfterSeconds => 60;
   MockAuthRepository(this._backend, this._secure);
 
   final MockBackend _backend;
   final SecureStorage _secure;
+  final _revokedDeviceIds = <String>{};
 
   static const _mockToken = 'mock-session';
 
@@ -59,28 +62,45 @@ class MockAuthRepository implements AuthRepository {
       const Success(null);
 
   @override
+  Future<Result<void>> updatePreferences({
+    String? locale,
+    bool? esim,
+    bool? marketing,
+  }) async => const Success(null);
+
+  @override
+  Future<Result<void>> removePushToken() async => const Success(null);
+  @override
+  Future<Result<void>> revokeDevice(String id) async {
+    _revokedDeviceIds.add(id);
+    return const Success(null);
+  }
+
+  @override
   Future<void> signOut() async {
     _backend.signOut();
     await _secure.clearSession();
   }
 
   @override
-  Future<Result<List<DeviceInfo>>> devices() async => Success([
-    DeviceInfo(
-      id: 'd1',
-      model: 'iPhone 15',
-      os: 'iOS 18.2',
-      isCurrent: true,
-      lastSeen: DateTime.now(),
-    ),
-    DeviceInfo(
-      id: 'd2',
-      model: 'Pixel 8',
-      os: 'Android 15',
-      isCurrent: false,
-      lastSeen: DateTime.now().subtract(const Duration(days: 23)),
-    ),
-  ]);
+  Future<Result<List<DeviceInfo>>> devices() async => Success(
+    [
+      DeviceInfo(
+        id: 'd1',
+        model: 'iPhone 15',
+        os: 'iOS 18.2',
+        isCurrent: true,
+        lastSeen: DateTime.now(),
+      ),
+      DeviceInfo(
+        id: 'd2',
+        model: 'Pixel 8',
+        os: 'Android 15',
+        isCurrent: false,
+        lastSeen: DateTime.now().subtract(const Duration(days: 23)),
+      ),
+    ].where((device) => !_revokedDeviceIds.contains(device.id)).toList(),
+  );
 
   @override
   Future<Result<void>> requestDeletionCode() async => const Success(null);

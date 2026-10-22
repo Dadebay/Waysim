@@ -2,6 +2,8 @@ import '../../../../core/utils/result.dart';
 import '../entities/user.dart';
 
 abstract interface class AuthRepository {
+  int get resendAfterSeconds;
+
   /// Restores a stored session; `Success(null)` for a guest.
   Future<Result<User?>> restore();
 
@@ -24,7 +26,15 @@ abstract interface class AuthRepository {
   /// personal pushes ("your eSIM is ready") can be sent. A no-op for a guest.
   Future<Result<void>> registerPushToken(String token);
 
+  Future<Result<void>> updatePreferences({
+    String? locale,
+    bool? esim,
+    bool? marketing,
+  });
+
   Future<void> signOut();
+  Future<Result<void>> removePushToken();
+  Future<Result<void>> revokeDevice(String id);
 
   Future<Result<List<DeviceInfo>>> devices();
 

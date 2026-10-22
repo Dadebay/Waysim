@@ -15,6 +15,9 @@ class AppCard extends StatelessWidget {
     this.elevated = false,
     this.padding = const EdgeInsets.all(AppSpacing.lg),
     this.color,
+    this.animationDuration = const Duration(milliseconds: 200),
+    this.animationCurve = Curves.linear,
+    this.borderWidth,
   });
 
   final Widget child;
@@ -23,6 +26,9 @@ class AppCard extends StatelessWidget {
   final bool elevated;
   final EdgeInsetsGeometry padding;
   final Color? color;
+  final Duration animationDuration;
+  final Curve animationCurve;
+  final double? borderWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +36,14 @@ class AppCard extends StatelessWidget {
     final radius = BorderRadius.circular(AppRadius.card);
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: animationDuration,
+      curve: animationCurve,
       decoration: BoxDecoration(
         color: color ?? (selected ? c.primarySubtle : c.background),
         borderRadius: radius,
         border: Border.all(
           color: selected ? c.primary : c.border,
-          width: selected ? 1.5 : 1,
+          width: borderWidth ?? (selected ? 1.5 : 1),
         ),
         boxShadow: elevated
             ? [

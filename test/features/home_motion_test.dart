@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waysim/app/app.dart';
 import 'package:waysim/core/di/injector.dart';
 import 'package:waysim/core/theme/app_theme.dart';
 import 'package:waysim/core/widgets/promo_carousel.dart';
+import 'package:waysim/core/widgets/skeleton.dart';
 import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
+import 'package:waysim/features/home/presentation/widgets/destination_list.dart';
+import 'package:waysim/features/home/presentation/widgets/sim_refresh_indicator.dart';
 import 'package:waysim/features/catalog/presentation/widgets/search_field_box.dart';
 import 'package:waysim/l10n/app_localizations.dart';
 
@@ -262,6 +267,126 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.testTextInput.isVisible, isTrue);
       await tester.pumpWidget(const SizedBox());
+    });
+  });
+
+  group('Home refresh indicator', () {
+    setUp(() async {
+      await setUpTestDependencies();
+      await getIt<AuthCubit>().restore();
+    });
+
+    testWidgets('shows an animated SIM instead of the default spinner', (
+      tester,
+    ) async {
+      await tester.runAsync(() => getIt<CatalogCubit>().load());
+      await tester.pumpWidget(const App());
+      await tester.pumpAndSettle();
+      expect(find.byType(SimRefreshIndicator), findsNothing);
+      expect(find.byType(DestinationList), findsOneWidget);
+      expect(find.byType(SkeletonList), findsNothing);
+
+      final refresh = tester.state<RefreshIndicatorState>(
+        find.byType(RefreshIndicator),
+      );
+      final refreshFuture = refresh.show();
+      await tester.pump();
+      expect(find.byType(SimRefreshIndicator), findsNothing);
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
+      expect(
+        tester
+            .widget<SimRefreshIndicator>(find.byType(SimRefreshIndicator))
+            .active,
+        isTrue,
+      );
+      expect(
+        tester
+            .widget<CircularProgressIndicator>(
+              find.byKey(const ValueKey('sim-refresh-ring')),
+            )
+            .value,
+        isNull,
+      );
+      expect(find.byType(RefreshProgressIndicator), findsNothing);
+      expect(find.byType(SkeletonList), findsOneWidget);
+      expect(find.byType(DestinationList), findsNothing);
+
+      double verticalMotion() => tester
+          .widget<Transform>(find.byKey(const ValueKey('sim-refresh-motion')))
+          .transform
+          .getTranslation()
+          .y;
+      final start = verticalMotion();
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(verticalMotion(), isNot(start));
+
+      await tester.pump(const Duration(seconds: 1));
+      await refreshFuture;
+      await tester.pumpAndSettle();
+      expect(find.byType(SimRefreshIndicator), findsNothing);
+      expect(find.byType(SkeletonList), findsNothing);
+      expect(find.byType(DestinationList), findsOneWidget);
+
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, 300),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('sim-refresh-ring')), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('initial catalog loading has no SIM animation', (tester) async {
+      unawaited(getIt<CatalogCubit>().load());
+
+      await tester.pumpWidget(const App());
+      await tester.pump();
+      expect(getIt<CatalogCubit>().state.status, CatalogStatus.loading);
+      expect(find.byType(SimRefreshIndicator), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+      expect(getIt<CatalogCubit>().state.status, CatalogStatus.loaded);
+      expect(find.byType(SimRefreshIndicator), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('reduced motion keeps the SIM card still', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: const MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: Scaffold(body: SimRefreshIndicator(active: true)),
+          ),
+        ),
+      );
+
+      double verticalMotion() => tester
+          .widget<Transform>(find.byKey(const ValueKey('sim-refresh-motion')))
+          .transform
+          .getTranslation()
+          .y;
+      expect(verticalMotion(), 0);
+      expect(
+        tester
+            .widget<CircularProgressIndicator>(
+              find.byKey(const ValueKey('sim-refresh-ring')),
+            )
+            .value,
+        0.75,
+      );
+      await tester.pump(const Duration(seconds: 2));
+      expect(verticalMotion(), 0);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 }

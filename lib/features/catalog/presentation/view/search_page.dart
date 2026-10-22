@@ -143,7 +143,17 @@ class _SearchViewState extends State<_SearchView> {
     final c = context.colors;
     final l10n = context.l10n;
     final search = context.watch<SearchCubit>().state;
-    final countries = search.hits.where((h) => !h.destination.isRegion);
+    final language = Localizations.localeOf(context).languageCode;
+    final catalogCountries = [...context.watch<CatalogCubit>().state.countries]
+      ..sort(
+        (a, b) => b
+            .nameFor(language)
+            .toLowerCase()
+            .compareTo(a.nameFor(language).toLowerCase()),
+      );
+    final countries = search.isSearching
+        ? search.hits.where((h) => !h.destination.isRegion)
+        : catalogCountries.map((destination) => SearchHit(destination, 0));
     final regions = search.hits.where((h) => h.destination.isRegion);
 
     return Scaffold(
@@ -311,9 +321,12 @@ class _SearchViewState extends State<_SearchView> {
         searchStyle: true,
         onOpen: () {
           final search = context.read<SearchCubit>();
+          if (!search.state.isSearching) return;
           getIt<AnalyticsService>().searched(
             search.state.query.trim(),
             results: search.state.hits.length,
+            destinationCode: hit.destination.code,
+            region: hit.destination.isRegion,
           );
           search.rememberQuery(search.state.query);
         },

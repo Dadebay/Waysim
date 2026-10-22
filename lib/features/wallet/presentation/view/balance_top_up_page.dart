@@ -28,14 +28,17 @@ import '../cubit/wallet_cubit.dart';
 /// Pops `true` once the money has arrived, so a purchase that sent the
 /// customer here can go straight back to its confirmation.
 class BalanceTopUpPage extends StatelessWidget {
-  const BalanceTopUpPage({super.key, this.initialCents});
+  const BalanceTopUpPage({super.key, this.initialCents, this.paymentId});
 
   /// Pre-filled amount when a purchase was short of balance.
   final int? initialCents;
+  final String? paymentId;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) => getIt<TopUpCubit>(param1: initialCents),
+    create: (_) =>
+        getIt<TopUpCubit>(param1: initialCents)
+          ..initialize(paymentId: paymentId),
     child: const _View(),
   );
 }
@@ -55,7 +58,9 @@ class _ViewState extends State<_View> {
     super.initState();
     // Back from the PayPal browser or a wallet app: check the payment now.
     _lifecycle = AppLifecycleListener(
-      onResume: () => context.read<TopUpCubit>().checkNow(),
+      onResume: () => context.read<TopUpCubit>().setVisible(true),
+      onPause: () => context.read<TopUpCubit>().setVisible(false),
+      onInactive: () => context.read<TopUpCubit>().setVisible(false),
     );
   }
 
@@ -169,13 +174,17 @@ class _FormState extends State<_Form> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final option in TopUpCubit.cryptoOptions) ...[
-              if (option != TopUpCubit.cryptoOptions.first)
+            for (final option
+                in cubit.state.options?.currencies ??
+                    const <CryptoOption>[]) ...[
+              if (option != cubit.state.options!.currencies.first)
                 const SizedBox(height: AppSpacing.md),
               _CryptoChoice(
                 option: option,
                 selected: option == current,
-                onTap: () => Navigator.of(sheetContext).pop(option),
+                onTap: (cubit.state.amount?.cents ?? 0) < (option.minCents ?? 0)
+                    ? null
+                    : () => Navigator.of(sheetContext).pop(option),
               ),
             ],
           ],
@@ -196,14 +205,14 @@ class _FormState extends State<_Form> {
     final cubit = context.read<TopUpCubit>();
     final config = context.watch<ConfigCubit>().state;
     final balance = context.watch<WalletCubit>().state.balance;
-    final min = Money(config.minTopUpCents);
-    final max = Money(config.maxTopUpCents);
+    final min = Money(state.minCents);
+    final max = Money(state.options?.maxCents ?? config.maxTopUpCents);
 
     final amount = state.amount;
     final inRange =
         amount != null &&
-        amount.cents >= config.minTopUpCents &&
-        amount.cents <= config.maxTopUpCents;
+        amount.cents >= min.cents &&
+        amount.cents <= max.cents;
     final customText = _custom.text.trim();
     final customInvalid = customText.isNotEmpty && (amount == null || !inRange);
 
@@ -290,7 +299,7 @@ class _FormState extends State<_Form> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        if (config.paypalEnabled)
+        if ((state.options?.methods.contains(TopUpMethod.paypal) ?? false))
           _MethodCard(
             key: const ValueKey('payment-paypal'),
             icon: AppIcons.paypal,
@@ -299,9 +308,10 @@ class _FormState extends State<_Form> {
             selected: state.method == TopUpMethod.paypal,
             onTap: () => cubit.setMethod(TopUpMethod.paypal),
           ),
-        if (config.paypalEnabled && config.cryptoEnabled)
+        if ((state.options?.methods.contains(TopUpMethod.paypal) ?? false) &&
+            (state.options?.methods.contains(TopUpMethod.crypto) ?? false))
           const SizedBox(height: AppSpacing.sm),
-        if (config.cryptoEnabled)
+        if ((state.options?.methods.contains(TopUpMethod.crypto) ?? false))
           _MethodCard(
             key: const ValueKey('payment-crypto'),
             icon: AppIcons.crypto,
@@ -332,8 +342,10 @@ class _FormState extends State<_Form> {
                   amount.format(withCents: amount.cents % 100 != 0),
                 )
               : l10n.topUpTitle,
-          loading: state.phase == TopUpPhase.creating,
-          onPressed: inRange && !config.maintenance
+          loading: state.optionsLoading || state.phase == TopUpPhase.creating,
+          onPressed: state.options == null && !state.optionsLoading
+              ? () => cubit.initialize()
+              : inRange && state.canPay && !config.maintenance
               ? () => cubit.submit(openUrl: _openCheckout)
               : null,
         ),
@@ -483,7 +495,7 @@ class _CryptoChoice extends StatelessWidget {
 
   final CryptoOption option;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -534,7 +546,9 @@ class _CryptoChoice extends StatelessWidget {
                       border: Border.all(color: c.border),
                     ),
                     child: Text(
-                      option.network,
+                      option.minCents != null
+                          ? '${option.network} · ≥ ${Money(option.minCents!).format()}'
+                          : option.network,
                       style: context.text.caption.copyWith(
                         color: c.textSecondary,
                         fontWeight: FontWeight.w600,
@@ -638,6 +652,119 @@ class _CryptoInvoice extends StatefulWidget {
 class _CryptoInvoiceState extends State<_CryptoInvoice> {
   late final Timer _tick;
 
+  Future<void> _chooseCryptoOption({required bool coin}) async {
+    final cubit = context.read<TopUpCubit>();
+    final invoice = widget.session.crypto!;
+    final amount = widget.session.amount.cents;
+    final options = cubit.state.options?.currencies ?? const <CryptoOption>[];
+    if (options.isEmpty) return;
+
+    final choices = <CryptoOption>[];
+    if (coin) {
+      for (final option in options) {
+        if (choices.any((choice) => choice.coin == option.coin)) continue;
+        final sameCoin = options.where((item) => item.coin == option.coin);
+        choices.add(
+          sameCoin
+                  .where(
+                    (item) =>
+                        item.network == invoice.network &&
+                        item.coin == invoice.coin,
+                  )
+                  .firstOrNull ??
+              sameCoin.firstWhere(
+                (item) => amount >= (item.minCents ?? 0),
+                orElse: () => option,
+              ),
+        );
+      }
+    } else {
+      choices.addAll(options.where((option) => option.coin == invoice.coin));
+    }
+
+    final l10n = context.l10n;
+    final selected = await showAppSheet<CryptoOption>(
+      context,
+      title: coin ? l10n.cryptoCoin : l10n.cryptoNetwork,
+      closeLabel: l10n.actionClose,
+      builder: (sheetContext) => SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.page,
+          0,
+          AppSpacing.page,
+          AppSpacing.xxl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final option in choices) ...[
+              if (option != choices.first)
+                const SizedBox(height: AppSpacing.md),
+              _CryptoChoice(
+                option: option,
+                selected: coin
+                    ? option.coin == invoice.coin
+                    : option.network == invoice.network,
+                onTap: amount < (option.minCents ?? 0)
+                    ? null
+                    : () => Navigator.of(sheetContext).pop(option),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+    if (!mounted || selected == null) return;
+    if ((coin && selected.coin == invoice.coin) ||
+        (!coin && selected.network == invoice.network)) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.cryptoChangeCurrencyTitle),
+        content: Text(l10n.cryptoChangeCurrencyBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.cryptoChangeCurrencyAction),
+          ),
+        ],
+      ),
+    );
+    if (mounted && confirmed == true) {
+      await cubit.changeCryptoInvoice(selected);
+    }
+  }
+
+  Future<void> _chooseAnotherAmount() async {
+    final l10n = context.l10n;
+    final cubit = context.read<TopUpCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.cryptoChangeAmountTitle),
+        content: Text(l10n.cryptoChangeAmountBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.cryptoChangeAmountAction),
+          ),
+        ],
+      ),
+    );
+    if (mounted && confirmed == true) cubit.chooseAnotherAmount();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -664,8 +791,8 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
 
     final step = switch (progress.status) {
       TopUpStatus.waiting => 0,
-      TopUpStatus.confirming => 1,
-      _ => 2,
+      TopUpStatus.credited => 2,
+      _ => 1,
     };
 
     return ListView(
@@ -674,13 +801,24 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
         Row(
           children: [
             Expanded(
-              child: _InfoBox(label: l10n.cryptoCoin, value: invoice.coin),
+              child: _InfoBox(
+                key: const ValueKey('crypto-coin-selector'),
+                label: l10n.cryptoCoin,
+                value: invoice.coin,
+                onTap: progress.status == TopUpStatus.waiting
+                    ? () => _chooseCryptoOption(coin: true)
+                    : null,
+              ),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: _InfoBox(
+                key: const ValueKey('crypto-network-selector'),
                 label: l10n.cryptoNetwork,
                 value: invoice.network,
+                onTap: progress.status == TopUpStatus.waiting
+                    ? () => _chooseCryptoOption(coin: false)
+                    : null,
               ),
             ),
           ],
@@ -697,7 +835,11 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
               children: [
                 Expanded(
                   child: Text(
-                    l10n.cryptoWaitingPayment,
+                    progress.status == TopUpStatus.review
+                        ? l10n.paymentReview
+                        : progress.status == TopUpStatus.confirming
+                        ? l10n.cryptoStepConfirmations
+                        : l10n.cryptoWaitingPayment,
                     style: context.text.bodyMed.copyWith(
                       color: c.link,
                       fontWeight: FontWeight.w700,
@@ -716,6 +858,16 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
             ),
           ),
         ),
+        if (progress.status == TopUpStatus.waiting) ...[
+          const SizedBox(height: AppSpacing.md),
+          AppButton(
+            key: const ValueKey('crypto-change-amount'),
+            label: l10n.cryptoChangeAmountAction,
+            variant: AppButtonVariant.secondary,
+            size: AppButtonSize.md,
+            onPressed: _chooseAnotherAmount,
+          ),
+        ],
         const SizedBox(height: AppSpacing.lg),
         Row(
           children: [
@@ -726,7 +878,7 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
             ),
             _Step(
               label: l10n.cryptoStepConfirmations,
-              detail: step == 1
+              detail: step == 1 && invoice.requiredConfirmations > 0
                   ? l10n.cryptoConfirmationsOf(
                       progress.confirmations,
                       invoice.requiredConfirmations,
@@ -761,7 +913,7 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
               border: Border.all(color: c.border),
             ),
             child: QrImageView(
-              data: invoice.address,
+              data: invoice.qrValue ?? invoice.address,
               size: 160,
               backgroundColor: Colors.white,
               eyeStyle: const QrEyeStyle(
@@ -777,6 +929,10 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
         ),
         const SizedBox(height: AppSpacing.lg),
         CopyField(label: l10n.cryptoToAddress, value: invoice.address),
+        if (invoice.memo != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          CopyField(label: l10n.paymentMemo, value: invoice.memo!),
+        ],
         const SizedBox(height: AppSpacing.md),
         Text(
           l10n.cryptoRateLocked(
@@ -820,35 +976,48 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
 }
 
 class _InfoBox extends StatelessWidget {
-  const _InfoBox({required this.label, required this.value});
+  const _InfoBox({
+    super.key,
+    required this.label,
+    required this.value,
+    this.onTap,
+  });
 
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: c.border),
+    return AppCard(
+      onTap: onTap,
+      color: c.surface,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: context.text.caption.copyWith(color: c.textSecondary),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: context.text.caption.copyWith(color: c.textSecondary),
+                ),
+                Text(value, style: context.text.h3),
+              ],
             ),
-            Text(value, style: context.text.h3),
-          ],
-        ),
+          ),
+          if (onTap != null)
+            HugeIcon(
+              icon: AppIcons.chevronDown,
+              size: 18,
+              color: c.textSecondary,
+            ),
+        ],
       ),
     );
   }
@@ -906,7 +1075,11 @@ class _Credited extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final c = context.colors;
-    final amount = context.read<TopUpCubit>().state.session?.amount;
+    final state = context.read<TopUpCubit>().state;
+    final amount =
+        state.progress.creditedAmount ??
+        state.session?.creditedAmount ??
+        state.session?.amount;
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.page),
       child: Column(
@@ -968,13 +1141,17 @@ class _Expired extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xxl),
           Text(
-            l10n.topUpExpiredTitle,
+            context.read<TopUpCubit>().state.phase == TopUpPhase.failed
+                ? l10n.paymentFailed
+                : l10n.topUpExpiredTitle,
             style: context.text.h1,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            l10n.topUpExpiredBody,
+            context.read<TopUpCubit>().state.phase == TopUpPhase.failed
+                ? l10n.paymentFailedBody
+                : l10n.topUpExpiredBody,
             style: context.text.body.copyWith(color: c.textSecondary),
             textAlign: TextAlign.center,
           ),

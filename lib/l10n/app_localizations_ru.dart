@@ -122,6 +122,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get errorUnauthorized => 'Сессия истекла. Войдите снова.';
 
   @override
+  String get signedOutOnDevice =>
+      'Вы вышли из аккаунта на этом устройстве. Войдите снова.';
+
+  @override
   String get errorNotFound => 'Мы не нашли то, что вы искали.';
 
   @override
@@ -300,7 +304,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get packagesUnlimited => 'Безлимитные';
 
   @override
-  String get packagesLimited => 'С лимитом ГБ';
+  String get packagesLimited => 'С лимитом';
 
   @override
   String get packagesChoose => 'Выберите пакет';
@@ -900,7 +904,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get devicesNote =>
-      'eSIM привязана к телефону, на который вы её установили.';
+      'Управляйте устройствами, на которых выполнен вход в ваш аккаунт.';
+
+  @override
+  String get deviceRemove => 'Удалить устройство';
+
+  @override
+  String get deviceRemoveTitle => 'Удалить это устройство?';
+
+  @override
+  String deviceRemoveBody(String device) {
+    return 'Выйти из Waysim на устройстве $device? На нём можно будет войти снова.';
+  }
+
+  @override
+  String get deviceRemoved => 'Устройство удалено.';
 
   @override
   String get deviceThis => 'Это устройство';
@@ -1057,6 +1075,26 @@ class AppLocalizationsRu extends AppLocalizations {
       'Можно закрыть экран — мы пришлём уведомление, когда платёж зачислится.';
 
   @override
+  String get cryptoChangeAmountAction => 'Изменить сумму';
+
+  @override
+  String get cryptoChangeAmountTitle => 'Выбрать другую сумму?';
+
+  @override
+  String get cryptoChangeAmountBody =>
+      'Этот счёт остаётся активным до конца таймера. Если вы уже отправили криптовалюту, дождитесь завершения платежа. Иначе можно создать новый счёт на другую сумму.';
+
+  @override
+  String get cryptoChangeCurrencyTitle => 'Изменить монету или сеть?';
+
+  @override
+  String get cryptoChangeCurrencyBody =>
+      'Для другой монеты или сети нужен новый адрес оплаты. Текущий счёт остаётся активным до истечения срока. Если вы уже отправили криптовалюту, дождитесь завершения платежа.';
+
+  @override
+  String get cryptoChangeCurrencyAction => 'Создать новый счёт';
+
+  @override
   String cryptoExpiresIn(String time) {
     return 'Истекает через $time';
   }
@@ -1092,10 +1130,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get ordersTabTopUps => 'Пополнения';
 
   @override
+  String get ordersTabActivity => 'Операции';
+
+  @override
   String get ordersEmptyPurchases => 'Покупок пока нет';
 
   @override
   String get ordersEmptyTopUps => 'Пополнений пока нет';
+
+  @override
+  String get ordersEmptyActivity => 'Операций по балансу пока нет';
 
   @override
   String orderNumberDate(String number, String date) {
@@ -1131,18 +1175,23 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String referralHeroBody(String reward) {
-    return 'Друг регистрируется по вашей ссылке или коду — вы получаете $reward на баланс.';
+    return 'Друг регистрируется с вашим кодом — вы получаете $reward на баланс.';
   }
 
   @override
   String get referralYourCode => 'Ваш код';
 
   @override
-  String get referralShare => 'Поделиться ссылкой';
+  String get referralShare => 'Поделиться приглашением';
 
   @override
-  String referralShareText(String link) {
-    return 'Купите eSIM для поездки в Waysim: $link';
+  String referralShareText(String code) {
+    return 'Собираетесь в поездку? Посмотрите eSIM-тарифы Waysim. При регистрации укажите мой код приглашения:\n$code';
+  }
+
+  @override
+  String referralShareLinkText(String link, String code) {
+    return 'Собираетесь в поездку? Посмотрите eSIM-тарифы Waysim. Зарегистрируйтесь по моей ссылке:\n$link\n\nКод приглашения: $code';
   }
 
   @override
@@ -1299,4 +1348,49 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noConnectionContinue => 'Продолжить без сети';
+
+  @override
+  String get statusSuspended => 'Приостановлена';
+
+  @override
+  String get statusCancelled => 'Отменена';
+
+  @override
+  String get statusRevoked => 'Отозвана';
+
+  @override
+  String get statusFailed => 'Ошибка';
+
+  @override
+  String get paymentReview => 'Платёж на проверке';
+
+  @override
+  String get paymentPending => 'В обработке';
+
+  @override
+  String get paymentMemo => 'Memo / тег назначения';
+
+  @override
+  String get supportTeam => 'Служба поддержки';
+
+  @override
+  String get supportLiveDisclaimer =>
+      'Ваши сообщения получает служба поддержки Waysim.';
+
+  @override
+  String get supportLiveGreeting => 'Задайте вопрос о Waysim или вашей eSIM.';
+
+  @override
+  String get inviteCodeInvalid =>
+      'Неверный код приглашения. Проверьте его и повторите.';
+
+  @override
+  String get paymentFailed => 'Платёж не завершён';
+
+  @override
+  String get paymentFailedBody =>
+      'Платёж не завершён. Если вы уже отправили средства, обратитесь в поддержку.';
+
+  @override
+  String get activationOnInstall => 'Начинается с момента установки eSIM.';
 }

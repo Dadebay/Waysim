@@ -69,6 +69,7 @@
   "errorTimeout": "The request timed out. Please try again.",
   "errorServer": "Something went wrong on our side. Please try again later.",
   "errorUnauthorized": "Your session has expired. Please sign in again.",
+  "signedOutOnDevice": "You were signed out on this device. Please sign in again.",
   "errorNotFound": "We couldn't find what you were looking for.",
   "errorUnknown": "Something went wrong. Please try again.",
   "comingSoon": "Coming soon",
@@ -178,7 +179,7 @@
   "compatWarningBody": "You can still buy this plan, but the eSIM won’t work on a phone without eSIM support. Continue anyway?",
   "actionContinueAnyway": "Continue anyway",
   "packagesUnlimited": "Unlimited",
-  "packagesLimited": "Data plans",
+  "packagesLimited": "Limited",
   "packagesChoose": "Choose a plan",
   "packagesEmpty": "No plans in this category",
   "packageDetailsLink": "Package details",
@@ -524,7 +525,12 @@
   "aboutTagline": "Mobile internet for travel",
   "aboutApp": "About the app",
   "devicesTitle": "My devices",
-  "devicesNote": "An eSIM is tied to the phone you install it on.",
+  "devicesNote": "Manage the devices signed in to your account.",
+  "deviceRemove": "Remove device",
+  "deviceRemoveTitle": "Remove this device?",
+  "deviceRemoveBody": "Sign out of Waysim on {device}? You can sign in again on that device.",
+  "deviceRemoved": "Device removed.",
+  "@deviceRemoveBody": {"placeholders": {"device": {"type": "String"}}},
   "deviceThis": "This device",
   "deviceLastSeen": "Last active {ago}",
   "@deviceLastSeen": {
@@ -646,6 +652,12 @@
     }
   },
   "cryptoCloseNote": "You can close this screen — we’ll send a notification when the payment is credited.",
+  "cryptoChangeAmountAction": "Change amount",
+  "cryptoChangeAmountTitle": "Choose a different amount?",
+  "cryptoChangeAmountBody": "This payment request stays active until its timer ends. If you already sent crypto, wait for this payment to finish. Otherwise, you can create a new payment request with a different amount.",
+  "cryptoChangeCurrencyTitle": "Change coin or network?",
+  "cryptoChangeCurrencyBody": "A different coin or network needs a new payment address. The current payment request remains active until it expires. If you already sent crypto, wait for this payment to finish.",
+  "cryptoChangeCurrencyAction": "Create new payment",
   "cryptoExpiresIn": "Expires in {time}",
   "@cryptoExpiresIn": {
     "placeholders": {
@@ -670,8 +682,10 @@
   "ordersTitle": "Orders",
   "ordersTabPurchases": "Purchases",
   "ordersTabTopUps": "Top-ups",
+  "ordersTabActivity": "Activity",
   "ordersEmptyPurchases": "No purchases yet",
   "ordersEmptyTopUps": "No top-ups yet",
+  "ordersEmptyActivity": "No balance activity yet",
   "orderNumberDate": "Order {number} · {date}",
   "@orderNumberDate": {
     "placeholders": {
@@ -717,7 +731,7 @@
       }
     }
   },
-  "referralHeroBody": "A friend signs up with your link or code — you get {reward} added to your balance.",
+  "referralHeroBody": "A friend signs up with your code — you get {reward} added to your balance.",
   "@referralHeroBody": {
     "placeholders": {
       "reward": {
@@ -726,13 +740,20 @@
     }
   },
   "referralYourCode": "Your code",
-  "referralShare": "Share link",
-  "referralShareText": "Get an eSIM for your trip with Waysim: {link}",
+  "referralShare": "Share invite",
+  "referralShareText": "Traveling soon? Explore eSIM plans with Waysim. Use my invite code when you sign up:\n{code}",
   "@referralShareText": {
     "placeholders": {
-      "link": {
+      "code": {
         "type": "String"
       }
+    }
+  },
+  "referralShareLinkText": "Traveling soon? Explore eSIM plans with Waysim. Sign up using my invite link:\n{link}\n\nInvite code: {code}",
+  "@referralShareLinkText": {
+    "placeholders": {
+      "link": {"type": "String"},
+      "code": {"type": "String"}
     }
   },
   "referralStatInvited": "Invited",
@@ -820,5 +841,19 @@
   "noConnectionTitle": "You're offline",
   "noConnectionBody": "Waysim needs the internet to load plans and your eSIMs. Check Wi‑Fi or mobile data and try again.",
   "noConnectionWaiting": "Waiting for a connection…",
-  "noConnectionContinue": "Continue offline"
+  "noConnectionContinue": "Continue offline",
+  "statusSuspended": "Suspended",
+  "statusCancelled": "Cancelled",
+  "statusRevoked": "Revoked",
+  "statusFailed": "Failed",
+  "paymentReview": "Payment under review",
+  "paymentPending": "Pending",
+  "paymentMemo": "Memo / destination tag",
+  "supportTeam": "Support team",
+  "supportLiveDisclaimer": "Your messages go to the Waysim support team.",
+  "supportLiveGreeting": "Send us your question about Waysim or your eSIM.",
+  "inviteCodeInvalid": "Invalid invitation code. Check it and try again.",
+  "paymentFailed": "Payment not completed",
+  "paymentFailedBody": "This payment did not complete. Contact support if you already sent funds.",
+  "activationOnInstall": "Starts when the eSIM is installed."
 }

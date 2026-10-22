@@ -314,6 +314,12 @@ abstract class AppLocalizations {
   /// **'Your session has expired. Please sign in again.'**
   String get errorUnauthorized;
 
+  /// No description provided for @signedOutOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'You were signed out on this device. Please sign in again.'**
+  String get signedOutOnDevice;
+
   /// No description provided for @errorNotFound.
   ///
   /// In en, this message translates to:
@@ -599,7 +605,7 @@ abstract class AppLocalizations {
   /// No description provided for @packagesLimited.
   ///
   /// In en, this message translates to:
-  /// **'Data plans'**
+  /// **'Limited'**
   String get packagesLimited;
 
   /// No description provided for @packagesChoose.
@@ -1577,8 +1583,32 @@ abstract class AppLocalizations {
   /// No description provided for @devicesNote.
   ///
   /// In en, this message translates to:
-  /// **'An eSIM is tied to the phone you install it on.'**
+  /// **'Manage the devices signed in to your account.'**
   String get devicesNote;
+
+  /// No description provided for @deviceRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove device'**
+  String get deviceRemove;
+
+  /// No description provided for @deviceRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this device?'**
+  String get deviceRemoveTitle;
+
+  /// No description provided for @deviceRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of Waysim on {device}? You can sign in again on that device.'**
+  String deviceRemoveBody(String device);
+
+  /// No description provided for @deviceRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Device removed.'**
+  String get deviceRemoved;
 
   /// No description provided for @deviceThis.
   ///
@@ -1838,6 +1868,42 @@ abstract class AppLocalizations {
   /// **'You can close this screen — we’ll send a notification when the payment is credited.'**
   String get cryptoCloseNote;
 
+  /// No description provided for @cryptoChangeAmountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change amount'**
+  String get cryptoChangeAmountAction;
+
+  /// No description provided for @cryptoChangeAmountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a different amount?'**
+  String get cryptoChangeAmountTitle;
+
+  /// No description provided for @cryptoChangeAmountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment request stays active until its timer ends. If you already sent crypto, wait for this payment to finish. Otherwise, you can create a new payment request with a different amount.'**
+  String get cryptoChangeAmountBody;
+
+  /// No description provided for @cryptoChangeCurrencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change coin or network?'**
+  String get cryptoChangeCurrencyTitle;
+
+  /// No description provided for @cryptoChangeCurrencyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A different coin or network needs a new payment address. The current payment request remains active until it expires. If you already sent crypto, wait for this payment to finish.'**
+  String get cryptoChangeCurrencyBody;
+
+  /// No description provided for @cryptoChangeCurrencyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new payment'**
+  String get cryptoChangeCurrencyAction;
+
   /// No description provided for @cryptoExpiresIn.
   ///
   /// In en, this message translates to:
@@ -1898,6 +1964,12 @@ abstract class AppLocalizations {
   /// **'Top-ups'**
   String get ordersTabTopUps;
 
+  /// No description provided for @ordersTabActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get ordersTabActivity;
+
   /// No description provided for @ordersEmptyPurchases.
   ///
   /// In en, this message translates to:
@@ -1909,6 +1981,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No top-ups yet'**
   String get ordersEmptyTopUps;
+
+  /// No description provided for @ordersEmptyActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No balance activity yet'**
+  String get ordersEmptyActivity;
 
   /// No description provided for @orderNumberDate.
   ///
@@ -1961,7 +2039,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'A friend signs up with your link or code — you get {reward} added to your balance.'**
+  /// **'A friend signs up with your code — you get {reward} added to your balance.'**
   String referralHeroBody(String reward);
 
   /// No description provided for @referralYourCode.
@@ -1973,14 +2051,20 @@ abstract class AppLocalizations {
   /// No description provided for @referralShare.
   ///
   /// In en, this message translates to:
-  /// **'Share link'**
+  /// **'Share invite'**
   String get referralShare;
 
   /// No description provided for @referralShareText.
   ///
   /// In en, this message translates to:
-  /// **'Get an eSIM for your trip with Waysim: {link}'**
-  String referralShareText(String link);
+  /// **'Traveling soon? Explore eSIM plans with Waysim. Use my invite code when you sign up:\n{code}'**
+  String referralShareText(String code);
+
+  /// No description provided for @referralShareLinkText.
+  ///
+  /// In en, this message translates to:
+  /// **'Traveling soon? Explore eSIM plans with Waysim. Sign up using my invite link:\n{link}\n\nInvite code: {code}'**
+  String referralShareLinkText(String link, String code);
 
   /// No description provided for @referralStatInvited.
   ///
@@ -2251,6 +2335,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue offline'**
   String get noConnectionContinue;
+
+  /// No description provided for @statusSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended'**
+  String get statusSuspended;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @statusRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked'**
+  String get statusRevoked;
+
+  /// No description provided for @statusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get statusFailed;
+
+  /// No description provided for @paymentReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment under review'**
+  String get paymentReview;
+
+  /// No description provided for @paymentPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get paymentPending;
+
+  /// No description provided for @paymentMemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Memo / destination tag'**
+  String get paymentMemo;
+
+  /// No description provided for @supportTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Support team'**
+  String get supportTeam;
+
+  /// No description provided for @supportLiveDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your messages go to the Waysim support team.'**
+  String get supportLiveDisclaimer;
+
+  /// No description provided for @supportLiveGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Send us your question about Waysim or your eSIM.'**
+  String get supportLiveGreeting;
+
+  /// No description provided for @inviteCodeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid invitation code. Check it and try again.'**
+  String get inviteCodeInvalid;
+
+  /// No description provided for @paymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment not completed'**
+  String get paymentFailed;
+
+  /// No description provided for @paymentFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment did not complete. Contact support if you already sent funds.'**
+  String get paymentFailedBody;
+
+  /// No description provided for @activationOnInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts when the eSIM is installed.'**
+  String get activationOnInstall;
 }
 
 class _AppLocalizationsDelegate

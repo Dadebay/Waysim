@@ -14,7 +14,8 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_hero.dart';
 import '../../../../core/widgets/copy_field.dart';
 import '../../../../core/widgets/country_row.dart';
-import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/error_view.dart';
+import '../../../../core/utils/result.dart';
 import '../../../../core/widgets/flag_icon.dart';
 import '../../../../core/widgets/segmented_tabs.dart';
 import '../../../../core/widgets/status_badge.dart';
@@ -25,16 +26,27 @@ import '../esim_installer.dart';
 import '../esim_labels.dart';
 
 /// One eSIM: install it (one tap or QR or by hand), watch its usage, top it up.
-class EsimDetailPage extends StatelessWidget {
+class EsimDetailPage extends StatefulWidget {
   const EsimDetailPage({super.key, required this.id});
 
   final String id;
+  @override
+  State<EsimDetailPage> createState() => _EsimDetailPageState();
+}
+
+class _EsimDetailPageState extends State<EsimDetailPage> {
+  late Future<Result<Esim>> _load;
+  @override
+  void initState() {
+    super.initState();
+    _load = context.read<EsimListCubit>().detail(widget.id);
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final esims = context.watch<EsimListCubit>();
-    final esim = esims.byId(id);
+    final esim = esims.byId(widget.id);
 
     final c = context.colors;
 
@@ -51,9 +63,30 @@ class EsimDetailPage extends StatelessWidget {
         title: Text(l10n.esimDetailTitle, style: context.text.h2),
         centerTitle: true,
       ),
-      body: esim == null
-          ? EmptyState(icon: AppIcons.myEsim, title: l10n.errorNotFound)
-          : _Detail(esim: esim),
+      body: FutureBuilder<Result<Esim>>(
+        future: _load,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final result = snapshot.data;
+          if (result case Error(:final failure)) {
+            return ErrorView(
+              failure: failure,
+              onRetry: () => setState(() {
+                _load = esims.detail(widget.id);
+              }),
+            );
+          }
+          final detail = esim ?? result!.dataOrNull!;
+          return RefreshIndicator(
+            onRefresh: () async {
+              await esims.detail(widget.id, refresh: true);
+            },
+            child: _Detail(esim: detail),
+          );
+        },
+      ),
     );
   }
 }

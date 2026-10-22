@@ -26,8 +26,7 @@ abstract final class AppEnvironment {
   );
 
   /// Serves repositories from in-memory fixtures instead of the network, so
-  /// every screen runs before the backend exists. On by default outside
-  /// production until the real API lands (docs/06-roadmap.md T7.1).
+  /// screens can also be exercised without a backend. Explicitly opt in for tests.
   static const _useMockApi = String.fromEnvironment(
     'USE_MOCK_API',
     defaultValue: 'auto',
@@ -36,7 +35,7 @@ abstract final class AppEnvironment {
   static bool get useMockApi => switch (_useMockApi) {
     'true' => true,
     'false' => false,
-    _ => !isProd,
+    _ => false,
   };
 
   /// Where the router starts. `--dart-define=INITIAL_ROUTE=/gallery` opens the

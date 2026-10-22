@@ -2,10 +2,13 @@ import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:root_jailbreak_detector/root_jailbreak_detector.dart';
 
 import '../constants/app_environment.dart';
 import 'crash_report.dart';
+import '../utils/formatters/device_model.dart';
 
 /// Reads the phone and build once, for crash reports.
 Future<DeviceContext> readDeviceContext() async {
@@ -15,16 +18,21 @@ Future<DeviceContext> readDeviceContext() async {
     String platform;
     String os;
     String model;
+    var isEmulator = false;
     if (Platform.isAndroid) {
       final info = await device.androidInfo;
       platform = 'android';
       os = 'Android ${info.version.release} (API ${info.version.sdkInt})';
-      model = '${info.manufacturer} ${info.model}'.trim();
+      model = deviceModelName('${info.manufacturer} ${info.model}');
+      isEmulator = !info.isPhysicalDevice;
     } else if (Platform.isIOS) {
       final info = await device.iosInfo;
       platform = 'ios';
       os = '${info.systemName} ${info.systemVersion}';
-      model = info.utsname.machine;
+      model = info.modelName.trim().isNotEmpty
+          ? info.modelName
+          : deviceModelName(info.utsname.machine);
+      isEmulator = !info.isPhysicalDevice;
     } else {
       platform = Platform.operatingSystem;
       os = Platform.operatingSystemVersion;
@@ -38,8 +46,25 @@ Future<DeviceContext> readDeviceContext() async {
       buildNumber: app.buildNumber,
       locale: PlatformDispatcher.instance.locale.toLanguageTag(),
       flavor: AppEnvironment.flavor.name,
+      timezone: await _localTimezone(),
+      isEmulator: isEmulator,
+      isRooted:
+          (Platform.isAndroid || Platform.isIOS) &&
+          await const RootJailbreakDetector(
+            treatEmulatorAsCompromised: false,
+          ).isCompromisedOrElse(false),
     );
   } on Object {
     return DeviceContext.unknown;
   }
+}
+
+Future<String> _localTimezone() async {
+  try {
+    final identifier = (await FlutterTimezone.getLocalTimezone()).identifier;
+    if (identifier.isNotEmpty) return identifier;
+  } on Object {
+    // Registration still uses the system timezone name if the plugin fails.
+  }
+  return DateTime.now().timeZoneName;
 }

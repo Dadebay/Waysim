@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../core/error/exceptions.dart';
+import '../../../../core/error/failure.dart';
+import '../../../../core/localization/failure_localizer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +14,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/utils/formatters/money.dart';
 import '../../../../core/widgets/app_hero.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
@@ -299,30 +303,20 @@ class _SignedIn extends StatelessWidget {
 
   Future<void> _confirmSignOut(BuildContext context) async {
     final l10n = context.l10n;
-    final c = context.colors;
     final auth = context.read<AuthCubit>();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        icon: HugeIcon(icon: AppIcons.logout, size: 28, color: c.primary),
-        title: Text(l10n.signOutConfirmTitle, style: context.text.h2),
-        content: Text(
-          l10n.signOutConfirmBody,
-          style: context.text.bodyMed.copyWith(color: c.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.signOut),
-          ),
-        ],
-      ),
+      builder: (_) => _SignOutDialog(email: auth.state.user?.email),
     );
-    if (confirmed == true) await auth.signOut();
+    if (confirmed == true) {
+      try {
+        await auth.signOut();
+      } on AppException catch (e) {
+        if (context.mounted) {
+          AppToast.show(context, e.toFailure().localize(l10n));
+        }
+      }
+    }
   }
 
   @override
@@ -451,6 +445,114 @@ class _SignedIn extends StatelessWidget {
           const SizedBox(height: 104),
         ],
       ),
+    );
+  }
+}
+
+class _SignOutDialog extends StatelessWidget {
+  const _SignOutDialog({this.email});
+
+  final String? email;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final l10n = context.l10n;
+    return AlertDialog(
+      key: const ValueKey('sign-out-dialog'),
+      backgroundColor: c.background,
+      surfaceTintColor: Colors.transparent,
+      elevation: 12,
+      shadowColor: c.shadow,
+      constraints: const BoxConstraints(maxWidth: 380),
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xxl,
+        vertical: AppSpacing.xxl,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sheet),
+        side: BorderSide(color: c.border),
+      ),
+      scrollable: true,
+      iconPadding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+      icon: Center(
+        child: Container(
+          width: 76,
+          height: 76,
+          decoration: BoxDecoration(
+            color: c.primarySubtle,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+          ),
+          alignment: Alignment.center,
+          child: HugeIcon(icon: AppIcons.logout, size: 34, color: c.link),
+        ),
+      ),
+      titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      title: Text(
+        l10n.signOutConfirmTitle,
+        textAlign: TextAlign.center,
+        style: context.text.h2,
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.signOutConfirmBody,
+            textAlign: TextAlign.center,
+            style: context.text.body.copyWith(color: c.textSecondary),
+          ),
+          if (email?.isNotEmpty ?? false) ...[
+            const SizedBox(height: AppSpacing.xl),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(color: c.border),
+              ),
+              child: Row(
+                children: [
+                  HugeIcon(
+                    icon: AppIcons.mail,
+                    size: 20,
+                    color: c.textSecondary,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      email!,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.bodyMed,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      actions: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppButton(
+              label: l10n.signOut,
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppButton(
+              label: l10n.actionCancel,
+              variant: AppButtonVariant.secondary,
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

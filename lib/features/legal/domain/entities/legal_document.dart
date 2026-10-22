@@ -5,6 +5,7 @@ class LegalDocument extends Equatable {
     required this.id,
     required this.title,
     required this.body,
+    this.markdown = false,
   });
 
   /// `terms`, `privacy`, `refund`, `acceptable-use`, `cookies`, `general`.
@@ -13,6 +14,7 @@ class LegalDocument extends Equatable {
 
   /// Plain text with blank lines between paragraphs.
   final String body;
+  final bool markdown;
 
   @override
   List<Object?> get props => [id, title, body];

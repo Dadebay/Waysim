@@ -38,8 +38,8 @@ class TimeoutException extends AppException {
 }
 
 class UnauthorizedException extends AppException {
-  const UnauthorizedException([super.message = 'Unauthorized'])
-    : super(statusCode: 401);
+  const UnauthorizedException([super.message = 'Unauthorized', String? apiCode])
+    : super(statusCode: 401, code: apiCode);
 }
 
 /// 403 — today always `user-blocked`, which can also hit a live session.

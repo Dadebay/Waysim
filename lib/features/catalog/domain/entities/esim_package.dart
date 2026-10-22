@@ -28,6 +28,12 @@ class EsimPackage extends Equatable {
     this.installWithinDays = 180,
     this.coverage = const [],
     this.speed,
+    this.purchaseDays,
+    this.dailyPrice,
+    this.minPurchaseDays,
+    this.maxPurchaseDays,
+    this.details,
+    this.activationOnInstall = false,
   });
 
   /// Stable slug (`TR_5_30`) — the only thing the app sends to buy.
@@ -54,6 +60,44 @@ class EsimPackage extends Equatable {
   /// Country codes covered; one entry for a country plan.
   final List<String> coverage;
   final String? speed;
+  final String? details;
+  final bool activationOnInstall;
+  final int? purchaseDays;
+  final Money? dailyPrice;
+  final int? minPurchaseDays;
+  final int? maxPurchaseDays;
+  String get selectionKey => '$id:${purchaseDays ?? 0}';
+
+  EsimPackage withPurchaseDays(int selectedDays) {
+    final daily = dailyPrice;
+    if (daily == null) return this;
+    final days = selectedDays.clamp(
+      minPurchaseDays ?? 1,
+      maxPurchaseDays ?? selectedDays,
+    );
+    return EsimPackage(
+      id: id,
+      destinationCode: destinationCode,
+      kind: kind,
+      days: days,
+      price: Money(daily.cents * days),
+      volumeBytes: volumeBytes,
+      dailyBytes: dailyBytes,
+      network: network,
+      hotspot: hotspot,
+      topUp: topUp,
+      smsAndCalls: smsAndCalls,
+      installWithinDays: installWithinDays,
+      coverage: coverage,
+      speed: speed,
+      purchaseDays: days,
+      dailyPrice: daily,
+      minPurchaseDays: minPurchaseDays,
+      maxPurchaseDays: maxPurchaseDays,
+      details: details,
+      activationOnInstall: activationOnInstall,
+    );
+  }
 
   bool get isUnlimited => kind == PackageKind.unlimited;
 
@@ -73,5 +117,9 @@ class EsimPackage extends Equatable {
     installWithinDays,
     coverage,
     speed,
+    purchaseDays,
+    dailyPrice,
+    minPurchaseDays,
+    maxPurchaseDays,
   ];
 }

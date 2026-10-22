@@ -7,6 +7,9 @@ enum RefreshOutcome {
   /// account blocked). The session is over: sign in again.
   rejected,
 
+  /// The device was explicitly signed out; show the account notice.
+  revoked,
+
   /// The server could not be reached. The session is not over — keep it and
   /// let the original error surface.
   unavailable,

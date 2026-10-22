@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../error/failure.dart';
 import '../../storage/secure_storage.dart';
 import '../token_refresher.dart';
+import '../device_session.dart';
 
 /// Attaches the bearer token, renews it on a 401 and clears the session when
 /// renewing fails.
@@ -13,15 +14,16 @@ import '../token_refresher.dart';
 class AuthInterceptor extends QueuedInterceptor {
   AuthInterceptor(
     this._storage, {
-    required TokenRefresher Function() refresher,
+    required this._refresher,
     this.onUnauthorized,
+    this.deviceSession,
     Dio? retryDio,
-  }) : _refresher = refresher,
-       _retryDio = retryDio ?? Dio();
+  }) : _retryDio = retryDio ?? Dio();
 
   static const _retriedKey = 'auth_retried';
 
   final SecureStorage _storage;
+  final DeviceSession? deviceSession;
 
   /// Replays the failed request. Deliberately a bare [Dio]: the retry must not
   /// re-enter this interceptor's error queue, which is still busy with the
@@ -38,7 +40,24 @@ class AuthInterceptor extends QueuedInterceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _storage.readAccessToken();
+    try {
+      await deviceSession?.ensure();
+    } on Object catch (e) {
+      return handler.reject(
+        DioException(
+          requestOptions: options,
+          error: e,
+          type: DioExceptionType.connectionError,
+        ),
+      );
+    }
+    final token =
+        await _storage.readAccessToken() ?? await _storage.readDeviceToken();
+    if (deviceSession != null) {
+      options.headers['X-App-Version'] = deviceSession!.appVersion;
+      final id = await _storage.readDeviceId();
+      if (id != null) options.headers['X-Device-Id'] = id;
+    }
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -56,7 +75,8 @@ class AuthInterceptor extends QueuedInterceptor {
         ? data['code'] as String
         : null;
 
-    if (status == 403 && code == ApiCodes.userBlocked) {
+    if (status == 403 &&
+        (code == ApiCodes.userBlocked || code == 'account_disabled')) {
       await _storage.clearSession();
       onUnauthorized?.call(
         const ApiFailure(code: ApiCodes.userBlocked, statusCode: 403),
@@ -70,12 +90,47 @@ class AuthInterceptor extends QueuedInterceptor {
       return handler.next(err);
     }
 
-    switch (await _refresher().refresh()) {
+    if (code != null && code != 'token_expired') {
+      await _storage.clearSession();
+      onUnauthorized?.call(
+        code == 'session_revoked'
+            ? const ApiFailure(code: 'session_revoked', statusCode: 401)
+            : const UnauthorizedFailure(),
+      );
+      return handler.next(err);
+    }
+    final current = await _storage.readAccessToken();
+    if (current == null) {
+      if (deviceSession == null) return handler.next(err);
+      try {
+        deviceSession!.invalidate();
+        await deviceSession!.ensure();
+        options.headers['Authorization'] =
+            'Bearer ${await _storage.readDeviceToken()}';
+        options.extra[_retriedKey] = true;
+        return handler.resolve(await _retryDio.fetch<dynamic>(options));
+      } on DioException catch (e) {
+        return handler.next(e);
+      } on Object {
+        return handler.next(err);
+      }
+    }
+    final alreadyRenewed =
+        options.headers['Authorization'] != 'Bearer $current';
+    switch (alreadyRenewed
+        ? RefreshOutcome.renewed
+        : await _refresher().refresh()) {
       case RefreshOutcome.renewed:
         break;
       case RefreshOutcome.rejected:
         await _storage.clearSession();
         onUnauthorized?.call(const UnauthorizedFailure());
+        return handler.next(err);
+      case RefreshOutcome.revoked:
+        await _storage.clearSession();
+        onUnauthorized?.call(
+          const ApiFailure(code: 'session_revoked', statusCode: 401),
+        );
         return handler.next(err);
       case RefreshOutcome.unavailable:
         // Offline mid-refresh is not a reason to sign the customer out.
@@ -89,6 +144,15 @@ class AuthInterceptor extends QueuedInterceptor {
         ..extra[_retriedKey] = true;
       handler.resolve(await _retryDio.fetch<dynamic>(options));
     } on DioException catch (retryError) {
+      if (retryError.response?.statusCode == 401) {
+        await _storage.clearSession();
+        final body = retryError.response?.data;
+        onUnauthorized?.call(
+          body is Map && body['code'] == 'session_revoked'
+              ? const ApiFailure(code: 'session_revoked', statusCode: 401)
+              : const UnauthorizedFailure(),
+        );
+      }
       handler.next(retryError);
     }
   }

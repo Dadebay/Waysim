@@ -48,10 +48,12 @@ class AsyncCubit<T> extends Cubit<AsyncState<T>> {
   AsyncCubit(this._loader) : super(const AsyncLoading());
 
   final Future<Result<T>> Function() _loader;
+  int _generation = 0;
 
   /// Loads. With [silent] the current data stays on screen (pull-to-refresh);
   /// without it a failed first load shows the error view.
   Future<void> load({bool silent = false}) async {
+    final generation = ++_generation;
     final current = state;
     if (silent && current is AsyncData<T>) {
       emit(AsyncData(current.data, refreshing: true));
@@ -60,7 +62,7 @@ class AsyncCubit<T> extends Cubit<AsyncState<T>> {
     }
 
     final result = await _loader();
-    if (isClosed) return;
+    if (isClosed || generation != _generation) return;
     switch (result) {
       case Success(:final data):
         emit(AsyncData(data));
@@ -75,5 +77,8 @@ class AsyncCubit<T> extends Cubit<AsyncState<T>> {
   }
 
   /// Replaces the data without a round trip (an eSIM just bought).
-  void put(T data) => emit(AsyncData(data));
+  void put(T data) {
+    _generation++;
+    if (!isClosed) emit(AsyncData(data));
+  }
 }

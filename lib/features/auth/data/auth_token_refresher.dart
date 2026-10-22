@@ -49,10 +49,17 @@ class AuthTokenRefresher implements TokenRefresher {
       }
       // Both tokens are replaced together; keeping an old refresh token
       // would fail the next refresh.
+      if (await _storage.readRefreshToken() != current) {
+        return RefreshOutcome.rejected;
+      }
       await _storage.saveTokens(accessToken: access, refreshToken: refresh);
       return RefreshOutcome.renewed;
     } on DioException catch (e) {
       final status = e.response?.statusCode;
+      final body = e.response?.data;
+      if (status == 401 && body is Map && body['code'] == 'session_revoked') {
+        return RefreshOutcome.revoked;
+      }
       return status != null && status >= 400 && status < 500
           ? RefreshOutcome.rejected
           : RefreshOutcome.unavailable;

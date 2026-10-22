@@ -20,6 +20,91 @@ void main() {
   setUpAll(loadAppFonts);
   setUp(setUpTestDependencies);
 
+  const tableDocument = LegalDocument(
+    id: 'privacy',
+    title: 'Privacy Policy',
+    markdown: true,
+    body: r'''
+## Data we collect
+
+| Category | Examples | Source |
+| --- | --- | --- |
+| Account | **Email address**, name (optional), login method | You |
+| Payments | Cryptocurrency, network, amount, transaction hash, sending wallet address | Our payment processor, public blockchain, you |
+
+## Your rights
+
+| Purpose | Contact |
+| --- | --- |
+| Access \| deletion | [Privacy support](mailto:support@waysim.co) |
+
+We do not sell your personal data.
+''',
+  );
+
+  for (final theme in [AppTheme.light, AppTheme.dark]) {
+    testWidgets(
+      'legal tables reflow on a narrow phone with large text (${theme.brightness})',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(2)),
+              child: child!,
+            ),
+            home: const LegalDocumentPage(
+              id: 'privacy',
+              document: tableDocument,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(Table), findsNothing);
+        expect(find.textContaining('Category'), findsNWidgets(2));
+        expect(find.textContaining('Email address'), findsOneWidget);
+        expect(find.textContaining('transaction hash'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.textContaining('Access | deletion'),
+          400,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.textContaining('Access | deletion'), findsOneWidget);
+        expect(find.textContaining('Privacy support'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('We do not sell your personal data.'),
+          400,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('wide legal tables reflow when resized to a phone', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      host(const LegalDocumentPage(id: 'privacy', document: tableDocument)),
+    );
+    expect(find.byType(Table), findsNWidgets(2));
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
+    expect(find.byType(Table), findsNothing);
+    expect(find.textContaining('transaction hash'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('More uses a bold title and two white cards', (tester) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;

@@ -54,7 +54,7 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
     switch (result) {
       case Success():
         // Back to a guest: the repository already dropped the session.
-        await _auth.signOut();
+        _auth.sessionExpired();
         emit(const DeleteAccountState(step: DeleteStep.done));
       case Error(:final failure):
         emit(

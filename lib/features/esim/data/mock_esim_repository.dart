@@ -15,6 +15,9 @@ class MockEsimRepository implements EsimRepository {
   Future<Result<Esim>> get(String id) => _backend.esim(id);
 
   @override
+  Future<Result<Esim>> refresh(String id) => get(id);
+
+  @override
   Future<Result<Esim>> bindToDevice(String id, {required String deviceName}) =>
       _backend.bindToDevice(id, deviceName);
 }

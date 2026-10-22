@@ -52,6 +52,9 @@ class DeviceContext extends Equatable {
     required this.buildNumber,
     required this.locale,
     required this.flavor,
+    this.timezone = 'UTC',
+    this.isEmulator = false,
+    this.isRooted = false,
   });
 
   static const unknown = DeviceContext(
@@ -71,6 +74,9 @@ class DeviceContext extends Equatable {
   final String buildNumber;
   final String locale;
   final String flavor;
+  final String timezone;
+  final bool isEmulator;
+  final bool isRooted;
 
   Map<String, Object?> toMap() => {
     'platform': platform,
@@ -91,6 +97,9 @@ class DeviceContext extends Equatable {
     buildNumber,
     locale,
     flavor,
+    timezone,
+    isEmulator,
+    isRooted,
   ];
 }
 

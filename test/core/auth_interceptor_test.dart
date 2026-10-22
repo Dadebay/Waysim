@@ -100,6 +100,23 @@ void main() {
     expect(unauthorized, isEmpty);
   });
 
+  test('concurrent expired requests share the rotated token', () async {
+    final adapter = ScriptedAdapter(
+      (options, _) => options.headers['Authorization'] == 'Bearer old'
+          ? json(401, {'code': 'token_expired'})
+          : json(200, {'ok': true}),
+    );
+    final refresher = FakeRefresher(RefreshOutcome.renewed, storage);
+    final dio = dioFor(adapter, refresher);
+    final results = await Future.wait([
+      dio.get<dynamic>('/one'),
+      dio.get<dynamic>('/two'),
+    ]);
+    expect(results.every((r) => r.statusCode == 200), true);
+    expect(refresher.calls, 1);
+    expect(unauthorized, isEmpty);
+  });
+
   test('a refused refresh token ends the session', () async {
     final adapter = ScriptedAdapter((_, _) => json(401, {}));
     final refresher = FakeRefresher(RefreshOutcome.rejected, storage);
@@ -113,6 +130,28 @@ void main() {
     expect(await storage.readRefreshToken(), isNull);
     expect(unauthorized.single, isA<UnauthorizedFailure>());
   });
+
+  test(
+    'session_revoked preserves its reason and keeps the guest token',
+    () async {
+      await storage.saveDeviceToken('guest');
+      final adapter = ScriptedAdapter(
+        (_, _) => json(401, {'code': 'session_revoked'}),
+      );
+      final refresher = FakeRefresher(RefreshOutcome.renewed, storage);
+
+      await expectLater(
+        dioFor(adapter, refresher).get<dynamic>('/v1/me'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(refresher.calls, 0);
+      expect(await storage.readAccessToken(), isNull);
+      expect(await storage.readRefreshToken(), isNull);
+      expect(await storage.readDeviceToken(), 'guest');
+      expect((unauthorized.single as ApiFailure).code, 'session_revoked');
+    },
+  );
 
   test('being offline during a refresh keeps the session', () async {
     final adapter = ScriptedAdapter((_, _) => json(401, {}));
@@ -178,6 +217,13 @@ void main() {
     test('a 401 from the server means the session is over', () async {
       final adapter = ScriptedAdapter((_, _) => json(401, {}));
       expect(await refresherFor(adapter).refresh(), RefreshOutcome.rejected);
+    });
+
+    test('a revoked refresh token keeps the signed-out reason', () async {
+      final adapter = ScriptedAdapter(
+        (_, _) => json(401, {'code': 'session_revoked'}),
+      );
+      expect(await refresherFor(adapter).refresh(), RefreshOutcome.revoked);
     });
 
     test('a 500 is "try later", not "signed out"', () async {

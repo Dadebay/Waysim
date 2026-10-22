@@ -5,9 +5,10 @@ import '../utils/extensions/context_extensions.dart';
 
 /// 56 pt floating support button.
 class SupportFab extends StatelessWidget {
-  const SupportFab({super.key, required this.onPressed});
+  const SupportFab({super.key, required this.onPressed, this.unread = 0});
 
   final VoidCallback onPressed;
+  final int unread;
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +16,7 @@ class SupportFab extends StatelessWidget {
     return Semantics(
       button: true,
       label: context.l10n.supportFabLabel,
+      value: unread > 0 ? '$unread' : null,
       excludeSemantics: true,
       child: Material(
         color: c.primary,
@@ -26,12 +28,43 @@ class SupportFab extends StatelessWidget {
           onTap: onPressed,
           child: SizedBox.square(
             dimension: 56,
-            child: Center(
-              child: HugeIcon(
-                icon: AppIcons.support,
-                size: 24,
-                color: c.textOnPrimary,
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Center(
+                  child: HugeIcon(
+                    icon: AppIcons.support,
+                    size: 24,
+                    color: c.textOnPrimary,
+                  ),
+                ),
+                if (unread > 0)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: c.error,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: c.background, width: 2),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        child: Text(
+                          unread > 9 ? '9+' : '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

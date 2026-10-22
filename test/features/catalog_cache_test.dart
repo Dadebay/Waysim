@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:waysim/features/catalog/domain/entities/catalog_banner.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:waysim/core/error/failure.dart';
 import 'package:waysim/core/utils/result.dart';
@@ -14,6 +15,18 @@ import '../helpers/test_dependencies.dart';
 /// A catalog that answers from a queue of results.
 class _ScriptedCatalog implements CatalogRepository {
   _ScriptedCatalog(this.results);
+  @override
+  Future<Result<Destination>> location(String code) =>
+      throw UnimplementedError();
+  @override
+  Future<Result<EsimPackage>> package(String id) => throw UnimplementedError();
+  @override
+  List<CatalogBanner>? get banners => null;
+  @override
+  Future<Result<EsimPackage>> detail(EsimPackage package) async =>
+      Success(package);
+  @override
+  Future<Result<List<Destination>>> search(String query) => destinations();
 
   final List<Result<List<Destination>>> results;
 

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/utils/result.dart';
@@ -80,6 +79,15 @@ class LoginCubit extends Cubit<LoginState> {
   final AuthCubit _auth;
   final AnalyticsService _analytics;
   Timer? _ticker;
+  String? _invite;
+
+  /// Prefill only; the user can edit this before saving their profile name.
+  String get suggestedName {
+    final savedName = _auth.state.user?.name?.trim();
+    if (savedName != null && savedName.isNotEmpty) return savedName;
+    final email = _auth.state.user?.email ?? state.email;
+    return email.trim().split('@').first;
+  }
 
   /// Step 1. [accepted] is the 18+ / terms checkbox.
   Future<void> submitEmail({
@@ -87,6 +95,7 @@ class LoginCubit extends Cubit<LoginState> {
     required bool accepted,
     String? inviteCode,
   }) async {
+    if (state.loading) return;
     final trimmed = email.trim();
     if (!_emailPattern.hasMatch(trimmed)) {
       emit(state.copyWith(problem: () => LoginProblem.invalidEmail));
@@ -106,6 +115,7 @@ class LoginCubit extends Cubit<LoginState> {
     );
 
     final invite = inviteCode?.trim();
+    _invite = invite == null || invite.isEmpty ? null : invite;
     final result = await _repository.requestCode(
       email: trimmed,
       inviteCode: invite == null || invite.isEmpty ? null : invite,
@@ -165,8 +175,13 @@ class LoginCubit extends Cubit<LoginState> {
 
   Future<void> resend() async {
     if (state.resendIn > 0 || state.loading) return;
-    final result = await _repository.requestCode(email: state.email);
+    emit(state.copyWith(loading: true));
+    final result = await _repository.requestCode(
+      email: state.email,
+      inviteCode: _invite,
+    );
     if (isClosed) return;
+    emit(state.copyWith(loading: false));
     if (result.isSuccess) {
       emit(state.copyWith(problem: () => null, failure: () => null));
       _startCountdown();
@@ -205,7 +220,7 @@ class LoginCubit extends Cubit<LoginState> {
 
   void _startCountdown() {
     _ticker?.cancel();
-    emit(state.copyWith(resendIn: AppConstants.otpResend.inSeconds));
+    emit(state.copyWith(resendIn: _repository.resendAfterSeconds));
     _ticker = Timer.periodic(const Duration(seconds: 1), (t) {
       final left = state.resendIn - 1;
       if (left <= 0) t.cancel();

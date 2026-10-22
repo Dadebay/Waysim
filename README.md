@@ -2,18 +2,18 @@
 
 Waysim is a Flutter app for discovering and buying travel eSIM data plans on iOS and Android. Travellers can browse country and regional plans, top up an in-app balance, purchase an eSIM, and view its installation details and data usage.
 
-> **Project status:** The mobile experience currently runs against an in-memory mock backend. Authentication, purchases, balance top-ups, and payment confirmations in demo mode are simulated; they do not create real accounts, charge money, or issue real eSIMs. The production API integration is still pending.
+> **API integration:** The app uses the Waysim mobile API by default. See the [integration checklist](docs/api/mobile-integration.md) for connected endpoints and verification boundaries.
 
 ## What is in the app?
 
 - Searchable country and regional eSIM catalog with recent searches and package details.
 - eSIM compatibility guidance, purchase flow, and an eSIM library with QR code, activation details, usage, and top-up screens.
 - Passwordless email-code sign-in, profile, order history, referral, settings, legal pages, and support UI.
-- Balance top-up flows for PayPal and cryptocurrency, simulated by the mock backend.
+- Balance top-ups using the payment methods, coins, networks, and limits returned by the API (currently cryptocurrency).
 - English, Chinese, Russian, Spanish, and French; light and dark themes.
 - Optional Firebase integration for push notifications, analytics, and crash reporting.
 
-The mobile app is designed to call the Waysim API. The eSIM supplier API and its credentials belong on the backend and are never called directly from the app.
+The mobile app calls the Waysim API. The eSIM supplier API and its credentials belong on the backend and are never called directly from the app.
 
 ## Run locally
 
@@ -22,12 +22,13 @@ Install a Flutter SDK compatible with the Dart constraint in [`pubspec.yaml`](pu
 ```bash
 flutter pub get
 flutter gen-l10n
-flutter run --dart-define=USE_MOCK_API=true
+flutter run --dart-define=USE_MOCK_API=false
 ```
 
-The mock backend is enabled by default for non-production flavors, but passing `USE_MOCK_API=true` makes demo runs explicit. To open the component gallery, add `--dart-define=INITIAL_ROUTE=/gallery` to the `flutter run` command.
+The default API address is `https://api.waysim.co`. Set `--dart-define=API_BASE_URL=...` to use another backend. Device registration, email verification, account sessions, catalog, orders, eSIMs, wallet, referrals, legal content, settings, and support use the documented mobile endpoints.
 
-To build a **demo** Android APK locally with mock data, use `flutter build apk --dart-define=FLAVOR=prod --dart-define=USE_MOCK_API=true`. This builds a demo, not a production-ready payment or eSIM service. Without `USE_MOCK_API=true`, the production flavor cannot start until real API repositories are implemented.
+For isolated UI development, `--dart-define=USE_MOCK_API=true` selects local fixtures. Remove that flag or set it to `false` when testing the real API. To open the component gallery, add `--dart-define=INITIAL_ROUTE=/gallery`.
+
 
 ## Project structure
 
@@ -53,8 +54,8 @@ flutter test
 dart run tool/roadmap_status.dart
 ```
 
-The [roadmap](docs/06-roadmap.md) tracks implemented work and remaining integration tasks. Start at the [documentation index](docs/README.md) for the product specification, design system, platform notes, and Firebase setup.
+The [integration checklist](docs/api/mobile-integration.md) records the current mobile API wiring; the [roadmap](docs/06-roadmap.md) contains the earlier implementation plan. Start at the [documentation index](docs/README.md) for the product specification, design system, platform notes, and Firebase setup.
 
 ## Before production
 
-The real Waysim backend and eSIM supplier integration, live payment processing, store configuration, and device testing still need to be completed and verified. Keep payment and supplier credentials on the backend. Review the [open questions](docs/07-open-questions.md) and [roadmap](docs/06-roadmap.md) before using this app with real customers.
+Unit and widget tests exercise API contracts with intercepted HTTP responses. Real email delivery, payment-provider callbacks, supplier provisioning, push delivery, and installation on a physical eSIM-capable phone require end-to-end verification against the intended backend. Keep payment and supplier credentials on the backend.

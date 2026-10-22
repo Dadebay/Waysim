@@ -7,13 +7,7 @@ import '../features/wallet/presentation/cubit/wallet_cubit.dart';
 /// Keeps the data that depends on who is signed in in step with
 /// [AuthCubit]: sign in loads balance and eSIMs, sign out clears them.
 class SessionCoordinator {
-  SessionCoordinator({
-    required AuthCubit auth,
-    required WalletCubit wallet,
-    required EsimListCubit esims,
-  }) : _auth = auth,
-       _wallet = wallet,
-       _esims = esims;
+  SessionCoordinator({required this._auth, required this._wallet, required this._esims});
 
   final AuthCubit _auth;
   final WalletCubit _wallet;

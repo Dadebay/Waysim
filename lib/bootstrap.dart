@@ -12,6 +12,7 @@ import 'core/di/injector.dart';
 import 'app/session_coordinator.dart';
 import 'app/telemetry_coordinator.dart';
 import 'core/services/crash_reporter.dart';
+import 'core/services/slow_frame_reporter.dart';
 import 'core/services/firebase_setup.dart';
 import 'core/services/device_integrity.dart';
 import 'core/services/esim_support_cubit.dart';
@@ -57,6 +58,7 @@ Future<void> bootstrap(Widget Function() builder) async {
   // From here on uncaught errors go to the crash reporter (a logger until
   // Crashlytics is wired).
   final reporter = getIt<CrashReporter>();
+  Bloc.observer = AppBlocObserver(reporter);
   FlutterError.onError = (details) =>
       reporter.recordError(details.exception, details.stack);
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -69,6 +71,7 @@ Future<void> bootstrap(Widget Function() builder) async {
   // profile shows a guest until the stored session answers.
   getIt<SessionCoordinator>().start();
   getIt<TelemetryCoordinator>().start();
+  getIt<SlowFrameReporter>().start();
   unawaited(getIt<AuthCubit>().restore());
   unawaited(getIt<ConfigCubit>().refresh());
   unawaited(getIt<CatalogCubit>().load());

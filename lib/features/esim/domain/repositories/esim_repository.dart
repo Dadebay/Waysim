@@ -6,6 +6,7 @@ abstract interface class EsimRepository {
   Future<Result<List<Esim>>> list();
 
   Future<Result<Esim>> get(String id);
+  Future<Result<Esim>> refresh(String id);
 
   /// Called when the customer taps "Install": binds the package to this
   /// phone (one package, one device) and returns the refreshed eSIM.

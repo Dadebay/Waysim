@@ -9,6 +9,7 @@ class EsimListCubit extends AsyncCubit<List<Esim>> {
   EsimListCubit(this._repository) : super(_repository.list);
 
   final EsimRepository _repository;
+  int _session = 0;
 
   /// Looks an eSIM up in the loaded list.
   Esim? byId(String id) {
@@ -20,8 +21,8 @@ class EsimListCubit extends AsyncCubit<List<Esim>> {
 
   /// Swaps one eSIM in the loaded list (after install or top-up).
   void replace(Esim esim) {
-    final current = state.dataOrNull;
-    if (current == null) return;
+    final current = state.dataOrNull ?? const <Esim>[];
+    if (isClosed) return;
     final index = current.indexWhere((e) => e.id == esim.id);
     final next = [...current];
     if (index < 0) {
@@ -43,5 +44,19 @@ class EsimListCubit extends AsyncCubit<List<Esim>> {
     return result;
   }
 
-  void clear() => put(const []);
+  Future<Result<Esim>> detail(String id, {bool refresh = false}) async {
+    final session = _session;
+    final result = refresh
+        ? await _repository.refresh(id)
+        : await _repository.get(id);
+    if (!isClosed && session == _session) {
+      if (result case Success(:final data)) replace(data);
+    }
+    return result;
+  }
+
+  void clear() {
+    _session++;
+    put(const []);
+  }
 }

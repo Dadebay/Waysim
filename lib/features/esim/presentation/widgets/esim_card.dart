@@ -152,7 +152,13 @@ class EsimCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Text(l10n.esimValidityFromFirst, style: muted),
         ];
-      case EsimStatus.provisioning || EsimStatus.usedUp || EsimStatus.expired:
+      case EsimStatus.provisioning ||
+          EsimStatus.usedUp ||
+          EsimStatus.expired ||
+          EsimStatus.suspended ||
+          EsimStatus.cancelled ||
+          EsimStatus.revoked ||
+          EsimStatus.failed:
         return const [];
     }
   }

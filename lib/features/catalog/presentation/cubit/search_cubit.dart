@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/result.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/storage/local_storage.dart';
@@ -27,7 +29,7 @@ class SearchState extends Equatable {
 
 /// Type-ahead over the cached catalog, and the "recent searches" chips.
 class SearchCubit extends Cubit<SearchState> {
-  SearchCubit(this._storage)
+  SearchCubit(this._storage, {this.remoteSearch, this.onResults})
     : super(
         SearchState(
           recent: _storage.getStringList(StorageKeys.recentQueries) ?? [],
@@ -37,12 +39,18 @@ class SearchCubit extends Cubit<SearchState> {
   static const maxRecent = 8;
 
   final LocalStorage _storage;
+  final Future<Result<List<Destination>>> Function(String)? remoteSearch;
+  final void Function(List<Destination>)? onResults;
+  Timer? _debounce;
+  int _generation = 0;
 
   void query(
     String text, {
     required List<Destination> destinations,
     required String language,
   }) {
+    _debounce?.cancel();
+    final generation = ++_generation;
     emit(
       SearchState(
         query: text,
@@ -50,6 +58,28 @@ class SearchCubit extends Cubit<SearchState> {
         recent: state.recent,
       ),
     );
+    if (text.trim().isEmpty || remoteSearch == null) return;
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      final result = await remoteSearch!(text.trim());
+      if (isClosed || generation != _generation) return;
+      if (result case Success(:final data)) {
+        onResults?.call(data);
+        emit(
+          SearchState(
+            query: text,
+            recent: state.recent,
+            hits: data.map((d) => SearchHit(d, 0)).toList(),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _debounce?.cancel();
+    _generation++;
+    return super.close();
   }
 
   /// Remembers a completed search without filling history with each keystroke.

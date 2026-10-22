@@ -29,6 +29,14 @@ class MemoryStorage implements Storage {
 }
 
 class MemorySecureStorage implements SecureStorage {
+  String? deviceToken;
+  @override
+  Future<String?> readDeviceToken() async => deviceToken;
+  @override
+  Future<void> saveDeviceToken(String token) async {
+    deviceToken = token;
+  }
+
   String? _access;
   String? _refresh;
   String? _device;
@@ -133,7 +141,7 @@ Future<MockBackend> setUpTestDependencies({
   SharedPreferences.setMockInitialValues({});
 
   await getIt.reset();
-  await configureDependencies();
+  await configureDependencies(useMockApi: true);
 
   // Registered lazily, so none of these has been resolved yet.
   getIt

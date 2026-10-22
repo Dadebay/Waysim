@@ -13,15 +13,8 @@ import 'crash_reporter.dart';
 /// writes at most [maxPerRun] reports. Firestore queues writes made offline
 /// and sends them when the network returns.
 class FirestoreCrashReporter implements CrashReporter {
-  FirestoreCrashReporter({
-    required CrashReportStore store,
-    required DeviceContext device,
-    this.maxPerRun = 20,
-    String Function()? currentScreen,
-  }) : _store = store,
-       _device = device,
-       _currentScreen =
-           currentScreen ?? (() => AnalyticsRouteObserver.currentScreen);
+  FirestoreCrashReporter({required this._store, required this._device, this.maxPerRun = 20, String Function()? currentScreen})
+    : _currentScreen = currentScreen ?? (() => AnalyticsScreenTracker.currentScreen);
 
   final CrashReportStore _store;
   final DeviceContext _device;
@@ -37,14 +30,7 @@ class FirestoreCrashReporter implements CrashReporter {
   @override
   void recordError(Object error, StackTrace? stack, {bool fatal = false}) {
     if (_seen.length >= maxPerRun) return;
-    final report = CrashReport(
-      error: _clip('$error', 1500),
-      stack: _clip(stack?.toString() ?? '', 4000),
-      fatal: fatal,
-      screen: _currentScreen(),
-      publicId: _publicId,
-      device: _device,
-    );
+    final report = CrashReport(error: _clip('$error', 1500), stack: _clip(stack?.toString() ?? '', 4000), fatal: fatal, screen: _currentScreen(), publicId: _publicId, device: _device);
     if (!_seen.add(report.signature)) return;
 
     // Fire and forget: reporting a crash must never cause another one.
@@ -53,27 +39,24 @@ class FirestoreCrashReporter implements CrashReporter {
     });
   }
 
-  static String _clip(String text, int max) =>
-      text.length <= max ? text : '${text.substring(0, max)}…';
+  static String _clip(String text, int max) => text.length <= max ? text : '${text.substring(0, max)}…';
 }
 
 /// The real store.
 class FirestoreCrashReportStore implements CrashReportStore {
-  FirestoreCrashReportStore([FirebaseFirestore? firestore])
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreCrashReportStore([FirebaseFirestore? firestore]) : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const collection = 'crash_reports';
 
   final FirebaseFirestore _firestore;
 
   @override
-  Future<void> save(CrashReport report) =>
-      _firestore.collection(collection).add({
-        ...report.toMap(),
-        // The server's clock, not the phone's.
-        'createdAt': FieldValue.serverTimestamp(),
-        'status': 'new',
-      });
+  Future<void> save(CrashReport report) => _firestore.collection(collection).add({
+    ...report.toMap(),
+    // The server's clock, not the phone's.
+    'createdAt': FieldValue.serverTimestamp(),
+    'status': 'new',
+  });
 }
 
 /// Sends every crash to all of [reporters].

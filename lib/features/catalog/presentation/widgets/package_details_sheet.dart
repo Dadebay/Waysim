@@ -51,7 +51,10 @@ class _Details extends StatelessWidget {
     final p = package;
 
     final data = p.isUnlimited
-        ? l10n.detailDataUnlimited(l10n.dataSize(p.dailyBytes ?? 0))
+        ? (p.details ??
+              (p.dailyBytes == null
+                  ? l10n.dataUnlimited
+                  : l10n.detailDataUnlimited(l10n.dataSize(p.dailyBytes!))))
         : l10n.detailDataFull(l10n.dataSize(p.volumeBytes ?? 0));
 
     final rows = <_Row>[
@@ -60,7 +63,9 @@ class _Details extends StatelessWidget {
       _Row(
         l10n.detailValidity,
         l10n.durationDays(p.days),
-        note: l10n.detailValidityNote,
+        note: p.activationOnInstall
+            ? l10n.activationOnInstall
+            : l10n.detailValidityNote,
       ),
       if (p.network != null) _Row(l10n.detailNetwork, p.network!),
       _Row(

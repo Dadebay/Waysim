@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /crash_reports/{id} {
+      allow create: if request.resource.data.keys().hasOnly([
+          'error', 'stack', 'fatal', 'screen', 'publicId', 'platform',
+          'osVersion', 'deviceModel', 'appVersion', 'buildNumber', 'locale',
+          'flavor', 'createdAt', 'status'])
+        && request.resource.data.error is string
+        && request.resource.data.error.size() <= 1600
+        && request.resource.data.stack is string
+        && request.resource.data.stack.size() <= 4100
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if false;
+    }
+
+    match /performance_reports/{id} {
+      allow create: if request.resource.data.keys().hasOnly([
+          'screen', 'publicId', 'platform', 'osVersion', 'deviceModel',
+          'appVersion', 'buildNumber', 'locale', 'flavor', 'buildMs',
+          'rasterMs', 'frameMs', 'createdAt', 'status'])
+        && request.resource.data.screen is string
+        && request.resource.data.screen.size() <= 100
+        && request.resource.data.buildMs is int
+        && request.resource.data.rasterMs is int
+        && request.resource.data.frameMs is int
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

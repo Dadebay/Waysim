@@ -22,6 +22,7 @@ import '../../../../core/services/device_integrity.dart';
 import '../../../../mock/demo_credentials.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
 import '../cubit/login_cubit.dart';
+import '../cubit/auth_cubit.dart';
 
 /// Passwordless sign-in. Pops `true` when the customer ends up signed in, so
 /// whatever sent them here carries on.
@@ -33,7 +34,13 @@ class LoginPage extends StatelessWidget {
     create: (_) => getIt<LoginCubit>(),
     child: BlocListener<LoginCubit, LoginState>(
       listenWhen: (a, b) => a.step != b.step && b.step == LoginStep.done,
-      listener: (context, _) => context.pop(true),
+      listener: (context, _) {
+        if (context.canPop()) {
+          context.pop(true);
+        } else {
+          context.go(AppRoute.home.path);
+        }
+      },
       child: const _LoginView(),
     ),
   );
@@ -52,7 +59,13 @@ class _LoginView extends StatelessWidget {
         automaticallyImplyLeading: false,
         leading: IconButton(
           tooltip: context.l10n.actionClose,
-          onPressed: () => context.pop(false),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop(false);
+            } else {
+              context.go(AppRoute.home.path);
+            }
+          },
           icon: HugeIcon(icon: AppIcons.close, size: 24, color: c.textPrimary),
         ),
         title: SvgPicture.asset(
@@ -146,6 +159,13 @@ class _EmailStepState extends State<_EmailStep> {
       padding: const EdgeInsets.all(AppSpacing.page),
       children: [
         Text(l10n.loginTitle, style: context.text.h1),
+        if (context.watch<AuthCubit>().state.signedOutRemotely) ...[
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            l10n.signedOutOnDevice,
+            style: context.text.bodySm.copyWith(color: c.textSecondary),
+          ),
+        ],
         const SizedBox(height: AppSpacing.sm),
         Text(
           l10n.loginBody,
@@ -541,7 +561,23 @@ class _NameStep extends StatefulWidget {
 }
 
 class _NameStepState extends State<_NameStep> {
-  final _name = TextEditingController();
+  late final TextEditingController _name;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialName = context
+        .read<LoginCubit>()
+        .suggestedName
+        .characters
+        .take(40)
+        .toString();
+    _name = TextEditingController(text: initialName)
+      ..selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: initialName.length,
+      );
+  }
 
   @override
   void dispose() {

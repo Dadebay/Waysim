@@ -8,13 +8,14 @@ import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/utils/formatters/labels.dart';
-import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/utils/formatters/money.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/segmented_tabs.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/tab_switcher.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/wallet_entities.dart';
+import '../../domain/repositories/wallet_repository.dart';
 
 /// Order history: purchases and balance top-ups.
 class OrdersPage extends StatefulWidget {
@@ -32,11 +33,22 @@ class _OrdersPageState extends State<OrdersPage> {
   late final _topUps = getIt<AsyncCubit<List<WalletOrder>>>(
     param1: OrderType.topUp,
   )..load();
+  AsyncCubit<List<Map<String, dynamic>>>? _activity;
+
+  void _selectTab(int index) {
+    if (index == 2) {
+      _activity ??= AsyncCubit<List<Map<String, dynamic>>>(
+        getIt<WalletRepository>().ledger,
+      )..load();
+    }
+    setState(() => _tab = index);
+  }
 
   @override
   void dispose() {
     _purchases.close();
     _topUps.close();
+    _activity?.close();
     super.dispose();
   }
 
@@ -60,25 +72,130 @@ class _OrdersPageState extends State<OrdersPage> {
         child: Column(
           children: [
             SegmentedTabs(
-              labels: [l10n.ordersTabPurchases, l10n.ordersTabTopUps],
+              labels: [
+                l10n.ordersTabPurchases,
+                l10n.ordersTabTopUps,
+                l10n.ordersTabActivity,
+              ],
               selectedIndex: _tab,
-              onChanged: (i) => setState(() => _tab = i),
+              onChanged: _selectTab,
             ),
             const SizedBox(height: AppSpacing.md),
             Expanded(
               child: TabSwitcher(
                 index: _tab,
-                child: BlocProvider.value(
-                  value: _tab == 0 ? _purchases : _topUps,
-                  child: _OrderList(
-                    topUps: _tab == 1,
-                    cubit: _tab == 0 ? _purchases : _topUps,
-                  ),
-                ),
+                child: _tab == 2
+                    ? BlocProvider.value(
+                        value: _activity!,
+                        child: _ActivityList(cubit: _activity!),
+                      )
+                    : BlocProvider.value(
+                        value: _tab == 0 ? _purchases : _topUps,
+                        child: _OrderList(
+                          topUps: _tab == 1,
+                          cubit: _tab == 0 ? _purchases : _topUps,
+                        ),
+                      ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActivityList extends StatelessWidget {
+  const _ActivityList({required this.cubit});
+
+  final AsyncCubit<List<Map<String, dynamic>>> cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final state = context.watch<AsyncCubit<List<Map<String, dynamic>>>>().state;
+    return switch (state) {
+      AsyncLoading() => const SingleChildScrollView(
+        child: SkeletonList(count: 6),
+      ),
+      AsyncFailure(:final failure) => ErrorView(
+        failure: failure,
+        onRetry: cubit.load,
+      ),
+      AsyncData(:final data) =>
+        data.isEmpty
+            ? _OrdersEmptyState(
+                assetPath: 'assets/illustrations/orders_empty_activity.png',
+                title: l10n.ordersEmptyActivity,
+              )
+            : RefreshIndicator(
+                onRefresh: () => cubit.load(silent: true),
+                child: ListView.separated(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xxxl),
+                  itemCount: data.length,
+                  separatorBuilder: (_, _) =>
+                      Divider(color: context.colors.border, height: 1),
+                  itemBuilder: (_, i) => _ActivityTile(entry: data[i]),
+                ),
+              ),
+    };
+  }
+}
+
+class _ActivityTile extends StatelessWidget {
+  const _ActivityTile({required this.entry});
+
+  final Map<String, dynamic> entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final l10n = context.l10n;
+    final cents = (entry['amountCents'] as num?)?.toInt() ?? 0;
+    final date = DateTime.tryParse(entry['createdAt'] as String? ?? '');
+    final title = entry['title'] as String?;
+    final note = entry['note'] as String?;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title?.isNotEmpty == true ? title! : l10n.ordersTabActivity,
+                  style: context.text.bodyMed.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (note?.isNotEmpty == true)
+                  Text(
+                    note!,
+                    style: context.text.caption.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
+                if (date != null)
+                  Text(
+                    l10n.orderDate(date),
+                    style: context.text.caption.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Text(
+            '${cents > 0 ? '+' : ''}${Money(cents).format()}',
+            style: context.text.bodyMed.copyWith(
+              fontWeight: FontWeight.w700,
+              color: cents > 0 ? c.success : null,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -105,8 +222,10 @@ class _OrderList extends StatelessWidget {
       ),
       AsyncData(:final data) =>
         data.isEmpty
-            ? EmptyState(
-                icon: AppIcons.wallet,
+            ? _OrdersEmptyState(
+                assetPath: topUps
+                    ? 'assets/illustrations/orders_empty_topups.png'
+                    : 'assets/illustrations/orders_empty_purchases.png',
                 title: topUps
                     ? l10n.ordersEmptyTopUps
                     : l10n.ordersEmptyPurchases,
@@ -125,12 +244,72 @@ class _OrderList extends StatelessWidget {
   }
 }
 
+class _OrdersEmptyState extends StatelessWidget {
+  const _OrdersEmptyState({required this.assetPath, required this.title});
+
+  final String assetPath;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.page,
+              AppSpacing.page,
+              AppSpacing.page + constraints.maxHeight * 0.10,
+            ),
+            child: Column(
+              key: const ValueKey('orders-empty-content'),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 188,
+                      height: 188,
+                      decoration: BoxDecoration(
+                        color: c.primarySubtle.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Image.asset(
+                      assetPath,
+                      key: const ValueKey('orders-empty-illustration'),
+                      width: 240,
+                      height: 240,
+                      fit: BoxFit.contain,
+                      excludeFromSemantics: true,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  title,
+                  style: context.text.h2,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _OrderTile extends StatelessWidget {
   const _OrderTile({required this.order});
 
   final WalletOrder order;
 
   String _title(AppLocalizations l10n) {
+    if (order.serverTitle?.isNotEmpty == true) return order.serverTitle!;
     if (order.type == OrderType.topUp && order.method != null) {
       return order.method == TopUpMethod.paypal
           ? l10n.orderTopUpPaypal
@@ -150,7 +329,10 @@ class _OrderTile extends StatelessWidget {
     final l10n = context.l10n;
     final c = context.colors;
     final failed = order.outcome == OrderOutcome.failedRefunded;
-    final credit = order.type == OrderType.topUp && order.method != null;
+    final credit =
+        order.type == OrderType.topUp &&
+        order.method != null &&
+        order.outcome == OrderOutcome.completed;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -185,7 +367,7 @@ class _OrderTile extends StatelessWidget {
               Text(
                 credit
                     ? '+${order.amount.format()}'
-                    : failed
+                    : order.outcome != OrderOutcome.completed
                     ? order.amount.format()
                     : '−${order.amount.format()}',
                 style: context.text.bodyMed.copyWith(
@@ -198,10 +380,18 @@ class _OrderTile extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 140),
                 child: Text(
-                  failed ? l10n.statusFailedRefunded : l10n.orderCompleted,
+                  switch (order.outcome) {
+                    OrderOutcome.completed => l10n.orderCompleted,
+                    OrderOutcome.failedRefunded => l10n.statusFailedRefunded,
+                    OrderOutcome.pending => l10n.paymentPending,
+                    OrderOutcome.review => l10n.paymentReview,
+                    OrderOutcome.failed => l10n.statusFailed,
+                  },
                   textAlign: TextAlign.end,
                   style: context.text.caption.copyWith(
-                    color: failed ? c.error : c.success,
+                    color: order.outcome == OrderOutcome.completed
+                        ? c.success
+                        : c.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

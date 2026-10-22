@@ -6,6 +6,8 @@ abstract final class StorageKeys {
 
   /// Public guest/user id (`A0123`) is issued by the server on first launch.
   static const deviceId = 'device_id';
+  static const deviceToken = 'device_token';
+  static const installId = 'install_id';
 
   // Preferences
   /// Search phrases. Kept separate from the old destination-code history.

@@ -4,7 +4,7 @@ import '../../../../core/utils/formatters/money.dart';
 
 enum OrderType { purchase, topUp }
 
-enum OrderOutcome { completed, failedRefunded }
+enum OrderOutcome { completed, failedRefunded, pending, review, failed }
 
 /// One line of order history: a package purchase, a package top-up or a
 /// balance top-up.
@@ -21,6 +21,7 @@ class WalletOrder extends Equatable {
     this.unlimited = false,
     this.addOn = false,
     this.method,
+    this.serverTitle,
   });
 
   final String number;
@@ -40,6 +41,7 @@ class WalletOrder extends Equatable {
 
   /// Balance top-ups: how it was paid.
   final TopUpMethod? method;
+  final String? serverTitle;
 
   String nameFor(String language) =>
       destinationNames[language] ?? destinationNames['en'] ?? '';
@@ -57,12 +59,13 @@ class WalletOrder extends Equatable {
     unlimited,
     addOn,
     method,
+    serverTitle,
   ];
 }
 
 enum TopUpMethod { paypal, crypto }
 
-enum TopUpStatus { waiting, confirming, credited, review, expired }
+enum TopUpStatus { waiting, confirming, credited, review, expired, failed }
 
 /// A balance top-up in flight.
 class TopUpSession extends Equatable {
@@ -72,6 +75,8 @@ class TopUpSession extends Equatable {
     required this.amount,
     this.checkoutUrl,
     this.crypto,
+    this.status = TopUpStatus.waiting,
+    this.creditedAmount,
   });
 
   final String id;
@@ -83,9 +88,11 @@ class TopUpSession extends Equatable {
 
   /// Crypto: the invoice to pay.
   final CryptoInvoice? crypto;
+  final TopUpStatus status;
+  final Money? creditedAmount;
 
   @override
-  List<Object?> get props => [id, method, amount, checkoutUrl, crypto];
+  List<Object?> get props => [id, method, amount, checkoutUrl, crypto, status];
 }
 
 class CryptoInvoice extends Equatable {
@@ -97,6 +104,8 @@ class CryptoInvoice extends Equatable {
     required this.rateText,
     required this.expiresAt,
     required this.requiredConfirmations,
+    this.memo,
+    this.qrValue,
   });
 
   final String coin;
@@ -110,6 +119,8 @@ class CryptoInvoice extends Equatable {
   final String rateText;
   final DateTime expiresAt;
   final int requiredConfirmations;
+  final String? memo;
+  final String? qrValue;
 
   @override
   List<Object?> get props => [
@@ -120,16 +131,66 @@ class CryptoInvoice extends Equatable {
     rateText,
     expiresAt,
     requiredConfirmations,
+    memo,
+    qrValue,
   ];
 }
 
 /// Where a top-up stands.
 class TopUpProgress extends Equatable {
-  const TopUpProgress(this.status, {this.confirmations = 0});
+  const TopUpProgress(
+    this.status, {
+    this.confirmations = 0,
+    this.creditedAmount,
+  });
 
   final TopUpStatus status;
+  final Money? creditedAmount;
   final int confirmations;
 
   @override
-  List<Object?> get props => [status, confirmations];
+  List<Object?> get props => [status, confirmations, creditedAmount];
+}
+
+/// A coin + network the customer can pay in.
+class CryptoOption extends Equatable {
+  const CryptoOption(
+    this.coin,
+    this.network, {
+    this.code,
+    this.minCents,
+    this.logoUrl,
+  });
+
+  final String coin;
+  final String network;
+  final String? code;
+  final int? minCents;
+  final String? logoUrl;
+
+  static const usdtTrc20 = CryptoOption('USDT', 'TRC-20');
+
+  String get label => '$coin · $network';
+
+  @override
+  List<Object?> get props => [coin, network, code, minCents, logoUrl];
+}
+
+class WalletOptions {
+  const WalletOptions({
+    this.minCents = 500,
+    this.maxCents = 50000,
+    this.methods = const [TopUpMethod.paypal, TopUpMethod.crypto],
+    this.currencies = const [
+      CryptoOption.usdtTrc20,
+      CryptoOption('USDT', 'ERC-20'),
+      CryptoOption('USDC', 'ERC-20'),
+    ],
+    this.pending,
+  });
+  final int minCents;
+  final int maxCents;
+  final List<TopUpMethod> methods;
+  final List<CryptoOption> currencies;
+  final TopUpSession? pending;
 }

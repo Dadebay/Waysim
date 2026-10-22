@@ -18,12 +18,20 @@ enum EsimStatus {
   active,
   usedUp,
   expired,
+  suspended,
+  cancelled,
+  revoked,
+  failed,
 }
 
 extension EsimStatusX on EsimStatus {
   /// Spent or expired eSIMs live under "Archive".
   bool get isArchived =>
-      this == EsimStatus.usedUp || this == EsimStatus.expired;
+      this == EsimStatus.usedUp ||
+      this == EsimStatus.expired ||
+      this == EsimStatus.cancelled ||
+      this == EsimStatus.revoked ||
+      this == EsimStatus.failed;
 }
 
 class Esim extends Equatable {
@@ -46,6 +54,8 @@ class Esim extends Equatable {
     this.deviceName,
     this.updatedAt,
     this.topUpSupported = true,
+    this.lpaString,
+    this.appleUniversalLink,
   });
 
   final String id;
@@ -75,6 +85,8 @@ class Esim extends Equatable {
   final String activationCode;
   final String iccid;
   final bool topUpSupported;
+  final String? lpaString;
+  final String? appleUniversalLink;
 
   bool get isUnlimited => kind == PackageKind.unlimited;
   bool get isRegion => countryCount != null;
@@ -96,14 +108,14 @@ class Esim extends Equatable {
       expiresAt?.difference(now).inDays.clamp(0, 100000);
 
   /// The string a phone's eSIM installer reads (QR code content).
-  String get lpa => 'LPA:1\$$smdpAddress\$$activationCode';
+  String get lpa => lpaString ?? 'LPA:1\$$smdpAddress\$$activationCode';
 
   /// iOS 17.4+: opens Apple's installer straight from a link.
-  Uri get appleInstallUri => Uri.https(
-    'esimsetup.apple.com',
-    '/esim_qrcode_provisioning',
-    {'carddata': lpa},
-  );
+  Uri get appleInstallUri => appleUniversalLink != null
+      ? Uri.parse(appleUniversalLink!)
+      : Uri.https('esimsetup.apple.com', '/esim_qrcode_provisioning', {
+          'carddata': lpa,
+        });
 
   Esim copyWith({
     EsimStatus? status,
@@ -132,6 +144,8 @@ class Esim extends Equatable {
     deviceName: deviceName ?? this.deviceName,
     updatedAt: updatedAt ?? this.updatedAt,
     topUpSupported: topUpSupported,
+    lpaString: lpaString,
+    appleUniversalLink: appleUniversalLink,
   );
 
   @override

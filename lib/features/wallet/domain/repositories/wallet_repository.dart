@@ -3,7 +3,10 @@ import '../../../../core/utils/result.dart';
 import '../entities/wallet_entities.dart';
 
 abstract interface class WalletRepository {
+  Future<Result<List<Map<String, dynamic>>>> ledger();
   Future<Result<Money>> balance();
+  Future<Result<WalletOptions>> options();
+  Future<Result<TopUpSession>> payment(String id);
 
   /// [idempotencyKey]: a repeated call with the same key returns the same
   /// session instead of creating a second payment.
@@ -13,6 +16,7 @@ abstract interface class WalletRepository {
     required String idempotencyKey,
     String? coin,
     String? network,
+    String? payCurrency,
   });
 
   Future<Result<TopUpProgress>> topUpProgress(String sessionId);

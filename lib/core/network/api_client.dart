@@ -48,15 +48,14 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     Duration? receiveTimeout,
+    Map<String, dynamic>? headers,
   }) => _request(
     () => _dio.post<dynamic>(
       path,
       data: data,
       queryParameters: _clean(queryParameters),
       cancelToken: cancelToken,
-      options: receiveTimeout == null
-          ? null
-          : Options(receiveTimeout: receiveTimeout),
+      options: Options(receiveTimeout: receiveTimeout, headers: headers),
     ),
   );
 
@@ -113,13 +112,13 @@ class ApiClient {
       DioExceptionType.receiveTimeout => const TimeoutException(),
       DioExceptionType.connectionError => const NetworkException(),
       DioExceptionType.badResponse => switch (status) {
-        400 => ValidationException(
+        400 || 422 => ValidationException(
           message,
           errors: errors,
           code: code,
           details: details,
         ),
-        401 => UnauthorizedException(message),
+        401 => UnauthorizedException(message, code),
         403 => ForbiddenException(message, code: code, details: details),
         404 => NotFoundException(message, code: code, details: details),
         409 => ConflictException(message, code: code, details: details),

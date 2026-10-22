@@ -1,11 +1,14 @@
 import 'package:bloc/bloc.dart';
 
 import '../utils/app_logger.dart';
+import '../services/crash_reporter.dart';
 
 /// Logs every bloc transition and error in one place — replaces scattered
 /// prints and gives a single hook for Crashlytics/Sentry later.
 class AppBlocObserver extends BlocObserver {
-  const AppBlocObserver();
+  const AppBlocObserver([this._reporter]);
+
+  final CrashReporter? _reporter;
 
   @override
   void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {
@@ -21,6 +24,7 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
     AppLogger.e('${bloc.runtimeType} error', error, stackTrace);
+    _reporter?.recordError(error, stackTrace);
     super.onError(bloc, error, stackTrace);
   }
 }

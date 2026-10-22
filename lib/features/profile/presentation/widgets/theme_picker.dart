@@ -104,7 +104,8 @@ class _ThemeCardState extends State<_ThemeCard> {
             borderRadius: radius,
             border: Border.all(
               color: widget.selected ? c.primary : c.border,
-              width: widget.selected ? 1.5 : 1,
+              // Keep the content inset fixed when selection changes.
+              width: 1.5,
             ),
             boxShadow: widget.selected
                 ? [

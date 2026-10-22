@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:waysim/app/app.dart';
@@ -11,6 +12,7 @@ import 'package:waysim/features/auth/domain/repositories/auth_repository.dart';
 import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
 import 'package:waysim/features/wallet/presentation/cubit/wallet_cubit.dart';
+import 'package:waysim/features/wallet/presentation/cubit/top_up_cubit.dart';
 import 'package:waysim/mock/mock_backend.dart';
 
 import '../helpers/load_fonts.dart';
@@ -187,6 +189,113 @@ void main() {
     expect(find.text('USDC'), findsOneWidget);
     expect(find.text('ERC-20'), findsOneWidget);
     expect(find.byType(QrImageView), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('an unpaid crypto invoice can return to a new amount', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(r'$24.50'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'$20'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('payment-crypto')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('USDC'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'Top up $20'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final first = BlocProvider.of<TopUpCubit>(
+      tester.element(find.byType(QrImageView)),
+    ).state.session!.id;
+    await tester.tap(find.byKey(const ValueKey('crypto-change-amount')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('stays active until its timer ends'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(QrImageView), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('crypto-change-amount')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Change amount'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(QrImageView), findsNothing);
+    expect(find.text(r'Top up $20'), findsOneWidget);
+
+    await tester.tap(find.text(r'$50'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'Top up $50'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    final second = BlocProvider.of<TopUpCubit>(
+      tester.element(find.byType(QrImageView)),
+    ).state.session!;
+    expect(second.id, isNot(first));
+    expect(second.amount.cents, 5000);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('invoice coin and network selectors open matching new invoices', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(r'$24.50'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'$20'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('payment-crypto')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('TRC-20'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'Top up $20'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    TopUpCubit cubit() =>
+        BlocProvider.of<TopUpCubit>(tester.element(find.byType(QrImageView)));
+
+    final first = cubit().state.session!.id;
+    await tester.tap(find.byKey(const ValueKey('crypto-network-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ERC-20'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('needs a new payment address'), findsOneWidget);
+    await tester.tap(find.text('Create new payment'));
+    await tester.pumpAndSettle();
+    expect(cubit().state.session!.id, isNot(first));
+    expect(cubit().state.session!.crypto!.network, 'ERC-20');
+
+    final second = cubit().state.session!.id;
+    await tester.tap(find.byKey(const ValueKey('crypto-coin-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('USDC'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create new payment'));
+    await tester.pumpAndSettle();
+    expect(cubit().state.session!.id, isNot(second));
+    expect(cubit().state.session!.crypto!.coin, 'USDC');
+    expect(cubit().state.session!.crypto!.network, 'ERC-20');
 
     await tester.pumpWidget(const SizedBox());
   });

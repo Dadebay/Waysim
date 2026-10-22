@@ -5,6 +5,7 @@ import 'package:waysim/app/app.dart';
 import 'package:waysim/core/di/injector.dart';
 import 'package:waysim/core/storage/storage_keys.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
+import 'package:waysim/features/home/presentation/widgets/destination_list.dart';
 
 import '../helpers/load_fonts.dart';
 import '../helpers/test_dependencies.dart';
@@ -15,6 +16,42 @@ void main() {
   setUp(() async {
     await setUpTestDependencies();
     await getIt<CatalogCubit>().load();
+  });
+
+  testWidgets('search opens with countries in reverse alphabetical order', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Where do you need an eSIM?'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<DestinationRow>(find.byType(DestinationRow).first)
+          .destination
+          .code,
+      'VN',
+    );
+
+    await tester.enterText(find.byType(TextField), 'tur');
+    await tester.pumpAndSettle();
+    expect(find.text('Türkiye'), findsOneWidget);
+    expect(find.text('Vietnam'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), '');
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<DestinationRow>(find.byType(DestinationRow).first)
+          .destination
+          .code,
+      'VN',
+    );
   });
 
   testWidgets('a completed phrase can be repeated from recent searches', (

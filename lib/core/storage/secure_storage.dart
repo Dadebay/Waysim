@@ -15,6 +15,9 @@ abstract interface class SecureStorage {
   });
 
   /// Identifies this install to the server across sessions; survives sign-out.
+  Future<String?> readDeviceToken();
+  Future<void> saveDeviceToken(String token);
+
   Future<String?> readDeviceId();
   Future<void> saveDeviceId(String id);
 
@@ -43,6 +46,14 @@ class SecureStorageImpl implements SecureStorage {
     await _storage.write(key: StorageKeys.accessToken, value: accessToken);
     await _storage.write(key: StorageKeys.refreshToken, value: refreshToken);
   }
+
+  @override
+  Future<String?> readDeviceToken() =>
+      _storage.read(key: StorageKeys.deviceToken);
+
+  @override
+  Future<void> saveDeviceToken(String token) =>
+      _storage.write(key: StorageKeys.deviceToken, value: token);
 
   @override
   Future<String?> readDeviceId() => _storage.read(key: StorageKeys.deviceId);

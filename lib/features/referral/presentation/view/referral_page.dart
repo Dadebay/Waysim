@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -18,9 +19,10 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/services/device_integrity.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
+import '../../data/referral_link_checker.dart';
 import '../../domain/entities/referral.dart';
 
-/// "Invite friends": the code, the link, the numbers and the rules.
+/// "Invite friends": the code, the numbers and the rules.
 /// Not reachable while the programme is switched off on the server.
 class ReferralPage extends StatelessWidget {
   const ReferralPage({super.key});
@@ -65,7 +67,13 @@ class _View extends StatelessWidget {
                 failure: failure,
                 onRetry: () => context.read<AsyncCubit<ReferralInfo>>().load(),
               ),
-              AsyncData(:final data) => _Content(info: data),
+              AsyncData(:final data) =>
+                data.enabled
+                    ? _Content(info: data)
+                    : EmptyState(
+                        icon: AppIcons.gift,
+                        title: l10n.referralEmpty,
+                      ),
             },
     );
   }
@@ -75,6 +83,33 @@ class _Content extends StatelessWidget {
   const _Content({required this.info});
 
   final ReferralInfo info;
+
+  Future<void> _share(BuildContext context) async {
+    final linkIsAvailable = await referralLinkReturnsOk(info.link);
+    if (!context.mounted) return;
+    final text = linkIsAvailable
+        ? context.l10n.referralShareLinkText(info.link.toString(), info.code)
+        : context.l10n.referralShareText(info.code);
+    XFile? logo;
+    try {
+      final data = await rootBundle.load('assets/brand/app_icon.png');
+      logo = XFile.fromData(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+        mimeType: 'image/png',
+      );
+    } on Object {
+      // Keep the invite code shareable if the bundled image cannot be loaded.
+    }
+    if (!context.mounted) return;
+    getIt<AnalyticsService>().shared('referral');
+    await SharePlus.instance.share(
+      ShareParams(
+        text: text,
+        files: logo == null ? null : [logo],
+        fileNameOverrides: logo == null ? null : const ['waysim.png'],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,6 +239,7 @@ class _Content extends StatelessWidget {
                               ),
                             ),
                             IconButton(
+                              key: const ValueKey('referral-copy-code-button'),
                               tooltip: l10n.actionCopy,
                               style: IconButton.styleFrom(
                                 backgroundColor: c.textOnPrimary.withValues(
@@ -214,7 +250,10 @@ class _Content extends StatelessWidget {
                                 await Clipboard.setData(
                                   ClipboardData(text: info.code),
                                 );
-                                if (context.mounted) {
+                                if (context.mounted &&
+                                    (kIsWeb ||
+                                        defaultTargetPlatform !=
+                                            TargetPlatform.android)) {
                                   AppToast.show(context, l10n.toastCopied);
                                 }
                               },
@@ -228,29 +267,13 @@ class _Content extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      info.link.toString().replaceFirst('https://', ''),
-                      style: context.text.bodySm.copyWith(
-                        color: c.textOnPrimary.withValues(alpha: 0.85),
-                      ),
-                    ),
                     const SizedBox(height: AppSpacing.lg),
                     Material(
                       color: c.background,
                       borderRadius: BorderRadius.circular(AppRadius.button),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(AppRadius.button),
-                        onTap: () {
-                          getIt<AnalyticsService>().shared('referral');
-                          SharePlus.instance.share(
-                            ShareParams(
-                              text: l10n.referralShareText(
-                                info.link.toString(),
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: () => _share(context),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 52),
                           child: Row(
@@ -309,7 +332,8 @@ class _Content extends StatelessWidget {
                 style: context.text.h3.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: AppSpacing.md),
-              for (final rule in rules)
+              for (final rule
+                  in info.rulesText == null ? rules : [info.rulesText!])
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Row(
@@ -379,6 +403,29 @@ class _Content extends StatelessWidget {
                     child: _InviteTile(invite: invite),
                   ),
                 ],
+              ],
+            ),
+          )
+        else
+          _ReferralSurface(
+            key: const ValueKey('referral-invites-empty-card'),
+            child: Column(
+              children: [
+                Image.asset(
+                  context.isDark
+                      ? 'assets/illustrations/referral_invites_empty_dark.png'
+                      : 'assets/illustrations/referral_invites_empty_light.png',
+                  width: 240,
+                  height: 180,
+                  fit: BoxFit.contain,
+                  excludeFromSemantics: true,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.referralEmpty,
+                  textAlign: TextAlign.center,
+                  style: context.text.bodyMed.copyWith(color: c.textSecondary),
+                ),
               ],
             ),
           ),

@@ -118,6 +118,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorUnauthorized => '登录已过期，请重新登录。';
 
   @override
+  String get signedOutOnDevice => '此设备上的账号已退出。请重新登录。';
+
+  @override
   String get errorNotFound => '未找到你要查找的内容。';
 
   @override
@@ -844,7 +847,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get devicesTitle => '我的设备';
 
   @override
-  String get devicesNote => 'eSIM 会绑定到你安装它的手机。';
+  String get devicesNote => '管理已登录您账户的设备。';
+
+  @override
+  String get deviceRemove => '移除设备';
+
+  @override
+  String get deviceRemoveTitle => '移除此设备？';
+
+  @override
+  String deviceRemoveBody(String device) {
+    return '要在 $device 上退出 Waysim 吗？您可以在该设备上重新登录。';
+  }
+
+  @override
+  String get deviceRemoved => '设备已移除。';
 
   @override
   String get deviceThis => '当前设备';
@@ -994,6 +1011,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cryptoCloseNote => '可以关闭此页面，付款到账后我们会通知你。';
 
   @override
+  String get cryptoChangeAmountAction => '更改金额';
+
+  @override
+  String get cryptoChangeAmountTitle => '选择其他金额？';
+
+  @override
+  String get cryptoChangeAmountBody =>
+      '当前付款请求在倒计时结束前仍然有效。如果你已转出加密货币，请等待这笔付款处理完成；否则可以选择其他金额并创建新的付款请求。';
+
+  @override
+  String get cryptoChangeCurrencyTitle => '更换币种或网络？';
+
+  @override
+  String get cryptoChangeCurrencyBody =>
+      '更换币种或网络需要新的付款地址。当前付款请求在到期前仍然有效。如果你已转出加密货币，请等待这笔付款处理完成。';
+
+  @override
+  String get cryptoChangeCurrencyAction => '创建新付款';
+
+  @override
   String cryptoExpiresIn(String time) {
     return '$time 后过期';
   }
@@ -1028,10 +1065,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordersTabTopUps => '充值';
 
   @override
+  String get ordersTabActivity => '明细';
+
+  @override
   String get ordersEmptyPurchases => '暂无购买记录';
 
   @override
   String get ordersEmptyTopUps => '暂无充值记录';
+
+  @override
+  String get ordersEmptyActivity => '暂无余额变动记录';
 
   @override
   String orderNumberDate(String number, String date) {
@@ -1067,18 +1110,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String referralHeroBody(String reward) {
-    return '好友通过你的链接或邀请码注册，你的余额将增加 $reward。';
+    return '好友使用你的邀请码注册后，你的余额将增加 $reward。';
   }
 
   @override
   String get referralYourCode => '你的邀请码';
 
   @override
-  String get referralShare => '分享链接';
+  String get referralShare => '分享邀请';
 
   @override
-  String referralShareText(String link) {
-    return '用 Waysim 为你的旅行购买 eSIM：$link';
+  String referralShareText(String code) {
+    return '准备出行？看看 Waysim 的 eSIM 套餐。注册时使用我的邀请码：\n$code';
+  }
+
+  @override
+  String referralShareLinkText(String link, String code) {
+    return '准备出行？看看 Waysim 的 eSIM 套餐。通过我的邀请链接注册：\n$link\n\n邀请码：$code';
   }
 
   @override
@@ -1226,4 +1274,46 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noConnectionContinue => '离线继续';
+
+  @override
+  String get statusSuspended => '已暂停';
+
+  @override
+  String get statusCancelled => '已取消';
+
+  @override
+  String get statusRevoked => '已撤销';
+
+  @override
+  String get statusFailed => '失败';
+
+  @override
+  String get paymentReview => '付款审核中';
+
+  @override
+  String get paymentPending => '处理中';
+
+  @override
+  String get paymentMemo => '备注 / 目标标签';
+
+  @override
+  String get supportTeam => '客服团队';
+
+  @override
+  String get supportLiveDisclaimer => '您的消息将发送给 Waysim 客服团队。';
+
+  @override
+  String get supportLiveGreeting => '请发送您有关 Waysim 或 eSIM 的问题。';
+
+  @override
+  String get inviteCodeInvalid => '邀请码无效，请检查后重试。';
+
+  @override
+  String get paymentFailed => '付款未完成';
+
+  @override
+  String get paymentFailedBody => '付款未完成。如果您已转账，请联系客服。';
+
+  @override
+  String get activationOnInstall => '有效期从安装 eSIM 时开始。';
 }

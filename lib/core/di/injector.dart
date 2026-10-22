@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,35 +11,44 @@ import '../../app/session_coordinator.dart';
 import '../../app/telemetry_coordinator.dart';
 import '../../features/auth/data/auth_token_refresher.dart';
 import '../../features/auth/data/mock_auth_repository.dart';
+import '../../features/auth/data/api_auth_repository.dart';
 import '../../features/auth/domain/entities/user.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/catalog/data/mock_catalog_repository.dart';
+import '../../features/catalog/data/api_catalog_repository.dart';
 import '../../features/catalog/domain/entities/esim_package.dart';
 import '../../features/catalog/domain/repositories/catalog_repository.dart';
 import '../../features/catalog/presentation/cubit/catalog_cubit.dart';
 import '../../features/catalog/presentation/cubit/search_cubit.dart';
 import '../../features/config/data/mock_config_repository.dart';
+import '../../features/config/data/api_config_repository.dart';
 import '../../features/config/domain/repositories/config_repository.dart';
 import '../../features/config/presentation/cubit/config_cubit.dart';
 import '../../features/esim/data/mock_esim_repository.dart';
+import '../../features/esim/data/api_esim_repository.dart';
 import '../../features/esim/domain/repositories/esim_repository.dart';
 import '../../features/esim/presentation/cubit/esim_list_cubit.dart';
 import '../../features/legal/data/mock_legal_repository.dart';
+import '../../features/legal/data/api_legal_repository.dart';
 import '../../features/legal/domain/entities/legal_document.dart';
 import '../../features/legal/domain/repositories/legal_repository.dart';
 import '../../features/notification/presentation/cubit/notification_prefs_cubit.dart';
 import '../../features/purchase/data/mock_purchase_repository.dart';
+import '../../features/purchase/data/api_purchase_repository.dart';
 import '../../features/purchase/domain/repositories/purchase_repository.dart';
 import '../../features/purchase/presentation/cubit/purchase_cubit.dart';
 import '../../features/referral/data/mock_referral_repository.dart';
+import '../../features/referral/data/api_referral_repository.dart';
 import '../../features/referral/domain/entities/referral.dart';
 import '../../features/referral/domain/repositories/referral_repository.dart';
 import '../../features/support/data/mock_support_repository.dart';
+import '../../features/support/data/api_support_repository.dart';
 import '../../features/support/domain/repositories/support_repository.dart';
 import '../../features/support/presentation/cubit/chat_cubit.dart';
 import '../../features/wallet/data/mock_wallet_repository.dart';
+import '../../features/wallet/data/api_wallet_repository.dart';
 import '../../features/wallet/domain/entities/wallet_entities.dart';
 import '../../features/wallet/domain/repositories/wallet_repository.dart';
 import '../../features/wallet/presentation/cubit/top_up_cubit.dart';
@@ -53,6 +63,7 @@ import '../services/fcm_push_service.dart';
 import '../services/firebase_services.dart';
 import '../services/firebase_setup.dart';
 import '../services/firestore_crash_reporter.dart';
+import '../services/slow_frame_reporter.dart';
 import '../services/local_notifications_service.dart';
 import '../services/crash_reporter.dart';
 import '../services/device_integrity.dart';
@@ -61,9 +72,11 @@ import '../services/esim_support_cubit.dart';
 import '../services/push_service.dart';
 import '../constants/app_environment.dart';
 import '../network/api_client.dart';
+import '../network/device_session.dart';
 import '../network/interceptors/app_check_interceptor.dart';
 import '../network/interceptors/auth_interceptor.dart';
 import '../network/token_refresher.dart';
+import '../error/failure.dart';
 import '../utils/formatters/money.dart';
 import '../network/interceptors/api_log_interceptor.dart';
 import '../network/interceptors/language_interceptor.dart';
@@ -73,6 +86,7 @@ import '../storage/secure_storage.dart';
 
 /// Service locator. One `getIt` for the whole app.
 final getIt = GetIt.instance;
+bool _useMockApi = AppEnvironment.useMockApi;
 
 /// Registration order: external packages -> core services -> global cubits ->
 /// feature layers.
@@ -80,7 +94,8 @@ final getIt = GetIt.instance;
 /// Each feature registers itself in its own `_registerX()` function so the
 /// features stay self-contained. `AuthInterceptor` joins the Dio instance in
 /// docs/06-roadmap.md T4.2, once the auth feature exists to refresh tokens.
-Future<void> configureDependencies() async {
+Future<void> configureDependencies({bool? useMockApi}) async {
+  _useMockApi = useMockApi ?? AppEnvironment.useMockApi;
   await _registerExternal();
   _registerCore();
   _registerGlobalCubits();
@@ -132,10 +147,25 @@ void _registerCore() {
             ])
           : LogCrashReporter(),
     )
+    ..registerLazySingleton<SlowFrameReporter>(
+      () => FirebaseSetup.ready && kReleaseMode
+          ? FirestoreSlowFrameReporter(
+              store: FirestoreSlowFrameReportStore(),
+              device: getIt<DeviceContext>(),
+            )
+          : NoopSlowFrameReporter(),
+    )
     ..registerLazySingleton<PushService>(
       () => FirebaseSetup.ready
           ? FcmPushService(
               LocalNotificationsService(),
+              onSignedOut: () async {
+                final storage = getIt<SecureStorage>();
+                if (await storage.readAccessToken() == null) return;
+                await storage.clearSession();
+                getIt<AuthCubit>().sessionExpired(revoked: true);
+              },
+              onSupportReply: () => getIt<AuthCubit>().revalidate(),
               tokenSink: (token) async {
                 await getIt<AuthRepository>().registerPushToken(token);
               },
@@ -152,14 +182,34 @@ void _registerCore() {
     ..registerLazySingleton<TokenRefresher>(
       () => AuthTokenRefresher(getIt<SecureStorage>()),
     )
+    ..registerLazySingleton<ApiClient>(
+      () => ApiClient(
+        ApiClient.createDio(
+          interceptors: [LanguageInterceptor(getIt<LocalStorage>())],
+        ),
+      ),
+      instanceName: 'publicApi',
+    )
+    ..registerLazySingleton<DeviceSession>(
+      () => DeviceSession(
+        getIt<ApiClient>(instanceName: 'publicApi'),
+        getIt<SecureStorage>(),
+        getIt<LocalStorage>(),
+        getIt<DeviceContext>(),
+      ),
+    )
     ..registerLazySingleton<Dio>(
       () => ApiClient.createDio(
         interceptors: [
           AuthInterceptor(
             getIt<SecureStorage>(),
+            deviceSession: _useMockApi ? null : getIt<DeviceSession>(),
             // Looked up lazily: both are registered after Dio.
             refresher: () => getIt<TokenRefresher>(),
-            onUnauthorized: (_) => getIt<AuthCubit>().sessionExpired(),
+            onUnauthorized: (failure) => getIt<AuthCubit>().sessionExpired(
+              revoked:
+                  failure is ApiFailure && failure.code == 'session_revoked',
+            ),
           ),
           AppCheckInterceptor(getIt<AppAttestation>()),
           LanguageInterceptor(getIt<LocalStorage>()),
@@ -193,15 +243,50 @@ void _registerFeatures() {
   _registerScreenCubits();
 }
 
-/// Repositories. Until the backend exists the app runs on [MockBackend]
-/// (`USE_MOCK_API`, on by default outside production); the real
-/// implementations replace these registrations one by one (T7.1).
+/// Live mobile API by default; fixtures remain available through an explicit opt-in.
 void _registerRepositories() {
-  if (!AppEnvironment.useMockApi) {
-    throw StateError(
-      'The real API is not wired yet. Run with --dart-define=USE_MOCK_API=true '
-      '(docs/06-roadmap.md T7.1).',
-    );
+  if (!_useMockApi) {
+    getIt
+      ..registerLazySingleton<AuthRepository>(
+        () => ApiAuthRepository(
+          getIt<ApiClient>(),
+          getIt<SecureStorage>(),
+          getIt<DeviceSession>(),
+        ),
+      )
+      ..registerLazySingleton<CatalogRepository>(
+        () => ApiCatalogRepository(getIt<ApiClient>(), getIt<LocalStorage>()),
+      )
+      ..registerLazySingleton<ApiEsimRepository>(
+        () => ApiEsimRepository(getIt<ApiClient>(), getIt<LocalStorage>()),
+      )
+      ..registerLazySingleton<EsimRepository>(() => getIt<ApiEsimRepository>())
+      ..registerLazySingleton<PurchaseRepository>(
+        () => ApiPurchaseRepository(
+          getIt<ApiClient>(),
+          getIt<ApiEsimRepository>(),
+        ),
+      )
+      ..registerLazySingleton<WalletRepository>(
+        () => ApiWalletRepository(getIt<ApiClient>()),
+      )
+      ..registerLazySingleton<ReferralRepository>(
+        () => ApiReferralRepository(getIt<ApiClient>()),
+      )
+      ..registerLazySingleton<ConfigRepository>(
+        () => ApiConfigRepository(
+          getIt<ApiClient>(instanceName: 'publicApi'),
+          authenticated: getIt<ApiClient>(),
+          secure: getIt<SecureStorage>(),
+        ),
+      )
+      ..registerLazySingleton<SupportRepository>(
+        () => ApiSupportRepository(getIt<ApiClient>()),
+      )
+      ..registerLazySingleton<LegalRepository>(
+        () => ApiLegalRepository(getIt<ApiClient>(instanceName: 'publicApi')),
+      );
+    return;
   }
   getIt
     ..registerLazySingleton<MockBackend>(MockBackend.new)
@@ -244,12 +329,24 @@ void _registerSessionCubits() {
       () => ConfigCubit(getIt<ConfigRepository>()),
     )
     ..registerLazySingleton<CatalogCubit>(
-      () => CatalogCubit(getIt<CatalogRepository>()),
+      () => CatalogCubit(
+        getIt<CatalogRepository>(),
+        cacheKey: _useMockApi ? 'CatalogCubit' : 'ApiCatalogV1',
+      ),
     )
     ..registerLazySingleton<EsimListCubit>(
       () => EsimListCubit(getIt<EsimRepository>()),
     )
-    ..registerLazySingleton<NotificationPrefsCubit>(NotificationPrefsCubit.new)
+    ..registerLazySingleton<NotificationPrefsCubit>(
+      () => NotificationPrefsCubit(
+        save: _useMockApi
+            ? null
+            : (esim, marketing) => getIt<AuthRepository>().updatePreferences(
+                esim: esim,
+                marketing: marketing,
+              ),
+      ),
+    )
     ..registerLazySingleton<EsimCompatibility>(DeviceEsimCompatibility.new)
     ..registerLazySingleton<EsimSupportCubit>(
       () => EsimSupportCubit(getIt<EsimCompatibility>()),
@@ -262,7 +359,11 @@ void _registerSessionCubits() {
         notifications: getIt<NotificationPrefsCubit>(),
         analytics: getIt<AnalyticsService>(),
         crashes: getIt<CrashReporter>(),
+        slowFrames: getIt<SlowFrameReporter>(),
         push: getIt<PushService>(),
+        preferences: _useMockApi ? null : getIt<AuthRepository>(),
+        catalog: getIt<CatalogCubit>(),
+        config: getIt<ConfigCubit>(),
       ),
     )
     ..registerLazySingleton<SessionCoordinator>(
@@ -277,7 +378,13 @@ void _registerSessionCubits() {
 /// One per screen: they die with the page.
 void _registerScreenCubits() {
   getIt
-    ..registerFactory<SearchCubit>(() => SearchCubit(getIt<LocalStorage>()))
+    ..registerFactory<SearchCubit>(
+      () => SearchCubit(
+        getIt<LocalStorage>(),
+        remoteSearch: _useMockApi ? null : getIt<CatalogRepository>().search,
+        onResults: getIt<CatalogCubit>().mergeSearchResults,
+      ),
+    )
     ..registerFactory<LoginCubit>(
       () => LoginCubit(
         getIt<AuthRepository>(),
@@ -285,7 +392,12 @@ void _registerScreenCubits() {
         getIt<AnalyticsService>(),
       ),
     )
-    ..registerFactory<ChatCubit>(() => ChatCubit(getIt<SupportRepository>()))
+    ..registerFactory<ChatCubit>(
+      () => ChatCubit(
+        getIt<SupportRepository>(),
+        onRead: getIt<AuthCubit>().clearSupportUnread,
+      ),
+    )
     ..registerFactoryParam<PurchaseCubit, PurchaseArgs, void>(
       (args, _) => PurchaseCubit(
         repository: getIt<PurchaseRepository>(),

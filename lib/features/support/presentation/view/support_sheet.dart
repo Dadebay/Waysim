@@ -4,11 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../app/auth_gate.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/constants/app_environment.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/di/injector.dart';
+import '../../../../core/services/crash_report.dart';
+import '../../../../core/storage/local_storage.dart';
+import '../../../../core/storage/secure_storage.dart';
+import '../../../../core/storage/storage_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
@@ -16,6 +22,7 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
+import '../support_mail.dart';
 
 /// "How can we help?": the AI chat, or an e-mail to the team.
 Future<void> showSupportSheet(BuildContext context) {
@@ -41,12 +48,18 @@ Future<void> showSupportSheet(BuildContext context) {
         children: [
           _Option(
             icon: AppIcons.aiChat,
-            title: l10n.supportAiTitle,
-            body: l10n.supportAiBody,
+            title: AppEnvironment.useMockApi
+                ? l10n.supportAiTitle
+                : l10n.supportTeam,
+            body: AppEnvironment.useMockApi
+                ? l10n.supportAiBody
+                : l10n.supportLiveGreeting,
             filled: true,
-            onTap: () {
+            onTap: () async {
               Navigator.of(sheetContext).pop();
-              router.push(AppRoute.supportChat.path);
+              if (AppEnvironment.useMockApi || await requireSignIn(context)) {
+                await router.push<void>(AppRoute.supportChat.path);
+              }
             },
           ),
           const SizedBox(height: AppSpacing.md),
@@ -71,62 +84,156 @@ Future<void> showSupportSheet(BuildContext context) {
   );
 }
 
-/// Opens the mail app with the subject and technical details filled in; with
-/// no mail app, shows the address to copy.
+/// Lets the customer write without seeing diagnostics, then opens the mail app.
 Future<void> writeToSupport(
   BuildContext context, {
   required String email,
   required String? id,
 }) async {
   final l10n = context.l10n;
-  final info = await PackageInfo.fromPlatform();
-  final subject = l10n.supportMailSubject(id ?? '—');
-  final body = l10n.supportMailTemplate(
+  final device = getIt<DeviceContext>();
+  final template = l10n.supportMailTemplate(
     id ?? '—',
-    '${info.version} (${info.buildNumber})',
-    '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+    '${device.appVersion} (${device.buildNumber})',
+    device.osVersion,
   );
-  final uri = Uri.parse(
-    'mailto:$email?subject=${Uri.encodeComponent(subject)}'
-    '&body=${Uri.encodeComponent(body)}',
-  );
-
-  final opened = await canLaunchUrl(uri) && await launchUrl(uri);
-  if (opened || !context.mounted) return;
-
-  await showAppSheet<void>(
+  final promptEnd = template.indexOf('\n\n');
+  final prompt = promptEnd < 0 ? template : template.substring(0, promptEnd);
+  final message = await showAppSheet<String>(
     context,
     title: l10n.supportMailTitle,
-    closeLabel: l10n.actionClose,
-    builder: (sheetContext) => Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.page,
-        0,
-        AppSpacing.page,
-        AppSpacing.xxl,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.supportMailFallback(email), style: sheetContext.text.body),
-          const SizedBox(height: AppSpacing.xl),
-          AppButton(
-            label: l10n.actionCopyAddress,
-            icon: AppIcons.copy,
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: email));
-              if (sheetContext.mounted) {
-                Navigator.of(sheetContext).pop();
-                AppToast.show(context, l10n.toastCopied);
-              }
-            },
+    subtitle: l10n.supportMailBody,
+    builder: (_) => _SupportMailComposer(
+      prompt: prompt,
+      continueLabel: l10n.actionContinue,
+    ),
+  );
+  if (message == null || !context.mounted) return;
+
+  String? deviceId;
+  try {
+    deviceId = await getIt<SecureStorage>().readDeviceId();
+  } on Object {
+    // Mail remains available if secure storage is locked.
+  }
+  final local = getIt<LocalStorage>();
+  final body = buildSupportMailBody(
+    message: message,
+    localizedTemplate: template,
+    device: device,
+    osBuild: Platform.operatingSystemVersion,
+    deviceId: deviceId,
+    installId: local.getString(StorageKeys.installId),
+    appLanguage: local.getString(StorageKeys.contentLanguage),
+  );
+  final uri = Uri.parse(
+    'mailto:$email?subject=${Uri.encodeComponent(l10n.supportMailSubject(id ?? '—'))}'
+    '&body=${Uri.encodeComponent(body)}',
+  );
+  bool opened = false;
+  try {
+    opened = await canLaunchUrl(uri) && await launchUrl(uri);
+  } on PlatformException {
+    // Show the existing copy-address fallback below.
+  }
+  if (!opened && context.mounted) await _showMailFallback(context, email);
+}
+
+class _SupportMailComposer extends StatefulWidget {
+  const _SupportMailComposer({
+    required this.prompt,
+    required this.continueLabel,
+  });
+
+  final String prompt;
+  final String continueLabel;
+
+  @override
+  State<_SupportMailComposer> createState() => _SupportMailComposerState();
+}
+
+class _SupportMailComposerState extends State<_SupportMailComposer> {
+  final _message = TextEditingController();
+
+  @override
+  void dispose() {
+    _message.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      AppSpacing.page,
+      0,
+      AppSpacing.page,
+      AppSpacing.xxl,
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _message,
+          autofocus: true,
+          minLines: 4,
+          maxLines: 6,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: widget.prompt,
+            border: const OutlineInputBorder(),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _message,
+          builder: (_, value, _) => AppButton(
+            label: widget.continueLabel,
+            onPressed: value.text.trim().isEmpty
+                ? null
+                : () => Navigator.of(context).pop(_message.text.trim()),
+          ),
+        ),
+      ],
     ),
   );
 }
+
+Future<void> _showMailFallback(BuildContext context, String email) =>
+    showAppSheet<void>(
+      context,
+      title: context.l10n.supportMailTitle,
+      closeLabel: context.l10n.actionClose,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.page,
+          0,
+          AppSpacing.page,
+          AppSpacing.xxl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.supportMailFallback(email),
+              style: sheetContext.text.body,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            AppButton(
+              label: context.l10n.actionCopyAddress,
+              icon: AppIcons.copy,
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: email));
+                if (sheetContext.mounted) {
+                  Navigator.of(sheetContext).pop();
+                  AppToast.show(context, context.l10n.toastCopied);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
 
 class _Option extends StatelessWidget {
   const _Option({

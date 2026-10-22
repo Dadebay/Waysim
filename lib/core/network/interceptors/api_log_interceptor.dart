@@ -87,7 +87,7 @@ class ApiLogInterceptor extends Interceptor {
   List<String> _body(dynamic body) {
     if (body == null) return const [];
 
-    final text = body is String ? body : _encode(body);
+    final text = _encode(_redact(body));
     if (text.trim().isEmpty) return const [];
 
     final truncated = text.length <= _maxBody
@@ -100,6 +100,36 @@ class ApiLogInterceptor extends Interceptor {
       ...lines.take(_maxLines),
       '… (${lines.length - _maxLines} more lines)',
     ];
+  }
+
+  dynamic _redact(dynamic value) {
+    const sensitive = {
+      'accessToken',
+      'refreshToken',
+      'deviceToken',
+      'token',
+      'code',
+      'email',
+      'activationCode',
+      'lpaString',
+      'qrCodeUrl',
+      'smdpAddress',
+      'iccid',
+      'eid',
+      'text',
+      'payAddress',
+      'payExtraId',
+    };
+    if (value is Map) {
+      return value.map(
+        (key, item) => MapEntry(
+          key,
+          sensitive.contains(key) ? '[redacted]' : _redact(item),
+        ),
+      );
+    }
+    if (value is List) return value.map(_redact).toList();
+    return value;
   }
 
   String _encode(dynamic body) {

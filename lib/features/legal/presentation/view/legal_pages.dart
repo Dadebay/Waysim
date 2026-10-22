@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -14,6 +16,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/app_hero.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../domain/entities/legal_document.dart';
+import '../widgets/mobile_legal_table_syntax.dart';
 
 /// "More": the six legal documents, then the app's own details.
 class LegalListPage extends StatelessWidget {
@@ -447,10 +450,7 @@ class _LoadedDocument extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<AsyncCubit<List<LegalDocument>>>().state;
     final doc = switch (state) {
-      AsyncData(:final data) => data.firstWhere(
-        (item) => item.id == id,
-        orElse: () => data.first,
-      ),
+      AsyncData(:final data) => data.where((item) => item.id == id).firstOrNull,
       _ => null,
     };
 
@@ -466,7 +466,10 @@ class _LoadedDocument extends StatelessWidget {
           failure: failure,
           onRetry: () => context.read<AsyncCubit<List<LegalDocument>>>().load(),
         ),
-        AsyncData() => _DocumentBody(doc!),
+        AsyncData() =>
+          doc == null
+              ? Center(child: Text(context.l10n.errorNotFound))
+              : _DocumentBody(doc),
       },
     );
   }
@@ -526,14 +529,49 @@ class _DocumentBody extends StatelessWidget {
   final LegalDocument document;
 
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(AppSpacing.page),
-    children: [
-      for (final paragraph in document.body.split('\n\n'))
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: Text(paragraph, style: context.text.body),
-        ),
-    ],
-  );
+  Widget build(BuildContext context) => document.markdown
+      ? LayoutBuilder(
+          builder: (context, constraints) => Markdown(
+            key: ValueKey(constraints.maxWidth < 600),
+            data: document.body,
+            selectable: true,
+            blockSyntaxes: constraints.maxWidth < 600
+                ? const [MobileLegalTableSyntax()]
+                : null,
+            padding: const EdgeInsets.all(AppSpacing.page),
+            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                .copyWith(
+                  p: context.text.body,
+                  h1: context.text.h1,
+                  h2: context.text.h2,
+                  h3: context.text.h3,
+                  a: context.text.body.copyWith(color: context.colors.link),
+                  blockSpacing: AppSpacing.md,
+                  tableBody: context.text.bodySm,
+                  blockquote: context.text.body,
+                  blockquotePadding: const EdgeInsets.all(AppSpacing.lg),
+                  blockquoteDecoration: BoxDecoration(
+                    color: context.colors.surface,
+                    border: Border.all(color: context.colors.border),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                ),
+            onTapLink: (_, href, _) {
+              final uri = Uri.tryParse(href ?? '');
+              if (uri != null && ['https', 'mailto'].contains(uri.scheme)) {
+                launchUrl(uri);
+              }
+            },
+          ),
+        )
+      : ListView(
+          padding: const EdgeInsets.all(AppSpacing.page),
+          children: [
+            for (final paragraph in document.body.split('\n\n'))
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: Text(paragraph, style: context.text.body),
+              ),
+          ],
+        );
 }

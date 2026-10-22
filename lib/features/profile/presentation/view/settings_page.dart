@@ -10,12 +10,15 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/localization/app_language.dart';
+import '../../../../core/localization/failure_localizer.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_crossfade.dart';
 import '../../../../core/widgets/app_hero.dart';
 import '../../../../core/widgets/flag_icon.dart';
 import '../../../notification/presentation/cubit/notification_prefs_cubit.dart';
+import '../../../config/presentation/cubit/config_cubit.dart';
 import '../widgets/theme_picker.dart';
 
 /// Language (five, with flags) and theme (light / dark). Notification
@@ -27,97 +30,106 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final current = AppLanguage.fromLocale(context.watch<LocaleCubit>().state);
+    final enabledCodes = context.watch<ConfigCubit>().state.supportedLocales;
+    final languages = AppLanguage.values
+        .where((language) => enabledCodes.contains(language.code))
+        .toList();
     final themeMode = context.watch<ThemeCubit>().state;
     final isDark = themeMode == ThemeMode.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          onPressed: () => context.pop(),
-          icon: HugeIcon(
-            icon: AppIcons.back,
-            size: 24,
-            color: context.colors.textPrimary,
-          ),
-        ),
-        title: AppHero(
-          tag: AppHeroTags.settingsTitle,
-          child: Material(
-            type: MaterialType.transparency,
-            child: Text(l10n.settings, style: context.text.h2),
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.page),
-        children: [
-          _SectionLabel(l10n.settingsLanguage),
-          _LanguageGrid(
-            current: current,
-            onPick: (lang) {
-              if (lang == current) return;
-              HapticFeedback.selectionClick();
-              final cubit = context.read<LocaleCubit>();
-              // The whole app redraws in the new language: fade it in rather
-              // than flashing.
-              void change() => cubit.setLocale(lang.locale);
-              final fade = AppCrossfade.of(context);
-              fade == null ? change() : fade.run(change);
-            },
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _SectionLabel(l10n.settingsTheme),
-          ThemePicker(
-            mode: isDark ? ThemeMode.dark : ThemeMode.light,
-            onChanged: (mode) {
-              final cubit = context.read<ThemeCubit>();
-              void change() => cubit.setThemeMode(mode);
-              final transition = AppCrossfade.of(context);
-              transition == null
-                  ? change()
-                  : transition.run(
-                      change,
-                      transition: mode == ThemeMode.light
-                          ? AppScreenTransition.revealFromLeft
-                          : AppScreenTransition.revealFromRight,
-                    );
-            },
-          ),
-          const SizedBox(height: AppSpacing.xxxl),
-          _SectionLabel(l10n.settingsNotifications),
-          _SwitchRow(
-            title: l10n.notifEsimTitle,
-            body: l10n.notifEsimBody,
-            value: context.watch<NotificationPrefsCubit>().state.esim,
-            onChanged: context.read<NotificationPrefsCubit>().setEsim,
-          ),
-          _SwitchRow(
-            title: l10n.notifNewsTitle,
-            body: l10n.notifNewsBody,
-            value: context.watch<NotificationPrefsCubit>().state.news,
-            onChanged: context.read<NotificationPrefsCubit>().setNews,
-          ),
-          if (kDebugMode) ...[
-            const SizedBox(height: AppSpacing.xxl),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: HugeIcon(
-                icon: AppIcons.sparkles,
-                size: 22,
-                color: context.colors.primary,
-              ),
-              title: Text(l10n.settingsGallery),
-              trailing: HugeIcon(
-                icon: AppIcons.chevronRight,
-                size: 20,
-                color: context.colors.textSecondary,
-              ),
-              onTap: () => context.pushNamed(AppRoute.gallery.routeName),
+    return BlocListener<NotificationPrefsCubit, NotificationPrefs>(
+      listenWhen: (previous, current) =>
+          current.failure != null && previous.failure != current.failure,
+      listener: (context, state) =>
+          AppToast.show(context, state.failure!.localize(l10n), isError: true),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: () => context.pop(),
+            icon: HugeIcon(
+              icon: AppIcons.back,
+              size: 24,
+              color: context.colors.textPrimary,
             ),
+          ),
+          title: AppHero(
+            tag: AppHeroTags.settingsTitle,
+            child: Material(
+              type: MaterialType.transparency,
+              child: Text(l10n.settings, style: context.text.h2),
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(AppSpacing.page),
+          children: [
+            _SectionLabel(l10n.settingsLanguage),
+            _LanguageGrid(
+              current: current,
+              languages: languages,
+              onPick: (lang) {
+                if (lang == current) return;
+                HapticFeedback.selectionClick();
+                final cubit = context.read<LocaleCubit>();
+                // The whole app redraws in the new language: fade it in rather
+                // than flashing.
+                void change() => cubit.setLocale(lang.locale);
+                final fade = AppCrossfade.of(context);
+                fade == null ? change() : fade.run(change);
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _SectionLabel(l10n.settingsTheme),
+            ThemePicker(
+              mode: isDark ? ThemeMode.dark : ThemeMode.light,
+              onChanged: (mode) {
+                final cubit = context.read<ThemeCubit>();
+                void change() => cubit.setThemeMode(mode);
+                final transition = AppCrossfade.of(context);
+                transition == null
+                    ? change()
+                    : transition.run(
+                        change,
+                        duration: AppConstants.themeScreenAnimation,
+                      );
+              },
+            ),
+            const SizedBox(height: AppSpacing.xxxl),
+            _SectionLabel(l10n.settingsNotifications),
+            _SwitchRow(
+              title: l10n.notifEsimTitle,
+              body: l10n.notifEsimBody,
+              value: context.watch<NotificationPrefsCubit>().state.esim,
+              onChanged: context.read<NotificationPrefsCubit>().setEsim,
+            ),
+            _SwitchRow(
+              title: l10n.notifNewsTitle,
+              body: l10n.notifNewsBody,
+              value: context.watch<NotificationPrefsCubit>().state.news,
+              onChanged: context.read<NotificationPrefsCubit>().setNews,
+            ),
+            if (kDebugMode) ...[
+              const SizedBox(height: AppSpacing.xxl),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: HugeIcon(
+                  icon: AppIcons.sparkles,
+                  size: 22,
+                  color: context.colors.primary,
+                ),
+                title: Text(l10n.settingsGallery),
+                trailing: HugeIcon(
+                  icon: AppIcons.chevronRight,
+                  size: 20,
+                  color: context.colors.textSecondary,
+                ),
+                onTap: () => context.pushNamed(AppRoute.gallery.routeName),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -145,9 +157,14 @@ class _SectionLabel extends StatelessWidget {
 // ── Language: 2-col flag cards, selected glows ────────────────────────────
 
 class _LanguageGrid extends StatelessWidget {
-  const _LanguageGrid({required this.current, required this.onPick});
+  const _LanguageGrid({
+    required this.current,
+    required this.languages,
+    required this.onPick,
+  });
 
   final AppLanguage current;
+  final List<AppLanguage> languages;
   final ValueChanged<AppLanguage> onPick;
 
   @override
@@ -161,13 +178,13 @@ class _LanguageGrid extends StatelessWidget {
         crossAxisSpacing: 12,
         childAspectRatio: 2.35,
       ),
-      itemCount: AppLanguage.values.length + 1,
+      itemCount: languages.length + (languages.length.isOdd ? 1 : 0),
       itemBuilder: (context, i) {
-        // Last cell: filler keeps grid balanced when count is odd (5 langs).
-        if (i >= AppLanguage.values.length) {
+        // Last cell keeps an odd number of languages balanced.
+        if (i >= languages.length) {
           return const SizedBox.shrink();
         }
-        final lang = AppLanguage.values[i];
+        final lang = languages[i];
         return _LanguageCard(
           language: lang,
           selected: lang == current,

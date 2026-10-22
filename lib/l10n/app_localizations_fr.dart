@@ -122,6 +122,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get errorUnauthorized => 'Votre session a expiré. Reconnectez-vous.';
 
   @override
+  String get signedOutOnDevice =>
+      'Votre session a été fermée sur cet appareil. Reconnectez-vous.';
+
+  @override
   String get errorNotFound => 'Nous n’avons pas trouvé ce que vous cherchiez.';
 
   @override
@@ -298,7 +302,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get packagesUnlimited => 'Illimités';
 
   @override
-  String get packagesLimited => 'Avec limite de Go';
+  String get packagesLimited => 'Limités';
 
   @override
   String get packagesChoose => 'Choisissez un forfait';
@@ -897,8 +901,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get devicesTitle => 'Mes appareils';
 
   @override
-  String get devicesNote =>
-      'Une eSIM est liée au téléphone sur lequel vous l’installez.';
+  String get devicesNote => 'Gérez les appareils connectés à votre compte.';
+
+  @override
+  String get deviceRemove => 'Retirer l’appareil';
+
+  @override
+  String get deviceRemoveTitle => 'Retirer cet appareil ?';
+
+  @override
+  String deviceRemoveBody(String device) {
+    return 'Se déconnecter de Waysim sur $device ? Vous pourrez vous reconnecter sur cet appareil.';
+  }
+
+  @override
+  String get deviceRemoved => 'Appareil retiré.';
 
   @override
   String get deviceThis => 'Cet appareil';
@@ -1055,6 +1072,27 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous pouvez fermer cet écran : nous vous enverrons une notification dès que le paiement sera crédité.';
 
   @override
+  String get cryptoChangeAmountAction => 'Changer le montant';
+
+  @override
+  String get cryptoChangeAmountTitle => 'Choisir un autre montant ?';
+
+  @override
+  String get cryptoChangeAmountBody =>
+      'Cette demande de paiement reste active jusqu\'à la fin du compte à rebours. Si vous avez déjà envoyé les fonds, attendez la fin du paiement. Sinon, vous pouvez créer une nouvelle demande avec un autre montant.';
+
+  @override
+  String get cryptoChangeCurrencyTitle =>
+      'Changer de cryptomonnaie ou de réseau ?';
+
+  @override
+  String get cryptoChangeCurrencyBody =>
+      'Une autre cryptomonnaie ou un autre réseau nécessite une nouvelle adresse de paiement. La demande actuelle reste active jusqu\'à son expiration. Si vous avez déjà envoyé les fonds, attendez la fin du paiement.';
+
+  @override
+  String get cryptoChangeCurrencyAction => 'Créer un nouveau paiement';
+
+  @override
   String cryptoExpiresIn(String time) {
     return 'Expire dans $time';
   }
@@ -1090,10 +1128,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ordersTabTopUps => 'Recharges';
 
   @override
+  String get ordersTabActivity => 'Activité';
+
+  @override
   String get ordersEmptyPurchases => 'Aucun achat pour l’instant';
 
   @override
   String get ordersEmptyTopUps => 'Aucune recharge pour l’instant';
+
+  @override
+  String get ordersEmptyActivity => 'Aucun mouvement de solde pour l’instant';
 
   @override
   String orderNumberDate(String number, String date) {
@@ -1129,18 +1173,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String referralHeroBody(String reward) {
-    return 'Un ami s’inscrit avec votre lien ou code et vous recevez $reward sur votre solde.';
+    return 'Un ami s’inscrit avec votre code et vous recevez $reward sur votre solde.';
   }
 
   @override
   String get referralYourCode => 'Votre code';
 
   @override
-  String get referralShare => 'Partager le lien';
+  String get referralShare => 'Partager l’invitation';
 
   @override
-  String referralShareText(String link) {
-    return 'Prenez une eSIM pour votre voyage avec Waysim : $link';
+  String referralShareText(String code) {
+    return 'Vous partez bientôt ? Découvrez les forfaits eSIM de Waysim. Utilisez mon code d’invitation lors de votre inscription :\n$code';
+  }
+
+  @override
+  String referralShareLinkText(String link, String code) {
+    return 'Vous partez bientôt ? Découvrez les forfaits eSIM de Waysim. Inscrivez-vous avec mon lien d’invitation :\n$link\n\nCode d’invitation : $code';
   }
 
   @override
@@ -1297,4 +1346,50 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noConnectionContinue => 'Continuer hors ligne';
+
+  @override
+  String get statusSuspended => 'Suspendue';
+
+  @override
+  String get statusCancelled => 'Annulée';
+
+  @override
+  String get statusRevoked => 'Révoquée';
+
+  @override
+  String get statusFailed => 'Échec';
+
+  @override
+  String get paymentReview => 'Paiement en cours de vérification';
+
+  @override
+  String get paymentPending => 'En attente';
+
+  @override
+  String get paymentMemo => 'Mémo / tag de destination';
+
+  @override
+  String get supportTeam => 'Équipe d’assistance';
+
+  @override
+  String get supportLiveDisclaimer =>
+      'Vos messages sont transmis à l’équipe d’assistance Waysim.';
+
+  @override
+  String get supportLiveGreeting =>
+      'Posez votre question sur Waysim ou votre eSIM.';
+
+  @override
+  String get inviteCodeInvalid =>
+      'Code d’invitation invalide. Vérifiez-le et réessayez.';
+
+  @override
+  String get paymentFailed => 'Paiement non effectué';
+
+  @override
+  String get paymentFailedBody =>
+      'Le paiement n’a pas abouti. Contactez l’assistance si vous avez déjà envoyé les fonds.';
+
+  @override
+  String get activationOnInstall => 'Commence à l’installation de l’eSIM.';
 }

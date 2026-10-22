@@ -2,10 +2,14 @@ import 'dart:async';
 
 import '../core/services/analytics_service.dart';
 import '../core/services/crash_reporter.dart';
+import '../core/services/slow_frame_reporter.dart';
 import '../core/services/push_service.dart';
 import '../features/auth/presentation/cubit/auth_cubit.dart';
 import '../features/notification/presentation/cubit/notification_prefs_cubit.dart';
 import 'cubit/locale_cubit.dart';
+import '../features/auth/domain/repositories/auth_repository.dart';
+import '../features/catalog/presentation/cubit/catalog_cubit.dart';
+import '../features/config/presentation/cubit/config_cubit.dart';
 import 'cubit/theme_cubit.dart';
 
 /// Connects the app's state to the services that report on it:
@@ -15,20 +19,18 @@ import 'cubit/theme_cubit.dart';
 /// * a fresh sign-in → the push token goes to the backend.
 class TelemetryCoordinator {
   TelemetryCoordinator({
-    required AuthCubit auth,
-    required LocaleCubit locale,
-    required ThemeCubit theme,
-    required NotificationPrefsCubit notifications,
-    required AnalyticsService analytics,
-    required CrashReporter crashes,
-    required PushService push,
-  }) : _auth = auth,
-       _locale = locale,
-       _theme = theme,
-       _notifications = notifications,
-       _analytics = analytics,
-       _crashes = crashes,
-       _push = push;
+    required this._auth,
+    required this._locale,
+    required this._theme,
+    required this._notifications,
+    required this._analytics,
+    required this._crashes,
+    this.slowFrames,
+    required this._push,
+    this._preferences,
+    this._catalog,
+    this._config,
+  });
 
   final AuthCubit _auth;
   final LocaleCubit _locale;
@@ -36,7 +38,18 @@ class TelemetryCoordinator {
   final NotificationPrefsCubit _notifications;
   final AnalyticsService _analytics;
   final CrashReporter _crashes;
+  final SlowFrameReporter? slowFrames;
   final PushService _push;
+  final AuthRepository? _preferences;
+  final CatalogCubit? _catalog;
+  final ConfigCubit? _config;
+  Future<void> _sync = Future.value();
+  NotificationPrefs? _hydratedPrefs;
+  void _save({String? locale, bool? esim, bool? marketing}) {
+    _sync = _sync.then((_) async {
+      await _preferences?.updatePreferences(locale: locale, esim: esim, marketing: marketing);
+    });
+  }
 
   final _subscriptions = <StreamSubscription<Object?>>[];
   AuthStatus? _lastStatus;
@@ -55,6 +68,9 @@ class TelemetryCoordinator {
           _analytics
             ..setUserProperty('language', locale.languageCode)
             ..changedSetting('language', locale.languageCode);
+          _save(locale: locale.languageCode);
+          unawaited(_catalog?.load());
+          unawaited(_config?.refresh());
         }),
       )
       ..add(
@@ -84,10 +100,17 @@ class TelemetryCoordinator {
         AuthStatus.unknown => null,
       });
     _crashes.setUserId(id);
+    slowFrames?.setUserId(id);
 
     // The first moment a customer is signed in: the backend learns which
     // device token reaches them.
     if (state.status == AuthStatus.signedIn && _lastStatus != state.status) {
+      final user = state.user;
+      if (user != null && (user.notifyEsim != null || user.notifyMarketing != null)) {
+        _hydratedPrefs = NotificationPrefs(esim: user.notifyEsim ?? true, news: user.notifyMarketing ?? true);
+        _notifications.applyServerPreferences(_hydratedPrefs!);
+      }
+      unawaited(_config?.refresh());
       unawaited(_push.syncToken());
     }
     _lastStatus = state.status;

@@ -12,6 +12,10 @@ extension EsimStatusPresentation on EsimStatus {
     EsimStatus.active => l10n.statusActive,
     EsimStatus.usedUp => l10n.statusUsedUp,
     EsimStatus.expired => l10n.statusExpired,
+    EsimStatus.suspended => l10n.statusSuspended,
+    EsimStatus.cancelled => l10n.statusCancelled,
+    EsimStatus.revoked => l10n.statusRevoked,
+    EsimStatus.failed => l10n.statusFailed,
   };
 
   StatusTone get tone => switch (this) {
@@ -21,6 +25,10 @@ extension EsimStatusPresentation on EsimStatus {
     EsimStatus.active => StatusTone.success,
     EsimStatus.usedUp => StatusTone.neutral,
     EsimStatus.expired => StatusTone.neutral,
+    EsimStatus.suspended => StatusTone.warning,
+    EsimStatus.cancelled ||
+    EsimStatus.revoked ||
+    EsimStatus.failed => StatusTone.neutral,
   };
 }
 

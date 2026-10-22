@@ -10,6 +10,8 @@ class AppConfig extends Equatable {
     this.minTopUpCents = 500,
     this.maxTopUpCents = 50000,
     this.supportEmail = 'support@waysim.co',
+    this.supportedLocales = const ['en', 'zh', 'ru', 'es', 'fr'],
+    this.defaultLocale = 'en',
     this.cryptoEnabled = true,
     this.paypalEnabled = true,
     this.minSupportedVersion,
@@ -24,6 +26,10 @@ class AppConfig extends Equatable {
   final int minTopUpCents;
   final int maxTopUpCents;
   final String supportEmail;
+
+  /// Language codes currently offered by the server.
+  final List<String> supportedLocales;
+  final String defaultLocale;
   final bool cryptoEnabled;
   final bool paypalEnabled;
 
@@ -39,6 +45,8 @@ class AppConfig extends Equatable {
     minTopUpCents,
     maxTopUpCents,
     supportEmail,
+    supportedLocales,
+    defaultLocale,
     cryptoEnabled,
     paypalEnabled,
     minSupportedVersion,

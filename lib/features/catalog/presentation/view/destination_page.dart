@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/bloc/async_cubit.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -26,23 +27,46 @@ import '../../domain/entities/destination.dart';
 import '../../domain/entities/esim_package.dart';
 import '../cubit/catalog_cubit.dart';
 import '../widgets/compat_banner.dart';
+import '../../domain/repositories/catalog_repository.dart';
+import '../../../../core/utils/result.dart';
+import '../../../../core/widgets/app_toast.dart';
+import '../../../../core/localization/failure_localizer.dart';
 import '../widgets/package_details_sheet.dart';
 
 /// A country or region: compatibility, the plans, details and the buy button.
-class DestinationPage extends StatelessWidget {
-  const DestinationPage({super.key, required this.code});
+class DestinationPage extends StatefulWidget {
+  const DestinationPage({super.key, required this.code, this.packageId});
 
   final String code;
+  final String? packageId;
+  @override
+  State<DestinationPage> createState() => _DestinationPageState();
+}
+
+class _DestinationPageState extends State<DestinationPage> {
+  bool _loading = false;
+  @override
+  void initState() {
+    super.initState();
+    final catalog = context.read<CatalogCubit>();
+    if (catalog.state.byCode(widget.code) == null) {
+      _loading = true;
+      catalog.ensureLocation(widget.code).then((_) {
+        if (mounted) setState(() => _loading = false);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final catalog = context.watch<CatalogCubit>().state;
+    final code = widget.code;
     final destination = catalog.byCode(code);
 
     if (destination == null) {
       return Scaffold(
         appBar: const _Bar(title: null, flagCode: null),
-        body: catalog.status == CatalogStatus.loading
+        body: _loading || catalog.status == CatalogStatus.loading
             ? const Padding(
                 padding: EdgeInsets.all(AppSpacing.page),
                 child: SkeletonList(count: 5),
@@ -65,7 +89,10 @@ class DestinationPage extends StatelessWidget {
           param1: code,
         )..load();
       },
-      child: _DestinationView(destination: destination),
+      child: _DestinationView(
+        destination: destination,
+        initialPackageId: widget.packageId,
+      ),
     );
   }
 }
@@ -124,7 +151,8 @@ class _Bar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class _DestinationView extends StatefulWidget {
-  const _DestinationView({required this.destination});
+  const _DestinationView({required this.destination, this.initialPackageId});
+  final String? initialPackageId;
 
   final Destination destination;
 
@@ -132,12 +160,27 @@ class _DestinationView extends StatefulWidget {
   State<_DestinationView> createState() => _DestinationViewState();
 }
 
+typedef _PlanChoice = ({String? key, int? days});
+
 class _DestinationViewState extends State<_DestinationView> {
   /// The tab chosen by the customer; null until they choose, so the default
   /// can follow what the server returned.
   PackageKind? _kind;
-  String? _selectedId;
+  late final ValueNotifier<_PlanChoice> _selection;
+  final _daySelections = <String, int>{};
   bool _buyBarCompact = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selection = ValueNotifier((key: widget.initialPackageId, days: null));
+  }
+
+  @override
+  void dispose() {
+    _selection.dispose();
+    super.dispose();
+  }
 
   bool _onPlansScroll(ScrollUpdateNotification notification) {
     // Only a real finger drag can collapse the bar. Its own size animation
@@ -152,13 +195,24 @@ class _DestinationViewState extends State<_DestinationView> {
     return false;
   }
 
-  EsimPackage? _selected(List<EsimPackage> shown) {
+  EsimPackage _withChosenDays(EsimPackage package, int? days) =>
+      package.dailyPrice == null
+      ? package
+      : package.withPurchaseDays(
+          days ?? _daySelections[package.id] ?? package.purchaseDays ?? 1,
+        );
+
+  EsimPackage? _selected(List<EsimPackage> shown, _PlanChoice choice) {
     for (final p in shown) {
-      if (p.id == _selectedId) return p;
+      if (p.selectionKey == choice.key || p.id == choice.key) {
+        return _withChosenDays(p, choice.days);
+      }
     }
     // Nothing chosen yet: pre-select the middle of the list, a sensible
     // default for most trips.
-    return shown.isEmpty ? null : shown[(shown.length - 1).clamp(0, 2)];
+    return shown.isEmpty
+        ? null
+        : _withChosenDays(shown[(shown.length - 1).clamp(0, 2)], null);
   }
 
   @override
@@ -199,6 +253,12 @@ class _DestinationViewState extends State<_DestinationView> {
     String language,
   ) {
     final l10n = context.l10n;
+    if (_kind == null && widget.initialPackageId != null) {
+      _kind = all
+          .where((p) => p.id == widget.initialPackageId)
+          .firstOrNull
+          ?.kind;
+    }
     final unlimited = all.where((p) => p.isUnlimited).toList();
     final limited = all.where((p) => !p.isUnlimited).toList();
 
@@ -213,7 +273,6 @@ class _DestinationViewState extends State<_DestinationView> {
               ? PackageKind.limited
               : kinds.first);
     final shown = kind == PackageKind.unlimited ? unlimited : limited;
-    final selected = _selected(shown);
     final config = context.watch<ConfigCubit>().state;
 
     return Column(
@@ -240,57 +299,108 @@ class _DestinationViewState extends State<_DestinationView> {
                     labels: [
                       for (final k in kinds)
                         k == PackageKind.unlimited
-                            ? l10n.packagesUnlimited
-                            : l10n.packagesLimited,
+                            ? '${l10n.packagesUnlimited} (${unlimited.length})'
+                            : '${l10n.packagesLimited} (${limited.length})',
                     ],
                     selectedIndex: kinds.indexOf(kind),
                     onChanged: (i) => setState(() {
                       _kind = kinds[i];
-                      _selectedId = null;
+                      _selection.value = (key: null, days: null);
                     }),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                 ],
                 Text(l10n.packagesChoose, style: context.text.h2),
                 const SizedBox(height: AppSpacing.md),
-                TabSwitcher(
-                  index: kinds.indexOf(kind),
-                  child: Column(
-                    children: [
-                      for (final p in shown) ...[
-                        PackageTile(
-                          volume: l10n.packageVolume(p),
-                          duration: l10n.packageDuration(p),
-                          price: p.price.format(),
-                          selected: p.id == selected?.id,
-                          onTap: () {
-                            getIt<AnalyticsService>().selectedPackage(
-                              packageId: p.id,
-                              price: p.price,
-                            );
-                            setState(() => _selectedId = p.id);
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                      ],
-                    ],
-                  ),
+                ValueListenableBuilder<_PlanChoice>(
+                  valueListenable: _selection,
+                  builder: (context, choice, _) {
+                    final selected = _selected(shown, choice);
+                    return TabSwitcher(
+                      index: kinds.indexOf(kind),
+                      child: Column(
+                        children: [
+                          for (final p in shown) ...[
+                            Builder(
+                              builder: (context) {
+                                final shownPackage = _withChosenDays(p, null);
+                                return PackageTile(
+                                  volume: l10n.packageVolume(shownPackage),
+                                  duration:
+                                      p.dailyPrice != null &&
+                                          shownPackage.dailyBytes != null
+                                      ? l10n.dailyAllowance(
+                                          l10n.dataSize(
+                                            shownPackage.dailyBytes!,
+                                          ),
+                                        )
+                                      : l10n.packageDuration(shownPackage),
+                                  price: shownPackage.price.format(),
+                                  selected: p.id == selected?.id,
+                                  selectedDays: p.dailyPrice == null
+                                      ? null
+                                      : shownPackage.days,
+                                  minDays: p.minPurchaseDays,
+                                  maxDays: p.maxPurchaseDays,
+                                  onDaysChanged: p.dailyPrice == null
+                                      ? null
+                                      : (days) {
+                                          _daySelections[p.id] = days;
+                                          final chosen = p.withPurchaseDays(
+                                            days,
+                                          );
+                                          _selection.value = (
+                                            key: p.selectionKey,
+                                            days: days,
+                                          );
+                                          getIt<AnalyticsService>()
+                                              .selectedPackage(
+                                                packageId: p.id,
+                                                price: chosen.price,
+                                              );
+                                        },
+                                  onTap: () {
+                                    if (selected?.id == p.id) return;
+                                    getIt<AnalyticsService>().selectedPackage(
+                                      packageId: p.id,
+                                      price: shownPackage.price,
+                                    );
+                                    _selection.value = (
+                                      key: p.selectionKey,
+                                      days: shownPackage.purchaseDays,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
           ),
         ),
-        _BuyBar(
-          compact: _buyBarCompact,
-          onExpand: () => setState(() => _buyBarCompact = false),
-          maintenance: config.maintenance,
-          selected: selected,
-          onDetails: selected == null
-              ? null
-              : () => _openDetails(context, d, selected, language),
-          onBuy: selected == null
-              ? null
-              : () => _buy(context, d, selected, language),
+        ValueListenableBuilder<_PlanChoice>(
+          valueListenable: _selection,
+          builder: (context, choice, _) {
+            final selected = _selected(shown, choice);
+            return _BuyBar(
+              compact: _buyBarCompact,
+              onExpand: () => setState(() => _buyBarCompact = false),
+              maintenance: config.maintenance,
+              selected: selected,
+              onDetails: selected == null
+                  ? null
+                  : () => _openDetails(context, d, selected, language),
+              onBuy: selected == null
+                  ? null
+                  : () => _buy(context, d, selected, language),
+            );
+          },
         ),
       ],
     );
@@ -331,9 +441,16 @@ class _DestinationViewState extends State<_DestinationView> {
     final l10n = context.l10n;
     getIt<AnalyticsService>().openedPackageDetails(p.id);
     final maintenance = context.read<ConfigCubit>().state.maintenance;
+    final result = await getIt<CatalogRepository>().detail(p);
+    if (!context.mounted) return;
+    if (result case Error(:final failure)) {
+      AppToast.show(context, failure.localize(l10n));
+      return;
+    }
+    final fullPackage = result.dataOrNull!;
     final buy = await showPackageDetailsSheet(
       context,
-      package: p,
+      package: fullPackage,
       destinationName: d.nameFor(language),
       coverage: d.isRegion
           ? l10n.regionCountries(d.countryCount ?? 0)
@@ -345,7 +462,7 @@ class _DestinationViewState extends State<_DestinationView> {
 }
 
 /// The bottom area: details link, the buy button and the legal lines.
-class _BuyBar extends StatelessWidget {
+class _BuyBar extends StatefulWidget {
   const _BuyBar({
     required this.compact,
     required this.onExpand,
@@ -363,146 +480,192 @@ class _BuyBar extends StatelessWidget {
   final VoidCallback? onBuy;
 
   @override
+  State<_BuyBar> createState() => _BuyBarState();
+}
+
+class _BuyBarState extends State<_BuyBar> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _expanded;
+  late final Animation<double> _collapsed;
+  bool _reduceMotion = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppConstants.animationSlow,
+      value: widget.compact ? 0 : 1,
+    );
+    _expanded = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutSine,
+    );
+    _collapsed = ReverseAnimation(_expanded);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (_reduceMotion) _controller.value = widget.compact ? 0 : 1;
+  }
+
+  @override
+  void didUpdateWidget(_BuyBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.compact == oldWidget.compact) return;
+    if (_reduceMotion) {
+      _controller.value = widget.compact ? 0 : 1;
+    } else if (widget.compact) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final c = context.colors;
 
-    return TweenAnimationBuilder<double>(
+    return DecoratedBox(
       key: const ValueKey('destination-buy-bar'),
-      tween: Tween(end: compact ? 0 : 1),
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 240),
-      curve: const Cubic(0.23, 1, 0.32, 1),
-      builder: (context, expanded, _) => DecoratedBox(
-        decoration: BoxDecoration(
-          color: c.background,
-          border: Border(top: BorderSide(color: c.border)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.sm,
-              AppSpacing.page,
-              AppSpacing.sm + (AppSpacing.md - AppSpacing.sm) * expanded,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (maintenance)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: Text(
-                      l10n.maintenanceBanner,
-                      style: context.text.bodySm.copyWith(color: c.warning),
-                      textAlign: TextAlign.center,
+      decoration: BoxDecoration(
+        color: c.background,
+        border: Border(top: BorderSide(color: c.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: AnimatedPadding(
+          duration: _reduceMotion ? Duration.zero : AppConstants.animationSlow,
+          curve: Curves.easeInOutSine,
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.sm,
+            AppSpacing.page,
+            widget.compact ? AppSpacing.sm : AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.maintenance)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Text(
+                    l10n.maintenanceBanner,
+                    style: context.text.bodySm.copyWith(color: c.warning),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              SizeTransition(
+                key: const ValueKey('buy-bar-details'),
+                sizeFactor: _expanded,
+                alignment: Alignment.bottomCenter,
+                child: FadeTransition(
+                  opacity: _expanded,
+                  child: IgnorePointer(
+                    ignoring: widget.compact,
+                    child: TextButton.icon(
+                      onPressed: widget.onDetails,
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(44, 44),
+                        foregroundColor: c.link,
+                      ),
+                      icon: HugeIcon(
+                        icon: AppIcons.info,
+                        size: 18,
+                        color: c.link,
+                      ),
+                      label: Text(
+                        l10n.packageDetailsLink,
+                        style: context.text.bodySm.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
-                ClipRect(
-                  child: Align(
-                    key: const ValueKey('buy-bar-details'),
-                    heightFactor: expanded,
-                    child: Opacity(
-                      opacity: expanded,
+                ),
+              ),
+              Row(
+                children: [
+                  SizeTransition(
+                    axis: Axis.horizontal,
+                    sizeFactor: _collapsed,
+                    alignment: Alignment.centerLeft,
+                    child: FadeTransition(
+                      opacity: _collapsed,
                       child: IgnorePointer(
-                        ignoring: expanded < 0.95,
-                        child: TextButton.icon(
-                          onPressed: onDetails,
-                          style: TextButton.styleFrom(
-                            minimumSize: const Size(44, 44),
-                            foregroundColor: c.link,
-                          ),
-                          icon: HugeIcon(
-                            icon: AppIcons.info,
-                            size: 18,
-                            color: c.link,
-                          ),
-                          label: Text(
-                            l10n.packageDetailsLink,
-                            style: context.text.bodySm.copyWith(
-                              fontWeight: FontWeight.w700,
+                        ignoring: !widget.compact,
+                        child: SizedBox(
+                          width: 56,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              tooltip: l10n.packageDetailsLink,
+                              onPressed: widget.onExpand,
+                              style: IconButton.styleFrom(
+                                minimumSize: const Size(48, 48),
+                                backgroundColor: c.primarySubtle,
+                                foregroundColor: c.link,
+                              ),
+                              icon: HugeIcon(
+                                icon: AppIcons.info,
+                                size: 20,
+                                color: c.link,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Row(
-                  children: [
-                    ClipRect(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: 1 - expanded,
-                        child: Opacity(
-                          opacity: 1 - expanded,
-                          child: SizedBox(
-                            width: 56,
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: IconButton(
-                                tooltip: l10n.packageDetailsLink,
-                                onPressed: onExpand,
-                                style: IconButton.styleFrom(
-                                  minimumSize: const Size(48, 48),
-                                  backgroundColor: c.primarySubtle,
-                                  foregroundColor: c.link,
-                                ),
-                                icon: HugeIcon(
-                                  icon: AppIcons.info,
-                                  size: 20,
-                                  color: c.link,
-                                ),
-                              ),
-                            ),
+                  Expanded(
+                    child: AppButton(
+                      label: widget.selected == null
+                          ? l10n.packagesChoose
+                          : l10n.buyFor(widget.selected!.price.format()),
+                      onPressed: widget.maintenance ? null : widget.onBuy,
+                    ),
+                  ),
+                ],
+              ),
+              SizeTransition(
+                key: const ValueKey('buy-bar-legal'),
+                sizeFactor: _expanded,
+                alignment: Alignment.topCenter,
+                child: FadeTransition(
+                  opacity: _expanded,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    child: Column(
+                      children: [
+                        Text(
+                          l10n.purchaseDisclaimer,
+                          textAlign: TextAlign.center,
+                          style: context.text.caption.copyWith(
+                            color: c.textSecondary,
                           ),
                         ),
-                      ),
-                    ),
-                    Expanded(
-                      child: AppButton(
-                        label: selected == null
-                            ? l10n.packagesChoose
-                            : l10n.buyFor(selected!.price.format()),
-                        onPressed: maintenance ? null : onBuy,
-                      ),
-                    ),
-                  ],
-                ),
-                ClipRect(
-                  child: Align(
-                    key: const ValueKey('buy-bar-legal'),
-                    heightFactor: expanded,
-                    child: Opacity(
-                      opacity: expanded,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.sm),
-                        child: Column(
-                          children: [
-                            Text(
-                              l10n.purchaseDisclaimer,
-                              textAlign: TextAlign.center,
-                              style: context.text.caption.copyWith(
-                                color: c.textSecondary,
-                              ),
-                            ),
-                            Text(
-                              l10n.oneTimePurchase,
-                              textAlign: TextAlign.center,
-                              style: context.text.caption.copyWith(
-                                color: c.textSecondary,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          l10n.oneTimePurchase,
+                          textAlign: TextAlign.center,
+                          style: context.text.caption.copyWith(
+                            color: c.textSecondary,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

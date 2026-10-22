@@ -77,7 +77,10 @@ void main() {
 
     // Guests are sent to sign in first.
     expect(find.text('Sign in or sign up'), findsOneWidget);
-    await tester.tap(find.textContaining(DemoCredentials.newEmail));
+    await tester.enterText(
+      find.byType(TextField).first,
+      DemoCredentials.newEmail,
+    );
     expect(
       tester.widget<TextField>(find.byType(TextField).first).controller?.text,
       DemoCredentials.newEmail,
@@ -121,7 +124,7 @@ void main() {
 
     // The code step. Six digits, no password.
     expect(find.text('Enter the code'), findsOneWidget);
-    expect(find.textContaining(DemoCredentials.code), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
     await tester.tap(find.text('Change e-mail'));
     await tester.pumpAndSettle();
     expect(

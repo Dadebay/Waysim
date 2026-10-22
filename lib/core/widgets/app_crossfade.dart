@@ -37,6 +37,8 @@ class AppCrossfadeState extends State<AppCrossfade>
   // Created up front: a lazily created controller would first be built inside
   // dispose() when the fade was never used.
   late final AnimationController _fade;
+  late final CurvedAnimation _fadeCurve;
+  late final Animation<double> _oldScreenOpacity;
 
   @override
   void initState() {
@@ -45,6 +47,8 @@ class AppCrossfadeState extends State<AppCrossfade>
       vsync: this,
       duration: AppConstants.animationBase,
     );
+    _fadeCurve = CurvedAnimation(parent: _fade, curve: Curves.easeOutCubic);
+    _oldScreenOpacity = ReverseAnimation(_fadeCurve);
   }
 
   ui.Image? _snapshot;
@@ -55,11 +59,11 @@ class AppCrossfadeState extends State<AppCrossfade>
   /// the screenshot to complete before falling back to an immediate change.
   static const _captureTimeout = Duration(milliseconds: 350);
 
-  /// Runs [change] under a screen transition. Theme changes reveal the newly
-  /// drawn screen from either edge; language changes use a crossfade.
+  /// Runs [change] beneath a snapshot, preserving the live screen's state.
   Future<void> run(
     VoidCallback change, {
     AppScreenTransition transition = AppScreenTransition.crossfade,
+    Duration? duration,
   }) async {
     if (_busy) return;
     if (MediaQuery.disableAnimationsOf(context)) {
@@ -91,15 +95,21 @@ class AppCrossfadeState extends State<AppCrossfade>
         return;
       }
 
-      _fade.duration = transition != AppScreenTransition.crossfade
-          ? AppConstants.animationSlow
-          : AppConstants.animationBase;
+      _fade.duration =
+          duration ??
+          (transition != AppScreenTransition.crossfade
+              ? AppConstants.animationSlow
+              : AppConstants.animationBase);
+      // A completed transition leaves the controller at 1. Reset BEFORE
+      // mounting the next snapshot, or the old screen flashes through.
+      _fade.value = 0;
       // The photograph covers the old screen while the new one is drawn.
       setState(() {
         _transition = transition;
         _snapshot = image;
       });
       await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
 
       // Underneath, the new language or theme is drawn.
       change();
@@ -115,11 +125,17 @@ class AppCrossfadeState extends State<AppCrossfade>
       }
 
       // The photograph fades or wipes away to reveal the new screen.
-      await _fade.forward(from: 0);
+      await _fade.forward().orCancel;
+    } on TickerCanceled {
+      // The app or route containing the transition was removed.
     } finally {
       _busy = false;
       final old = _snapshot;
-      if (mounted) setState(() => _snapshot = null);
+      if (mounted) {
+        setState(() => _snapshot = null);
+      } else {
+        _snapshot = null;
+      }
       old?.dispose();
     }
   }
@@ -148,7 +164,7 @@ class AppCrossfadeState extends State<AppCrossfade>
       }
       if (boundary == null || boundary.debugNeedsPaint) return null;
       final override = debugCapture;
-      if (override != null) return override();
+      if (override != null) return await override();
       final ratio = MediaQuery.devicePixelRatioOf(context).clamp(1.0, 2.0);
       return await boundary.toImage(pixelRatio: ratio);
     } on Object {
@@ -158,8 +174,10 @@ class AppCrossfadeState extends State<AppCrossfade>
 
   @override
   void dispose() {
+    _fadeCurve.dispose();
     _fade.dispose();
     _snapshot?.dispose();
+    _snapshot = null;
     super.dispose();
   }
 
@@ -188,12 +206,7 @@ class AppCrossfadeState extends State<AppCrossfade>
                       child: RawImage(image: _snapshot, fit: BoxFit.fill),
                     )
                   : FadeTransition(
-                      opacity: ReverseAnimation(
-                        CurvedAnimation(
-                          parent: _fade,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ),
+                      opacity: _oldScreenOpacity,
                       child: RawImage(image: _snapshot, fit: BoxFit.fill),
                     ),
             ),

@@ -7,7 +7,7 @@ import 'exceptions.dart';
 /// [code] is a stable key the presentation layer maps to a localized string,
 /// so error text never has to be hard-coded in a bloc. For failures that came
 /// off the wire it is the backend's own `code` when there was one
-/// (`otp-invalid`, `price-changed`, …).
+/// (`otp_invalid`, `price_mismatch`, …).
 sealed class Failure extends Equatable {
   const Failure({
     required this.code,
@@ -20,7 +20,7 @@ sealed class Failure extends Equatable {
   final String? message;
   final int? statusCode;
 
-  /// Structured extra data — on `price-changed` this carries the new price.
+  /// Structured extra data — on `price_mismatch` this carries the new price.
   final Map<String, dynamic>? details;
 
   @override
@@ -77,21 +77,20 @@ class ApiFailure extends Failure {
 
 /// Error codes the app branches on.
 ///
-/// **Provisional**: the names follow the TZ; reconcile with the OpenAPI spec
-/// the backend publishes (docs/06-roadmap.md T7.1).
+/// Codes from docs/api/client-api.md; retain them through the data layer.
 abstract final class ApiCodes {
-  static const otpInvalid = 'otp-invalid';
-  static const otpExpired = 'otp-expired';
-  static const otpRateLimited = 'otp-rate-limited';
-  static const otpTooManyAttempts = 'otp-too-many-attempts';
-  static const userBlocked = 'user-blocked';
-  static const insufficientBalance = 'insufficient-balance';
-  static const priceChanged = 'price-changed';
-  static const packageUnavailable = 'package-unavailable';
-  static const maintenance = 'maintenance-mode';
-  static const countryRestricted = 'country-restricted';
-  static const referralDisabled = 'referral-disabled';
-  static const tooManyRequests = 'too-many-requests';
+  static const otpInvalid = 'otp_invalid';
+  static const otpExpired = 'otp_expired';
+  static const otpRateLimited = 'otp_cooldown';
+  static const otpTooManyAttempts = 'otp_too_many_attempts';
+  static const userBlocked = 'user_banned';
+  static const insufficientBalance = 'insufficient_balance';
+  static const priceChanged = 'price_mismatch';
+  static const packageUnavailable = 'package_unavailable';
+  static const maintenance = 'maintenance';
+  static const countryRestricted = 'country_restricted';
+  static const referralDisabled = 'referral_disabled';
+  static const tooManyRequests = 'rate_limited';
 }
 
 extension AppExceptionToFailure on AppException {

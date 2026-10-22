@@ -29,14 +29,18 @@ import 'push_service.dart';
 class FcmPushService implements PushService {
   FcmPushService(
     this._local, {
-    required Future<void> Function(String token) tokenSink,
-  }) : _tokenSink = tokenSink;
+    required this.tokenSink,
+    this.onSignedOut,
+    this.onSupportReply,
+  });
 
   /// Broadcasts from the admin panel are sent to this topic.
   static const topic = 'waysim';
 
   final LocalNotificationsService _local;
-  final Future<void> Function(String token) _tokenSink;
+  final Future<void> Function(String token) tokenSink;
+  final Future<void> Function()? onSignedOut;
+  final Future<void> Function()? onSupportReply;
 
   /// Single-subscription on purpose: a tap that launched the app arrives
   /// before the UI listens, and a broadcast stream would drop it.
@@ -78,12 +82,14 @@ class FcmPushService implements PushService {
       // isolate below, which has no Firebase of its own.
       FirebaseMessaging.onBackgroundMessage(_backgroundHandler);
       FirebaseMessaging.onMessage.listen(_onForeground);
-      FirebaseMessaging.onMessageOpenedApp.listen(_onOpened);
+      FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        unawaited(_onOpened(message));
+      });
 
       // The notification that launched the app from a cold start; it never
       // reaches `onMessageOpenedApp`.
       final initial = await messaging.getInitialMessage();
-      if (initial != null) _onOpened(initial);
+      if (initial != null) await _onOpened(initial);
 
       await _applyTopic(messaging);
 
@@ -144,7 +150,7 @@ class FcmPushService implements PushService {
     try {
       final token = _token ??= await FirebaseMessaging.instance.getToken();
       if (token == null || token.isEmpty) return;
-      await _tokenSink(token);
+      await tokenSink(token);
     } on Object catch (e) {
       AppLogger.w('Push token sync failed: $e');
     }
@@ -170,6 +176,7 @@ class FcmPushService implements PushService {
   }
 
   void _onForeground(RemoteMessage message) {
+    unawaited(_handleAccountEvent(_strings(message.data)));
     final notification = message.notification;
     // iOS presents the remote message itself; a local one on top of it would
     // be a duplicate banner. A data-only message has nothing to draw.
@@ -179,23 +186,43 @@ class FcmPushService implements PushService {
         notification.title,
         notification.body,
         payload: jsonEncode(message.data),
+        channel: notification.android?.channelId,
       ),
     );
   }
 
-  void _onOpened(RemoteMessage message) {
+  Future<void> _onOpened(RemoteMessage message) async {
     AppLogger.i('Notification opened: ${message.data}');
-    _taps.add(PushTap(_strings(message.data)));
+    final data = _strings(message.data);
+    await _handleAccountEvent(data);
+    _taps.add(PushTap(data));
   }
 
   /// A banner drawn by [LocalNotificationsService] was tapped.
-  void _onLocalTap(String? payload) {
+  Future<void> _onLocalTap(String? payload) async {
     if (payload == null) return;
     try {
       final decoded = jsonDecode(payload);
-      if (decoded is Map) _taps.add(PushTap(_strings(decoded)));
+      if (decoded is Map) {
+        final data = _strings(decoded);
+        await _handleAccountEvent(data);
+        _taps.add(PushTap(data));
+      }
     } on FormatException {
       // Not ours: ignore.
+    }
+  }
+
+  Future<void> _handleAccountEvent(Map<String, String> data) async {
+    try {
+      switch (data['type']) {
+        case 'signed_out':
+          await onSignedOut?.call();
+        case 'support_reply':
+          await onSupportReply?.call();
+      }
+    } on Object catch (e, s) {
+      AppLogger.e('Push account update failed', e, s);
     }
   }
 

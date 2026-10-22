@@ -19,12 +19,7 @@ import '../../domain/repositories/purchase_repository.dart';
 enum PurchasePhase { processing, success, failed }
 
 class PurchaseState extends Equatable {
-  const PurchaseState({
-    this.phase = PurchasePhase.processing,
-    this.esim,
-    this.failure,
-    this.slow = false,
-  });
+  const PurchaseState({this.phase = PurchasePhase.processing, this.esim, this.failure, this.slow = false});
 
   final PurchasePhase phase;
 
@@ -50,20 +45,8 @@ class PurchaseState extends Equatable {
 /// it to the end. Sends only the package id and an idempotency key: a retry
 /// after a dropped connection reuses the key, so it can never double-charge.
 class PurchaseCubit extends Cubit<PurchaseState> {
-  PurchaseCubit({
-    required PurchaseRepository repository,
-    required WalletCubit wallet,
-    required EsimListCubit esims,
-    required PushPermissionGate pushGate,
-    required AnalyticsService analytics,
-    required this.package,
-    this.esimId,
-  }) : _repository = repository,
-       _wallet = wallet,
-       _esims = esims,
-       _pushGate = pushGate,
-       _analytics = analytics,
-       super(const PurchaseState());
+  PurchaseCubit({required this._repository, required this._wallet, required this._esims, required this._pushGate, required this._analytics, required this.package, this.esimId})
+    : super(const PurchaseState());
 
   final PurchaseRepository _repository;
   final WalletCubit _wallet;
@@ -75,9 +58,12 @@ class PurchaseCubit extends Cubit<PurchaseState> {
 
   final String _key = const Uuid().v4();
   Timer? _slowTimer;
+  bool _running = false;
 
   /// Starts (or retries, with the same key) the order.
   Future<void> run() async {
+    if (_running || state.phase == PurchasePhase.success) return;
+    _running = true;
     emit(const PurchaseState());
     _slowTimer?.cancel();
     _slowTimer = Timer(AppConstants.orderWaitLimit, () {
@@ -88,31 +74,17 @@ class PurchaseCubit extends Cubit<PurchaseState> {
 
     final id = esimId;
     final result = id == null
-        ? await _repository.buy(
-            packageId: package.id,
-            idempotencyKey: _key,
-            expectedPrice: package.price,
-          )
-        : await _repository.topUp(
-            esimId: id,
-            packageId: package.id,
-            idempotencyKey: _key,
-            expectedPrice: package.price,
-          );
+        ? await _repository.buy(packageId: package.id, idempotencyKey: _key, expectedPrice: package.price, days: package.purchaseDays, cancelled: () => isClosed)
+        : await _repository.topUp(esimId: id, packageId: package.id, idempotencyKey: _key, expectedPrice: package.price, days: package.purchaseDays, cancelled: () => isClosed);
     _slowTimer?.cancel();
+    _running = false;
     if (isClosed) return;
 
     switch (result) {
       case Success(:final data):
         _wallet.set(data.balanceAfter);
         _esims.replace(data.esim);
-        _analytics.purchased(
-          transactionId: data.esim.id,
-          packageId: package.id,
-          destination: package.destinationCode,
-          price: package.price,
-          addOn: esimId != null,
-        );
+        _analytics.purchased(transactionId: data.esim.id, packageId: package.id, destination: package.destinationCode, price: package.price, addOn: esimId != null);
         emit(PurchaseState(phase: PurchasePhase.success, esim: data.esim));
         // The first purchase is the moment notifications become useful
         // ("your eSIM is ready"); ask once, here.

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/services/push_router.dart';
 
 import '../../../../app/auth_gate.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
@@ -24,6 +28,7 @@ import '../../../catalog/presentation/widgets/search_field_box.dart';
 import '../widgets/destination_list.dart';
 import '../widgets/home_header.dart';
 import '../widgets/promo_banner.dart';
+import '../widgets/sim_refresh_indicator.dart';
 
 /// The first tab: balance, search, banners, then every country and region.
 class HomePage extends StatefulWidget {
@@ -34,16 +39,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const _minimumRefreshDisplay = Duration(milliseconds: 700);
+
   /// 0 = Local (countries), 1 = Regional.
   int _tab = 0;
+  bool _guideShown = false;
+  bool _refreshing = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_guideShown &&
+        GoRouterState.of(context).uri.queryParameters['guide'] == 'true') {
+      _guideShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) showHowItWorksSheet(context);
+      });
+    }
+  }
 
   Future<void> _refresh() async {
+    setState(() => _refreshing = true);
     final auth = context.read<AuthCubit>().state;
-    await Future.wait([
-      getIt<CatalogCubit>().load(),
-      getIt<ConfigCubit>().refresh(),
-      if (auth.isSignedIn) getIt<WalletCubit>().refresh(),
-    ]);
+    try {
+      await Future.wait([
+        Future<void>.delayed(_minimumRefreshDisplay),
+        getIt<CatalogCubit>().load(),
+        getIt<ConfigCubit>().refresh(),
+        if (auth.isSignedIn) getIt<WalletCubit>().refresh(),
+      ]);
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
   }
 
   @override
@@ -51,67 +78,102 @@ class _HomePageState extends State<HomePage> {
     final l10n = context.l10n;
     final catalog = context.watch<CatalogCubit>().state;
     final language = Localizations.localeOf(context).languageCode;
-
+    final showBanners =
+        catalog.status == CatalogStatus.loaded &&
+        catalog.destinations.isNotEmpty &&
+        (catalog.banners?.isNotEmpty ?? true);
     return SafeArea(
       bottom: false,
-      child: RefreshIndicator(
-        onRefresh: _refresh,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.page,
-                AppSpacing.xl,
-                AppSpacing.page,
-                AppSpacing.lg,
-              ),
-              sliver: SliverToBoxAdapter(child: HomeHeader()),
-            ),
-            const SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.page),
-              sliver: SliverToBoxAdapter(child: _SearchField()),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
-            if (catalog.status == CatalogStatus.loaded &&
-                catalog.destinations.isNotEmpty)
-              SliverToBoxAdapter(
-                child: _Banners(onShowLocal: () => setState(() => _tab = 0)),
-              ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.page,
-                AppSpacing.xl,
-                AppSpacing.page,
-                0,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: SegmentedTabs(
-                  labels: [l10n.homeLocal, l10n.homeRegional],
-                  selectedIndex: _tab,
-                  onChanged: (i) => setState(() => _tab = i),
+      child: Stack(
+        children: [
+          RefreshIndicator.noSpinner(
+            onRefresh: _refresh,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.page,
+                    AppSpacing.xl,
+                    AppSpacing.page,
+                    AppSpacing.lg,
+                  ),
+                  sliver: SliverToBoxAdapter(child: HomeHeader()),
                 ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-              sliver: SliverToBoxAdapter(
-                child: TabSwitcher(
-                  index: _tab,
-                  child: _body(catalog, language),
+                const SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.page),
+                  sliver: SliverToBoxAdapter(child: _SearchField()),
                 ),
+                if (showBanners)
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: AppSpacing.xl),
+                  ),
+                if (showBanners)
+                  SliverToBoxAdapter(
+                    child: _Banners(
+                      onShowLocal: () => setState(() => _tab = 0),
+                    ),
+                  ),
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.page,
+                    showBanners ? AppSpacing.xl : AppSpacing.md,
+                    AppSpacing.page,
+                    0,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: SegmentedTabs(
+                      labels: [l10n.homeLocal, l10n.homeRegional],
+                      selectedIndex: _tab,
+                      onChanged: (i) => setState(() => _tab = i),
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.page,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: TabSwitcher(
+                      index: _tab,
+                      child: _body(catalog, language),
+                    ),
+                  ),
+                ),
+                // Room for the support button and the last row.
+                const SliverToBoxAdapter(child: SizedBox(height: 104)),
+              ],
+            ),
+          ),
+          Positioned(
+            top: AppSpacing.sm,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: AnimatedSwitcher(
+                duration: AppConstants.animationFast,
+                child: _refreshing
+                    ? const SimRefreshIndicator(
+                        key: ValueKey('home-sim-refresh-indicator'),
+                        active: true,
+                      )
+                    : const SizedBox.shrink(),
               ),
             ),
-            // Room for the support button and the last row.
-            const SliverToBoxAdapter(child: SizedBox(height: 104)),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _body(CatalogState catalog, String language) {
     final l10n = context.l10n;
+    if (_refreshing) {
+      return const Padding(
+        padding: EdgeInsets.only(top: AppSpacing.lg),
+        child: SkeletonList(count: 8),
+      );
+    }
     switch (catalog.status) {
       case CatalogStatus.initial || CatalogStatus.loading:
         return const Padding(
@@ -199,6 +261,42 @@ class _Banners extends StatelessWidget {
     final l10n = context.l10n;
     final config = context.watch<ConfigCubit>().state;
 
+    final banners = context.watch<CatalogCubit>().state.banners;
+    if (banners != null) {
+      if (banners.isEmpty) return const SizedBox.shrink();
+      return PromoCarousel(
+        children: [
+          for (final banner in banners)
+            ClipRRect(
+              key: ValueKey(banner.id),
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              child: Material(
+                color: context.colors.surface,
+                child: InkWell(
+                  onTap: banner.link == null
+                      ? null
+                      : () {
+                          final uri = Uri.tryParse(banner.link!);
+                          if (uri?.scheme == 'https') {
+                            launchUrl(uri!, mode: LaunchMode.inAppBrowserView);
+                            return;
+                          }
+                          final route = PushRouter.routeForLink(banner.link!);
+                          if (route != null) context.push(route);
+                        },
+                  child: CachedNetworkImage(
+                    imageUrl: banner.imageUrl,
+                    fit: BoxFit.contain,
+                    placeholder: (_, _) =>
+                        const Skeleton(child: SkeletonBox(height: 232)),
+                    errorWidget: (_, _, _) => const SizedBox.expand(),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
     return PromoCarousel(
       children: [
         PromoBanner(

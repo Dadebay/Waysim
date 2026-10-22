@@ -48,10 +48,17 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 80));
     final closingHeight = tester.getSize(bar).height;
+    await tester.pump(const Duration(milliseconds: 80));
+    final middleHeight = tester.getSize(bar).height;
+    await tester.pump(const Duration(milliseconds: 80));
+    final lateHeight = tester.getSize(bar).height;
     await drag.up();
     await tester.pumpAndSettle();
 
     final compactHeight = tester.getSize(bar).height;
+    expect(middleHeight, lessThan(closingHeight));
+    expect(lateHeight, lessThan(middleHeight));
+    expect(lateHeight, greaterThan(compactHeight));
     expect(closingHeight, greaterThan(compactHeight));
     expect(closingHeight, lessThan(expandedHeight));
 

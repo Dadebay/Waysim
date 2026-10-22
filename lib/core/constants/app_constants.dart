@@ -33,7 +33,8 @@ abstract final class AppConstants {
   static const animationFast = Duration(milliseconds: 200);
   static const animationBase = Duration(milliseconds: 250);
   static const animationSlow = Duration(milliseconds: 300);
-  static const themeFallbackAnimation = Duration(milliseconds: 200);
+  static const themeFallbackAnimation = Duration(milliseconds: 220);
+  static const themeScreenAnimation = Duration(milliseconds: 260);
 
   /// Minimum tappable size, in logical pixels (44 pt per HIG).
   static const minTapTarget = 44.0;
