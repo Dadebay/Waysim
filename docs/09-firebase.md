@@ -1,4 +1,4 @@
-# 09 — Firebase: push, analytics ve performans raporları
+# 09 — Firebase: push, analytics ve çökme raporları
 
 Proje: **waysim** (`flutterfire configure` ile bağlandı; Android + iOS `com.waysim.app`). Her şey `FirebaseSetup.ready` bayrağına bağlı:
 Firebase başlamazsa (yapılandırma yok, Play Hizmetleri yok, `--dart-define=FIREBASE=false`) uygulama yine açılır, bu servisler boşa düşer.
@@ -49,64 +49,17 @@ Gizlilik: mağaza formlarına "Analytics (kullanım verisi)" ve "Çökme verisi"
 
 ## Çökme raporları
 
-Yakalanmamış Flutter/platform hataları ve Bloc hataları `CompositeCrashReporter`'a gider:
-1. **Crashlytics** (release'te açık, debug'da kapalı);
-2. **Firestore `crash_reports`** — bu kullanıcı, bu telefonda, bu hatayı verdi:
+Yakalanmamış Flutter/platform hataları ve Bloc hataları release sürümünde Firebase Crashlytics'e gönderilir. Kullanıcı kimliği olarak yalnızca public ID (`A0123`) kullanılır. Debug sürümünde Crashlytics toplama kapalıdır.
 
-| Alan | Örnek |
-| --- | --- |
-| `publicId` | `A0123` (misafirde de var) |
-| `platform`, `osVersion`, `deviceModel` | `ios`, `iOS 18.2`, `iPhone16,2` |
-| `appVersion`, `buildNumber`, `flavor`, `locale` | `1.0.0`, `7`, `prod`, `en-US` |
-| `screen` | son gösterilen ekran (router adı, ör. `destination`) |
-| `error`, `stack` | kırpılmış (1500 / 4000 karakter) |
-| `fatal`, `status` (`new`), `createdAt` (sunucu saati) | |
+Uygulamanın Firestore'a doğrudan `crash_reports` veya `performance_reports` yazması kapatıldı. Bu koleksiyonlara anonim istemci yazımı kötüye kullanılabildiği için [`firestore.rules`](../firestore.rules) artık tüm istemci erişimini reddeder. Kapalı kurallar 24 Ekim 2026 tarihinde `waysim` projesine yayımlandı; sonraki değişikliklerde `firebase deploy --only firestore:rules --project waysim` komutunu kullanın. Firestore'daki eski raporlar silinmez; yalnızca yeni istemci erişimi engellenir.
 
-Aynı çökme bir çalışmada bir kez yazılır, bir çalışma en çok 20 kayıt yazar; çevrimdışıyken Firestore yazmayı kuyruğa alır.
-E-posta, ad, token, ödeme bilgisi **yazılmaz**.
+## Performans doğrulaması
 
-## Takılma raporları
+Yayın öncesinde gerçek Android cihazda release sürümünün açılışını ve ekran geçişlerini ölçün. `adb shell dumpsys gfxinfo com.waysim.app framestats` kare sürelerini verir; sorunlu ekranlarda gerektiğinde profile sürümü ve Flutter DevTools ile ayrıntılı ölçüm yapın. Otomatik Firestore yavaş-kare raporlaması artık etkin değildir.
 
-Release uygulamasında Flutter karelerinin çizim (`buildMs`) ve raster (`rasterMs`) süresi ölçülür. Toplamı **150 ms** veya daha uzun olan kareler Firestore `performance_reports` koleksiyonuna, `screen`, public ID ve yukarıdaki cihaz/sürüm alanlarıyla yazılır. Ekran başına dakikada en çok bir, bir uygulama çalışmasında toplam en çok 20 kayıt gönderilir. Debug build'deki yavaş kareler rapora girmez.
+## Konsolda yapılacaklar
 
-### Konsolda yapılacaklar (bir kez)
-
-1. *Firestore Database → Create database* (production mode). Waysim projesinde zaten kurulu.
-2. Kurallar [`firestore.rules`](../firestore.rules) dosyasında tutulur. Waysim projesine yayımlandı; sonraki değişiklikler için `npx firebase-tools deploy --only firestore:rules --project waysim` kullanın. İstemci yalnızca **ekleyebilir**, hiç kimse uygulamadan okuyamaz (raporları konsoldan/Admin SDK ile okursunuz):
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{db}/documents {
-    match /crash_reports/{id} {
-      allow create: if request.resource.data.keys().hasOnly([
-          'error','stack','fatal','screen','publicId','platform','osVersion',
-          'deviceModel','appVersion','buildNumber','locale','flavor',
-          'createdAt','status'])
-        && request.resource.data.error is string
-        && request.resource.data.error.size() <= 1600
-        && request.resource.data.stack is string
-        && request.resource.data.stack.size() <= 4100
-        && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if false;
-    }
-    match /performance_reports/{id} {
-      allow create: if request.resource.data.keys().hasOnly([
-          'screen','publicId','platform','osVersion','deviceModel',
-          'appVersion','buildNumber','locale','flavor',
-          'buildMs','rasterMs','frameMs','createdAt','status'])
-        && request.resource.data.screen is string
-        && request.resource.data.screen.size() <= 100
-        && request.resource.data.buildMs is int
-        && request.resource.data.rasterMs is int
-        && request.resource.data.frameMs is int
-        && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if false;
-    }
-    match /{document=**} { allow read, write: if false; }
-  }
-}
-```
-3. *App Check → Apps*: Android için Play Integrity, iOS için App Attest'i kaydedin; debug build'in yazdırdığı **debug token**'ı *Manage debug tokens*'a ekleyin. Zorlamayı (enforce) Firestore ve backend hazır olunca açın.
-4. *Cloud Messaging*: APNs anahtarını yükleyin. *Analytics*: veri akışlarının açık olduğunu doğrulayın.
-5. (Release) iOS'ta Crashlytics dSYM yükleme betiği ve Android'de Crashlytics Gradle eklentisi, **obfuscate** edilmiş yığınları çözmek için eklenmeli (T7.2).
+1. Crashlytics ve Analytics'in release sürümünden veri aldığını doğrulayın.
+2. Android için Play Integrity, iOS için App Attest sağlayıcılarını Firebase App Check altında kaydedin. Backend'in `X-Firebase-AppCheck` başlığını doğruladığını ayrıca kontrol edin.
+3. Cloud Messaging için APNs anahtarını yükleyin ve gerçek cihazda bildirimleri doğrulayın.
+4. iOS dSYM ve Android eşleme dosyalarının Crashlytics'te çözümlendiğini kontrol edin.

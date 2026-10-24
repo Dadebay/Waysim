@@ -4,6 +4,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 import '../utils/app_logger.dart';
+import '../utils/scrub.dart';
 import 'analytics_service.dart';
 import 'app_attestation.dart';
 import 'crash_reporter.dart';
@@ -18,7 +19,15 @@ class CrashlyticsReporter implements CrashReporter {
   @override
   void recordError(Object error, StackTrace? stack, {bool fatal = false}) {
     AppLogger.e(fatal ? 'FATAL' : 'ERROR', error, stack);
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: fatal);
+    final safeError = scrubSensitive('$error');
+    final safeStack = stack == null
+        ? null
+        : StackTrace.fromString(scrubSensitive('$stack'));
+    FirebaseCrashlytics.instance.recordError(
+      safeError,
+      safeStack,
+      fatal: fatal,
+    );
   }
 
   /// Only the public id (`A0123`) — never an e-mail address.
@@ -62,9 +71,8 @@ class FirebaseAppAttestation implements AppAttestation {
   }
 }
 
-/// Firebase Analytics. Collection is on in every build, but debug builds
-/// mark their events so they can be filtered out of the dashboards
-/// (`flutter run` sessions, tests by the team).
+/// Firebase Analytics. Collection is on in every build. Debug builds carry a
+/// `build=debug` user property, which can be filtered in Analytics reports.
 class FirebaseAnalyticsService implements AnalyticsService {
   FirebaseAnalyticsService() {
     _analytics.setAnalyticsCollectionEnabled(true);
@@ -81,6 +89,29 @@ class FirebaseAnalyticsService implements AnalyticsService {
           parameters: parameters.isEmpty ? null : parameters,
         )
         .catchError((Object e) => AppLogger.w('Analytics event failed: $e'));
+  }
+
+  @override
+  void logPurchase(AnalyticsPurchase purchase) {
+    _analytics
+        .logPurchase(
+          transactionId: purchase.transactionId,
+          currency: AnalyticsEvents.currency,
+          value: purchase.value,
+          items: [
+            AnalyticsEventItem(
+              itemId: purchase.packageId,
+              itemCategory: purchase.destination,
+              price: purchase.value,
+              quantity: 1,
+            ),
+          ],
+          parameters: {
+            'destination_code': purchase.destination,
+            'add_on': purchase.addOn ? 1 : 0,
+          },
+        )
+        .catchError((Object e) => AppLogger.w('Analytics purchase failed: $e'));
   }
 
   @override

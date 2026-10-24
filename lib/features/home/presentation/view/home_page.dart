@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -96,17 +98,17 @@ class _HomePageState extends State<HomePage> {
                     AppSpacing.page,
                     AppSpacing.xl,
                     AppSpacing.page,
-                    AppSpacing.lg,
+                    0,
                   ),
                   sliver: SliverToBoxAdapter(child: HomeHeader()),
                 ),
-                const SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.page),
-                  sliver: SliverToBoxAdapter(child: _SearchField()),
+                const SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SearchHeaderDelegate(),
                 ),
                 if (showBanners)
                   const SliverToBoxAdapter(
-                    child: SizedBox(height: AppSpacing.xl),
+                    child: SizedBox(height: AppSpacing.sm),
                   ),
                 if (showBanners)
                   SliverToBoxAdapter(
@@ -117,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
                     AppSpacing.page,
-                    showBanners ? AppSpacing.xl : AppSpacing.md,
+                    showBanners ? AppSpacing.xl : 0,
                     AppSpacing.page,
                     0,
                   ),
@@ -215,6 +217,55 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+class _SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _SearchHeaderDelegate();
+
+  static const _fieldHeight = 52.0;
+
+  @override
+  double get minExtent => _fieldHeight + 2 * AppSpacing.sm;
+
+  @override
+  double get maxExtent => _fieldHeight + AppSpacing.lg + AppSpacing.md;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final c = context.colors;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.background,
+        boxShadow: progress == 0
+            ? null
+            : [
+                BoxShadow(
+                  color: c.textPrimary.withValues(alpha: 0.08 * progress),
+                  blurRadius: 12 * progress,
+                  offset: Offset(0, 3 * progress),
+                ),
+              ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.page,
+          ui.lerpDouble(AppSpacing.lg, AppSpacing.sm, progress)!,
+          AppSpacing.page,
+          ui.lerpDouble(AppSpacing.md, AppSpacing.sm, progress)!,
+        ),
+        child: const _SearchField(),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SearchHeaderDelegate oldDelegate) => false;
+}
+
 class _SearchField extends StatelessWidget {
   const _SearchField();
 
@@ -265,6 +316,7 @@ class _Banners extends StatelessWidget {
     if (banners != null) {
       if (banners.isEmpty) return const SizedBox.shrink();
       return PromoCarousel(
+        aspectRatio: 16 / 9,
         children: [
           for (final banner in banners)
             ClipRRect(
@@ -286,9 +338,14 @@ class _Banners extends StatelessWidget {
                         },
                   child: CachedNetworkImage(
                     imageUrl: banner.imageUrl,
-                    fit: BoxFit.contain,
-                    placeholder: (_, _) =>
-                        const Skeleton(child: SkeletonBox(height: 232)),
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (_, _) => const Skeleton(
+                      child: SizedBox.expand(
+                        child: ColoredBox(color: Colors.white),
+                      ),
+                    ),
                     errorWidget: (_, _, _) => const SizedBox.expand(),
                   ),
                 ),
@@ -298,6 +355,7 @@ class _Banners extends StatelessWidget {
       );
     }
     return PromoCarousel(
+      aspectRatio: 16 / 9,
       children: [
         PromoBanner(
           key: const ValueKey('esim'),
@@ -305,6 +363,7 @@ class _Banners extends StatelessWidget {
           body: l10n.bannerEsimBody,
           action: l10n.bannerEsimAction,
           icon: AppIcons.myEsim,
+          compact: true,
           onTap: () => showHowItWorksSheet(context),
         ),
         if (config.referralEnabled)
@@ -316,6 +375,7 @@ class _Banners extends StatelessWidget {
             ),
             action: l10n.bannerInviteAction,
             icon: AppIcons.gift,
+            compact: true,
             onTap: () async {
               if (await requireSignIn(context) && context.mounted) {
                 await context.push(AppRoute.referral.path);
@@ -328,6 +388,7 @@ class _Banners extends StatelessWidget {
           body: l10n.bannerTravelBody,
           action: l10n.bannerTravelAction,
           icon: AppIcons.globe,
+          compact: true,
           onTap: onShowLocal,
         ),
       ],

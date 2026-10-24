@@ -43,6 +43,24 @@ class _FixedConfig implements ConfigRepository {
 
 void main() {
   group('PushRouter', () {
+    test('admin banner destinations open their matching app screens', () {
+      const routes = {
+        'waysim://home': '/home',
+        'waysim://how-it-works': '/home?guide=true',
+        'waysim://esims': '/my-esim',
+        'waysim://wallet': '/balance/top-up',
+        'waysim://referral': '/referral',
+        'waysim://support': '/support/chat',
+        'waysim://country/AD': '/destination/AD',
+        'waysim://country/AE': '/destination/AE',
+        'waysim://country/AF': '/destination/AF',
+        'waysim://country/AG': '/destination/AG',
+      };
+      for (final entry in routes.entries) {
+        expect(PushRouter.routeForLink(entry.key), entry.value);
+      }
+    });
+
     test('opens the eSIM a notification is about', () {
       expect(
         PushRouter.routeFor({'type': 'esim_ready', 'esimId': 'esim_12'}),

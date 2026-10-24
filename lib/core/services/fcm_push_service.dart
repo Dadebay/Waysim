@@ -47,6 +47,7 @@ class FcmPushService implements PushService {
   final _taps = StreamController<PushTap>();
 
   String? _token;
+  String? _apnsToken;
   bool _newsEnabled = true;
 
   @override
@@ -73,10 +74,8 @@ class FcmPushService implements PushService {
       // Debug builds ask straight away so a test push can be received without
       // buying anything first. Release builds follow the product rule: ask
       // once, after the first purchase (PushPermissionGate).
-      if (kDebugMode) {
-        final settings = await messaging.requestPermission();
-        AppLogger.i('Push permission: ${settings.authorizationStatus.name}');
-      }
+      if (kDebugMode) await messaging.requestPermission();
+      await _logPermission(messaging);
 
       // Registered before the streams: a terminated-app delivery reaches the
       // isolate below, which has no Firebase of its own.
@@ -86,25 +85,45 @@ class FcmPushService implements PushService {
         unawaited(_onOpened(message));
       });
 
+      // A rotated token is useless to the backend until it is sent again.
+      // Registered before the first request too: on iOS the FCM token can
+      // appear only after APNs answered late, and arrives through here.
+      messaging.onTokenRefresh.listen((token) {
+        _token = token;
+        _logTokens(source: 'refreshed');
+        unawaited(syncToken());
+      });
+
       // The notification that launched the app from a cold start; it never
       // reaches `onMessageOpenedApp`.
       final initial = await messaging.getInitialMessage();
       if (initial != null) await _onOpened(initial);
 
-      await _applyTopic(messaging);
-
-      // On iOS the FCM token is derived from the APNs one; asking too early
-      // returns null, with no second attempt.
-      await _awaitApns();
-      _token = await messaging.getToken();
+      // On iOS the FCM token is derived from the APNs one: asking for the
+      // token or subscribing to a topic before APNs answered throws
+      // `apns-token-not-set`, so APNs goes first.
+      _apnsToken = await _awaitApns();
+      _logApns();
+      try {
+        _token = await messaging.getToken();
+      } on Object catch (e) {
+        AppLogger.group(
+          'FCM token request failed',
+          level: Level.error,
+          lines: [
+            '$e',
+            if (Platform.isIOS && _apnsToken == null)
+              'No APNs token yet — see the APNs line above.',
+          ],
+        );
+      }
       _logTokens();
       unawaited(syncToken());
-
-      // A rotated token is useless to the backend until it is sent again.
-      messaging.onTokenRefresh.listen((token) {
-        _token = token;
-        unawaited(syncToken());
-      });
+      try {
+        await _applyTopic(messaging);
+      } on Object catch (e) {
+        AppLogger.w('Topic subscription failed: $e');
+      }
     } on Object catch (e, s) {
       AppLogger.e('Push setup failed', e, s);
     }
@@ -156,26 +175,116 @@ class FcmPushService implements PushService {
     }
   }
 
-  /// Waits for APNs to hand iOS its device token. A no-op on Android and on
-  /// the simulator, which never gets one — the loop runs out and the app
-  /// carries on without push, which is right there.
-  Future<void> _awaitApns() async {
-    if (!Platform.isIOS) return;
-    final deadline = DateTime.now().add(const Duration(seconds: 6));
+  /// Waits for APNs to hand iOS its device token. Returns `null` on Android
+  /// and on the simulator, which never gets one, and when APNs stays silent —
+  /// the app carries on without push, and a late token arrives through
+  /// `onTokenRefresh`.
+  Future<String?> _awaitApns() async {
+    if (!Platform.isIOS) return null;
+    final deadline = DateTime.now().add(const Duration(seconds: 20));
     while (DateTime.now().isBefore(deadline)) {
-      if (await FirebaseMessaging.instance.getAPNSToken() != null) return;
-      await Future<void>.delayed(const Duration(milliseconds: 400));
+      final token = await FirebaseMessaging.instance.getAPNSToken();
+      if (token != null) return token;
+      await Future<void>.delayed(const Duration(milliseconds: 500));
     }
-    AppLogger.w('APNs did not answer in time');
+    return null;
+  }
+
+  /// What the phone allows, in colour: green is fine, red says where to go.
+  Future<void> _logPermission(FirebaseMessaging messaging) async {
+    final settings = await messaging.getNotificationSettings();
+    final status = settings.authorizationStatus;
+    final allowed =
+        status == AuthorizationStatus.authorized ||
+        status == AuthorizationStatus.provisional;
+    AppLogger.group(
+      'Push permission: ${status.name}',
+      level: allowed
+          ? Level.info
+          : (status == AuthorizationStatus.notDetermined
+                ? Level.warning
+                : Level.error),
+      lines: [
+        'alert=${settings.alert.name} badge=${settings.badge.name} '
+            'sound=${settings.sound.name}',
+        if (status == AuthorizationStatus.denied)
+          'Denied: iPhone Settings → Waysim → Notifications → Allow.',
+        if (status == AuthorizationStatus.notDetermined)
+          'Not asked yet (release builds ask after the first purchase).',
+      ],
+    );
+  }
+
+  void _logApns() {
+    if (!Platform.isIOS) return;
+    final token = _apnsToken;
+    if (token != null) {
+      AppLogger.group(
+        'APNs token received',
+        level: Level.info,
+        lines: [AnsiColor.paint(token, AnsiColor.cyan)],
+      );
+      return;
+    }
+    AppLogger.group(
+      'APNs token NOT received (waited 20 s)',
+      level: Level.error,
+      lines: [
+        'Push cannot work until Apple hands the phone a device token. Check:',
+        '1. A real device — the simulator never gets one.',
+        '2. Notification permission is Allow (line above).',
+        '3. Xcode → Runner → Signing & Capabilities has Push Notifications '
+            'and a profile that includes aps-environment.',
+        '4. Bundle id com.waysim.app has Push enabled in the Apple Developer '
+            'portal; the phone has internet.',
+      ],
+    );
   }
 
   /// Full tokens, in debug builds only (AppLogger is silent in release), so a
   /// test push can be addressed to this exact phone from the Firebase console.
-  void _logTokens() {
-    AppLogger.group('FCM token', lines: [_token ?? 'null — no token yet']);
+  void _logTokens({String source = 'received'}) {
+    final token = _token;
+    AppLogger.group(
+      token == null ? 'FCM token NOT available' : 'FCM token $source',
+      level: token == null ? Level.error : Level.info,
+      lines: [
+        token == null
+            ? (Platform.isIOS && _apnsToken == null
+                  ? 'Waiting for APNs; the token will be logged here when it '
+                        'arrives.'
+                  : 'Firebase returned no token.')
+            : AnsiColor.paint(token, AnsiColor.magenta),
+      ],
+    );
+  }
+
+  /// Every delivery, in colour, so "the push never arrived" and "it arrived
+  /// but nothing was drawn" can be told apart from the console.
+  static void _logMessage(String where, RemoteMessage message) {
+    final n = message.notification;
+    AppLogger.group(
+      'PUSH $where',
+      level: Level.info,
+      lines: [
+        'id=${message.messageId} from=${message.from}',
+        if (n != null)
+          AnsiColor.paint(
+            'notification: "${n.title}" / "${n.body}"',
+            AnsiColor.magenta,
+          )
+        else
+          AnsiColor.paint(
+            'data-only (no notification block)',
+            AnsiColor.yellow,
+          ),
+        'data=${message.data}',
+      ],
+    );
   }
 
   void _onForeground(RemoteMessage message) {
+    _logMessage('received while the app is open', message);
     unawaited(_handleAccountEvent(_strings(message.data)));
     final notification = message.notification;
     // iOS presents the remote message itself; a local one on top of it would
@@ -192,6 +301,7 @@ class FcmPushService implements PushService {
   }
 
   Future<void> _onOpened(RemoteMessage message) async {
+    _logMessage('tapped', message);
     AppLogger.i('Notification opened: ${message.data}');
     final data = _strings(message.data);
     await _handleAccountEvent(data);
@@ -235,6 +345,7 @@ class FcmPushService implements PushService {
 /// nothing with [FcmPushService] and has to bring Firebase up itself.
 @pragma('vm:entry-point')
 Future<void> _backgroundHandler(RemoteMessage message) async {
+  FcmPushService._logMessage('received in the background', message);
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

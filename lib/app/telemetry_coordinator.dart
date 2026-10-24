@@ -112,11 +112,16 @@ class TelemetryCoordinator {
       final user = state.user;
       if (user != null &&
           (user.notifyEsim != null || user.notifyMarketing != null)) {
+        // News and offers stay on unless the customer turned them off in this
+        // app: a new account that the server starts with `marketing: false`
+        // must not silently switch the topic off. The server is told instead.
+        final news = _notifications.state.news;
         _hydratedPrefs = NotificationPrefs(
           esim: user.notifyEsim ?? true,
-          news: user.notifyMarketing ?? true,
+          news: news,
         );
         _notifications.applyServerPreferences(_hydratedPrefs!);
+        if (news && user.notifyMarketing == false) _save(marketing: true);
       }
       unawaited(_config?.refresh());
       unawaited(_push.syncToken());

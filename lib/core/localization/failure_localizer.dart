@@ -23,7 +23,7 @@ extension FailureLocalizer on Failure {
     ApiFailure(code: 'topup_unavailable') => l10n.topUpPlansEmpty,
     ApiFailure(code: 'payment_amount_out_of_range', :final details) =>
       l10n.topUpAmountInvalid(
-        Money((details?['minCents'] as num?)?.toInt() ?? 500).format(),
+        Money((details?['minCents'] as num?)?.toInt() ?? 100).format(),
         Money((details?['maxCents'] as num?)?.toInt() ?? 50000).format(),
       ),
     ApiFailure(code: ApiCodes.tooManyRequests) => l10n.errorTooManyRequests,

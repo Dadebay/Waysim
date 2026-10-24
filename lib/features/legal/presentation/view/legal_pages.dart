@@ -14,7 +14,10 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/app_hero.dart';
+import '../../../../core/utils/safe_url.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../../../config/domain/entities/app_config.dart';
+import '../../../config/presentation/cubit/config_cubit.dart';
 import '../../domain/entities/legal_document.dart';
 import '../widgets/mobile_legal_table_syntax.dart';
 
@@ -78,6 +81,7 @@ class _ListView extends StatelessWidget {
           ),
           children: [
             _DocumentLinks(documents: data),
+            const _ContactLinks(),
             const SizedBox(height: AppSpacing.md),
             const _AboutBlock(),
           ],
@@ -160,6 +164,110 @@ class _DocumentLinks extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// `meta.contacts`: website, e-mail, Telegram, Instagram. Whatever the admin
+/// left empty is not shown; the label is the server's text, the link opens
+/// outside the app.
+class _ContactLinks extends StatelessWidget {
+  const _ContactLinks();
+
+  @override
+  Widget build(BuildContext context) {
+    final contacts = context.watch<ConfigCubit>().state.contacts;
+    final rows = <(AppIconData, ContactLink)>[
+      if (contacts.website != null) (AppIcons.globe, contacts.website!),
+      if (contacts.email != null) (AppIcons.mail, contacts.email!),
+      if (contacts.telegram != null) (AppIcons.send, contacts.telegram!),
+      if (contacts.instagram != null) (AppIcons.sparkles, contacts.instagram!),
+    ];
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    final c = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Container(
+        key: const ValueKey('more-contact-links'),
+        decoration: BoxDecoration(
+          color: c.background,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: c.border),
+          boxShadow: [
+            BoxShadow(
+              color: c.shadow,
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                  ),
+                  child: Text(
+                    context.l10n.contactsTitle,
+                    style: context.text.bodySm.copyWith(color: c.textSecondary),
+                  ),
+                ),
+                for (final (index, (icon, link)) in rows.indexed) ...[
+                  if (index > 0)
+                    Divider(height: 1, indent: 12, color: c.border),
+                  InkWell(
+                    onTap: () => _open(link.url),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                        child: Row(
+                          children: [
+                            HugeIcon(icon: icon, size: 20, color: c.link),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                link.label,
+                                style: context.text.bodyMed,
+                              ),
+                            ),
+                            HugeIcon(
+                              icon: AppIcons.arrowUpRight,
+                              size: 17,
+                              color: c.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The link is server text: only `mailto:` and plain `https` open.
+  static Future<void> _open(String raw) async {
+    final uri = raw.trim().toLowerCase().startsWith('mailto:')
+        ? Uri.tryParse(raw.trim())
+        : safeHttpsUri(raw);
+    if (uri == null) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }
 

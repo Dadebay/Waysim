@@ -209,7 +209,7 @@ void main() {
 
     test('amounts outside the limits are refused', () async {
       final b = await signedIn();
-      for (final cents in [100, 999999]) {
+      for (final cents in [50, 999999]) {
         final r = await b.createTopUp(
           amount: Money(cents),
           method: TopUpMethod.paypal,

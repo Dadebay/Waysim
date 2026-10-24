@@ -46,6 +46,13 @@ abstract final class AppRouter {
     navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'root'),
     initialLocation: AppEnvironment.initialRoute,
     redirect: (_, state) {
+      // Android hands over only the path of https://waysim.co/ru/r/CODE.
+      final localizedInvite = RegExp(
+        r'^/(?:en|zh|ru|es|fr)/r/([^/?#]+)$',
+      ).firstMatch(state.uri.path);
+      if (localizedInvite != null) {
+        return AppRoute.invite.withParams({'code': localizedInvite.group(1)!});
+      }
       final normalized = PushRouter.routeForLink(state.uri.toString());
       if (normalized != null && normalized != state.uri.toString()) {
         return normalized;
@@ -229,7 +236,7 @@ abstract final class AppRouter {
         name: AppRoute.supportChat.routeName,
         builder: (_, _) => const ChatPage(),
       ),
-      // https://waysim.co/r/CODE and waysim://r/CODE: remember the code for
+      // https://waysim.co/r/CODE, waysim://invite/CODE and waysim://r/CODE: remember the code for
       // the sign-up form, then open the app normally. Nothing is applied
       // here — a link never acts without the customer confirming.
       GoRoute(

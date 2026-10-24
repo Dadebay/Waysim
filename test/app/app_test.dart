@@ -40,6 +40,7 @@ void main() {
   setUp(() async {
     await setUpTestDependencies();
     await getIt<CatalogCubit>().load();
+    await getIt<AuthCubit>().restore();
   });
 
   testWidgets('boots in English, light, on the Home tab', (tester) async {
@@ -256,6 +257,8 @@ void main() {
     await tester.pumpWidget(const App());
     await tester.pumpAndSettle();
 
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+    await tester.pumpAndSettle();
     final row = find.byType(DestinationRow).first;
     final destination = tester.widget<DestinationRow>(row).destination;
     await tester.ensureVisible(row);

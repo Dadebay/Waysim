@@ -7,25 +7,30 @@ import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
 /// Swipeable banners with dots. Advances every [interval] (5 s), loops, and
-/// pauses while a finger is down. Slides are square-ish cards that peek the
-/// next one, as in the design.
+/// pauses while a finger is down. Slides peek the next one, as in the design.
 class PromoCarousel extends StatefulWidget {
   const PromoCarousel({
     super.key,
     required this.children,
     this.interval = AppConstants.bannerAutoScroll,
     this.height = 232,
+    this.aspectRatio,
   });
 
   final List<Widget> children;
   final Duration interval;
   final double height;
 
+  /// Fixed card width / height. When absent, [height] is used.
+  final double? aspectRatio;
+
   @override
   State<PromoCarousel> createState() => _PromoCarouselState();
 }
 
 class _PromoCarouselState extends State<PromoCarousel> {
+  static const _viewportFraction = 0.93;
+
   /// The pager is endless: page N shows banner `N % count`. Starting in the
   /// middle of a huge range means "next" always slides the same way — from the
   /// last banner straight on to the first — instead of rewinding.
@@ -47,7 +52,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
   int get _visible => _count == 0 ? 0 : _page % _count;
 
   PageController _newController({int? initialPage}) => PageController(
-    viewportFraction: 0.84,
+    viewportFraction: _viewportFraction,
     initialPage: initialPage ?? _startPage,
     keepPage: false,
   );
@@ -113,47 +118,57 @@ class _PromoCarouselState extends State<PromoCarousel> {
     final count = _count;
     if (count == 0) return const SizedBox.shrink();
 
-    return Column(
-      children: [
-        SizedBox(
-          height: widget.height,
-          child: Listener(
-            onPointerDown: (_) => _touching = true,
-            onPointerUp: (_) => _touching = false,
-            onPointerCancel: (_) => _touching = false,
-            child: PageView.builder(
-              key: ValueKey(_controller),
-              controller: _controller,
-              // One banner cannot loop; several can, without end.
-              itemCount: count > 1 ? null : 1,
-              onPageChanged: (page) => setState(() => _page = page),
-              itemBuilder: (context, page) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: widget.children[page % count],
-              ),
-            ),
-          ),
-        ),
-        if (count > 1) ...[
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (var i = 0; i < count; i++)
-                AnimatedContainer(
-                  duration: AppConstants.animationFast,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: i == _visible ? 18 : 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: i == _visible ? c.primary : c.border,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final ratio = widget.aspectRatio;
+        final slideHeight = ratio != null && ratio > 0
+            ? constraints.maxWidth * _viewportFraction / ratio
+            : widget.height;
+
+        return Column(
+          children: [
+            SizedBox(
+              height: slideHeight,
+              child: Listener(
+                onPointerDown: (_) => _touching = true,
+                onPointerUp: (_) => _touching = false,
+                onPointerCancel: (_) => _touching = false,
+                child: PageView.builder(
+                  key: ValueKey(_controller),
+                  controller: _controller,
+                  itemCount: count > 1 ? null : 1,
+                  onPageChanged: (page) => setState(() => _page = page),
+                  itemBuilder: (context, page) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm - 2,
+                    ),
+                    child: widget.children[page % count],
                   ),
                 ),
+              ),
+            ),
+            if (count > 1) ...[
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < count; i++)
+                    AnimatedContainer(
+                      duration: AppConstants.animationFast,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: i == _visible ? 18 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: i == _visible ? c.primary : c.border,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                    ),
+                ],
+              ),
             ],
-          ),
-        ],
-      ],
+          ],
+        );
+      },
     );
   }
 }

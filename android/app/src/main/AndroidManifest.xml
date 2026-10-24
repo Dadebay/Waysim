@@ -45,6 +45,8 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="waysim.co" android:pathPrefix="/r/"/>
+                <!-- The site also serves localized invite pages: /ru/r/CODE. -->
+                <data android:scheme="https" android:host="waysim.co" android:pathPattern="/.*/r/.*"/>
                 <data android:scheme="https" android:host="waysim.co" android:pathPrefix="/pay/"/>
             </intent-filter>
 

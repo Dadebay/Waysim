@@ -646,6 +646,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Отсканируйте QR-код камерой телефона, с которым поедете: откройте этот экран на другом устройстве или распечатайте код.';
 
   @override
+  String get installQrRetryNote =>
+      'Не удалось установить? Попробуйте второй раз. Если снова не получится, подождите 5 минут и повторите попытку: мы завершаем добавление этой eSIM в нашу систему.';
+
+  @override
   String get installManual => 'Ручная установка';
 
   @override
@@ -656,6 +660,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get esimIccid => 'ICCID';
+
+  @override
+  String get esimFullActivationCode => 'Полный код активации';
+
+  @override
+  String get esimFullActivationCodeHint =>
+      'На Samsung/Android выберите «Добавить eSIM» → «Сканировать QR-код» → «Ввести код активации вручную», затем вставьте полный код выше, начиная с LPA:1\$. Названия пунктов могут отличаться.';
 
   @override
   String get esimKeepWarning =>
@@ -697,11 +708,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get androidStep2 =>
-      'Откройте Настройки → Сеть и интернет → SIM-карты → Добавить eSIM (названия зависят от телефона).';
+      'В настройках откройте Диспетчер SIM-карт или SIM-карты и выберите «Добавить eSIM» (названия зависят от телефона).';
 
   @override
   String get androidStep3 =>
-      'Выберите «Сканировать QR-код» или введите данные вручную.';
+      'Выберите «Сканировать QR-код». Если сканировать не получается, нажмите «Ввести вручную» под сканером и вставьте полный код активации выше.';
 
   @override
   String get androidStep4 =>
@@ -1057,6 +1068,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String cryptoRateLocked(String rate, String amount) {
     return 'Курс зафиксирован: $rate · Пополнение на $amount';
   }
+
+  @override
+  String cryptoFeeOnTop(String amount, String fee, String total) {
+    return '$amount + комиссия $fee = $total';
+  }
+
+  @override
+  String get contactsTitle => 'Связаться с нами';
 
   @override
   String cryptoWarning(String coin, String network) {

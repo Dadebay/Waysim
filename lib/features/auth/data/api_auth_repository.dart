@@ -102,7 +102,11 @@ class ApiAuthRepository implements AuthRepository {
     bool? esim,
     bool? marketing,
   }) => apiResult(() async {
-    await device.update(api);
+    // Housekeeping: a rejected device update must not undo the customer's
+    // choice, so the preferences below are saved either way.
+    try {
+      await device.update(api);
+    } on Object catch (_) {}
     if (await secure.readAccessToken() != null) {
       await api.patch(
         '/v1/me',

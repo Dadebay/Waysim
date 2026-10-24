@@ -646,6 +646,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Scan the QR code with the camera of the phone you’ll travel with: open this screen on another device or print the code.';
 
   @override
+  String get installQrRetryNote =>
+      'Didn\'t install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.';
+
+  @override
   String get installManual => 'Manual installation';
 
   @override
@@ -656,6 +660,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get esimIccid => 'ICCID';
+
+  @override
+  String get esimFullActivationCode => 'Full activation code';
+
+  @override
+  String get esimFullActivationCodeHint =>
+      'On Samsung/Android, choose Add eSIM → Scan QR code → Enter activation code manually, then paste the full code above, starting with LPA:1\$. Menu names may vary by phone.';
 
   @override
   String get esimKeepWarning =>
@@ -696,11 +707,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get androidStep2 =>
-      'Open Settings → Network & internet → SIMs → Add eSIM (names vary by phone).';
+      'In Settings, find SIM manager or SIMs, then choose Add eSIM (menu names vary by phone).';
 
   @override
   String get androidStep3 =>
-      'Choose “Scan QR code” or enter the details manually.';
+      'Choose “Scan QR code”. If you can’t scan it, tap the manual entry option below the scanner and paste the full activation code shown above.';
 
   @override
   String get androidStep4 =>
@@ -1056,6 +1067,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String cryptoRateLocked(String rate, String amount) {
     return 'Rate locked: $rate · Top-up of $amount';
   }
+
+  @override
+  String cryptoFeeOnTop(String amount, String fee, String total) {
+    return '$amount + $fee fee = $total';
+  }
+
+  @override
+  String get contactsTitle => 'Contact us';
 
   @override
   String cryptoWarning(String coin, String network) {

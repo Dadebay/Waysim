@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:waysim/core/di/injector.dart';
 import 'package:waysim/core/theme/app_theme.dart';
+import 'package:waysim/features/config/presentation/cubit/config_cubit.dart';
 import 'package:waysim/features/legal/domain/entities/legal_document.dart';
 import 'package:waysim/features/legal/presentation/view/legal_pages.dart';
 import 'package:waysim/l10n/app_localizations.dart';
@@ -13,7 +16,7 @@ Widget host(Widget page, {Locale locale = const Locale('en')}) => MaterialApp(
   locale: locale,
   supportedLocales: AppLocalizations.supportedLocales,
   localizationsDelegates: AppLocalizations.localizationsDelegates,
-  home: page,
+  home: BlocProvider.value(value: getIt<ConfigCubit>(), child: page),
 );
 
 void main() {

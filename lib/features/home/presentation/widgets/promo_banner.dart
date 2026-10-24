@@ -6,8 +6,7 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 
 enum PromoTone { primary, subtle }
 
-/// One square banner of the Home carousel. Content and action come from the
-/// server (title, body, destination); the layout is fixed.
+/// Local fallback banner when the server has not supplied a picture.
 class PromoBanner extends StatelessWidget {
   const PromoBanner({
     super.key,
@@ -17,6 +16,7 @@ class PromoBanner extends StatelessWidget {
     this.body,
     this.action,
     this.tone = PromoTone.primary,
+    this.compact = false,
   });
 
   final String title;
@@ -24,6 +24,7 @@ class PromoBanner extends StatelessWidget {
   final String? action;
   final AppIconData icon;
   final PromoTone tone;
+  final bool compact;
   final VoidCallback onTap;
 
   @override
@@ -35,6 +36,17 @@ class PromoBanner extends StatelessWidget {
     final tile = filled
         ? c.textOnPrimary.withValues(alpha: 0.16)
         : c.background;
+    final iconTile = Container(
+      width: compact ? 36 : 44,
+      height: compact ? 36 : 44,
+      decoration: BoxDecoration(
+        color: tile,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Center(
+        child: HugeIcon(icon: icon, size: compact ? 20 : 24, color: fg),
+      ),
+    );
 
     return Semantics(
       button: true,
@@ -61,28 +73,25 @@ class PromoBanner extends StatelessWidget {
                   ),
                 ),
               ),
+              if (compact)
+                Positioned(
+                  right: AppSpacing.lg,
+                  top: AppSpacing.lg,
+                  child: iconTile,
+                ),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: tile,
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                      child: Center(
-                        child: HugeIcon(icon: icon, size: 24, color: fg),
-                      ),
-                    ),
+                    if (!compact) iconTile,
                     const Spacer(),
                     Text(
                       title,
-                      maxLines: 3,
+                      maxLines: compact ? 2 : 3,
                       overflow: TextOverflow.ellipsis,
-                      style: context.text.h2.copyWith(color: fg),
+                      style: (compact ? context.text.h3 : context.text.h2)
+                          .copyWith(color: fg),
                     ),
                     if (body != null) ...[
                       const SizedBox(height: AppSpacing.xs),
@@ -99,6 +108,8 @@ class PromoBanner extends StatelessWidget {
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         action!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: context.text.bodySm.copyWith(
                           color: fg,
                           fontWeight: FontWeight.w700,

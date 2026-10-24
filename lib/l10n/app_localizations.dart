@@ -1112,6 +1112,12 @@ abstract class AppLocalizations {
   /// **'Scan the QR code with the camera of the phone you’ll travel with: open this screen on another device or print the code.'**
   String get installQrNote;
 
+  /// No description provided for @installQrRetryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.'**
+  String get installQrRetryNote;
+
   /// No description provided for @installManual.
   ///
   /// In en, this message translates to:
@@ -1135,6 +1141,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ICCID'**
   String get esimIccid;
+
+  /// No description provided for @esimFullActivationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Full activation code'**
+  String get esimFullActivationCode;
+
+  /// No description provided for @esimFullActivationCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On Samsung/Android, choose Add eSIM → Scan QR code → Enter activation code manually, then paste the full code above, starting with LPA:1\$. Menu names may vary by phone.'**
+  String get esimFullActivationCodeHint;
 
   /// No description provided for @esimKeepWarning.
   ///
@@ -1205,13 +1223,13 @@ abstract class AppLocalizations {
   /// No description provided for @androidStep2.
   ///
   /// In en, this message translates to:
-  /// **'Open Settings → Network & internet → SIMs → Add eSIM (names vary by phone).'**
+  /// **'In Settings, find SIM manager or SIMs, then choose Add eSIM (menu names vary by phone).'**
   String get androidStep2;
 
   /// No description provided for @androidStep3.
   ///
   /// In en, this message translates to:
-  /// **'Choose “Scan QR code” or enter the details manually.'**
+  /// **'Choose “Scan QR code”. If you can’t scan it, tap the manual entry option below the scanner and paste the full activation code shown above.'**
   String get androidStep3;
 
   /// No description provided for @androidStep4.
@@ -1849,6 +1867,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rate locked: {rate} · Top-up of {amount}'**
   String cryptoRateLocked(String rate, String amount);
+
+  /// No description provided for @cryptoFeeOnTop.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} + {fee} fee = {total}'**
+  String cryptoFeeOnTop(String amount, String fee, String total);
+
+  /// No description provided for @contactsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us'**
+  String get contactsTitle;
 
   /// No description provided for @cryptoWarning.
   ///

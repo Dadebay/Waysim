@@ -406,10 +406,13 @@
   },
   "installByQr": "Install by QR code",
   "installQrNote": "Scan the QR code with the camera of the phone you’ll travel with: open this screen on another device or print the code.",
+  "installQrRetryNote": "Didn't install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.",
   "installManual": "Manual installation",
   "esimSmdp": "SM-DP+ address",
   "esimActivationCode": "Activation code",
   "esimIccid": "ICCID",
+  "esimFullActivationCode": "Full activation code",
+  "esimFullActivationCodeHint": "On Samsung/Android, choose Add eSIM → Scan QR code → Enter activation code manually, then paste the full code above, starting with LPA:1$. Menu names may vary by phone.",
   "esimKeepWarning": "Don’t delete the eSIM from your phone while the plan is active. You can only reinstall it on this same phone.",
   "esimRoamingWarning": "To avoid roaming charges from your home carrier, turn off data roaming for your main SIM.",
   "instructionsTitle": "Instructions",
@@ -421,8 +424,8 @@
   "iosStep4": "Name the line “Waysim”. Keep your main number for calls and iMessage.",
   "iosStep5": "When you land, turn on the Waysim line and Data Roaming, and select it for cellular data.",
   "androidStep1": "Connect to Wi-Fi.",
-  "androidStep2": "Open Settings → Network & internet → SIMs → Add eSIM (names vary by phone).",
-  "androidStep3": "Choose “Scan QR code” or enter the details manually.",
+  "androidStep2": "In Settings, find SIM manager or SIMs, then choose Add eSIM (menu names vary by phone).",
+  "androidStep3": "Choose “Scan QR code”. If you can’t scan it, tap the manual entry option below the scanner and paste the full activation code shown above.",
   "androidStep4": "Name the line “Waysim” and keep your main SIM for calls.",
   "androidStep5": "When you land, turn on the Waysim line and Data roaming, and use it for mobile data.",
   "usageTitle": "Data usage",
@@ -619,6 +622,21 @@
       }
     }
   },
+  "cryptoFeeOnTop": "{amount} + {fee} fee = {total}",
+  "@cryptoFeeOnTop": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "fee": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "contactsTitle": "Contact us",
   "cryptoWarning": "Send only {coin} on the {network} network, the exact amount in one transaction. Add the wallet fee on top — the full amount must reach us.",
   "@cryptoWarning": {
     "placeholders": {

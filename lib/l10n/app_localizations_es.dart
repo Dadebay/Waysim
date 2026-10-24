@@ -637,6 +637,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Escanea el código QR con la cámara del teléfono con el que viajarás: abre esta pantalla en otro dispositivo o imprime el código.';
 
   @override
+  String get installQrRetryNote =>
+      '¿No se instaló? Inténtalo una segunda vez. Si sigue sin funcionar, espera 5 minutos y vuelve a intentarlo mientras terminamos de añadir esta eSIM a nuestro sistema.';
+
+  @override
   String get installManual => 'Instalación manual';
 
   @override
@@ -647,6 +651,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get esimIccid => 'ICCID';
+
+  @override
+  String get esimFullActivationCode => 'Código de activación completo';
+
+  @override
+  String get esimFullActivationCodeHint =>
+      'En Samsung/Android, elige Añadir eSIM → Escanear código QR → Introducir código de activación manualmente y pega el código completo de arriba, empezando por LPA:1\$. Los nombres pueden variar según el teléfono.';
 
   @override
   String get esimKeepWarning =>
@@ -688,11 +699,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get androidStep2 =>
-      'Abre Ajustes → Red e internet → SIM → Añadir eSIM (los nombres varían según el teléfono).';
+      'En Ajustes, busca Administrador de SIM o SIM y elige Añadir eSIM (los nombres varían según el teléfono).';
 
   @override
   String get androidStep3 =>
-      'Elige «Escanear código QR» o introduce los datos manualmente.';
+      'Elige «Escanear código QR». Si no puedes escanearlo, toca la opción de entrada manual bajo el escáner y pega el código de activación completo de arriba.';
 
   @override
   String get androidStep4 =>
@@ -1049,6 +1060,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String cryptoRateLocked(String rate, String amount) {
     return 'Tipo de cambio fijado: $rate · Recarga de $amount';
   }
+
+  @override
+  String cryptoFeeOnTop(String amount, String fee, String total) {
+    return '$amount + comisión $fee = $total';
+  }
+
+  @override
+  String get contactsTitle => 'Contáctanos';
 
   @override
   String cryptoWarning(String coin, String network) {

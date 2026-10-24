@@ -39,18 +39,7 @@ class ApiWalletRepository implements WalletRepository {
         .whereType<TopUpMethod>()
         .toList();
     final currencies = methods.contains(TopUpMethod.crypto)
-        ? asMap(await api.get('/v1/payments/crypto/currencies'))
-              .listOf('currencies')
-              .map(
-                (j) => CryptoOption(
-                  j.str('coin'),
-                  j.str('network'),
-                  code: j.str('code'),
-                  minCents: j.intOrNull('minCents'),
-                  logoUrl: j.strOrNull('logoUrl'),
-                ),
-              )
-              .toList()
+        ? _cryptoOptions(asMap(await api.get('/v1/payments/crypto/currencies')))
         : <CryptoOption>[];
     final pendingId = wallet.mapOrNull('pendingPayment')?.strOrNull('id');
     final pending = pendingId == null
@@ -61,7 +50,7 @@ class ApiWalletRepository implements WalletRepository {
             ),
           );
     return WalletOptions(
-      minCents: limits.intVal('minCents', 500),
+      minCents: limits.intVal('minCents', 100),
       maxCents: limits.intVal('maxCents', 50000),
       methods: methods,
       currencies: currencies,
@@ -235,4 +224,26 @@ TopUpSession paymentFromApi(Map<String, dynamic> j) {
             qrValue: c.strOrNull('qrValue'),
           ),
   );
+}
+
+/// The coin → network pairs in the admin's order. `coins[]` carries them
+/// grouped by coin; `currencies[]` has the same pairs flat, and is what an
+/// older server answers with.
+List<CryptoOption> _cryptoOptions(Map<String, dynamic> json) {
+  CryptoOption option(Map<String, dynamic> j) => CryptoOption(
+    j.str('coin'),
+    j.str('network'),
+    code: j.str('code'),
+    minCents: j.intOrNull('minCents'),
+    logoUrl: j.strOrNull('logoUrl'),
+    feeOnTop: j.boolVal('feeOnTop'),
+  );
+
+  final grouped = [
+    for (final coin in json.listOf('coins'))
+      for (final network in coin.listOf('networks')) option(network),
+  ];
+  return grouped.isNotEmpty
+      ? grouped
+      : json.listOf('currencies').map(option).toList();
 }

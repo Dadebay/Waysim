@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waysim/app/app.dart';
+import 'package:waysim/core/constants/app_icons.dart';
 import 'package:waysim/core/di/injector.dart';
 import 'package:waysim/core/theme/app_theme.dart';
 import 'package:waysim/core/widgets/promo_carousel.dart';
@@ -10,6 +11,7 @@ import 'package:waysim/core/widgets/skeleton.dart';
 import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
 import 'package:waysim/features/home/presentation/widgets/destination_list.dart';
+import 'package:waysim/features/home/presentation/widgets/promo_banner.dart';
 import 'package:waysim/features/home/presentation/widgets/sim_refresh_indicator.dart';
 import 'package:waysim/features/catalog/presentation/widgets/search_field_box.dart';
 import 'package:waysim/l10n/app_localizations.dart';
@@ -21,6 +23,57 @@ void main() {
   setUpAll(loadAppFonts);
 
   group('PromoCarousel', () {
+    testWidgets('a Home banner card stays 16:9 at phone width', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: PromoCarousel(
+              aspectRatio: 16 / 9,
+              children: [ColoredBox(color: Colors.blue)],
+            ),
+          ),
+        ),
+      );
+
+      final pageSize = tester.getSize(find.byType(PageView));
+      final cardWidth = pageSize.width * 0.93;
+      expect(cardWidth / pageSize.height, closeTo(16 / 9, 0.001));
+    });
+
+    testWidgets('fallback copy fits a narrow 16:9 banner', (tester) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: PromoCarousel(
+              aspectRatio: 16 / 9,
+              children: [
+                PromoBanner(
+                  title: 'What is eSIM?',
+                  body: 'A digital SIM card: set up in minutes, no plastic',
+                  action: 'How it works →',
+                  icon: AppIcons.myEsim,
+                  compact: true,
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+
     Widget carousel() => MaterialApp(
       theme: AppTheme.light,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -215,6 +268,35 @@ void main() {
       await getIt<AuthCubit>().restore();
     });
 
+    testWidgets('the search field stays pinned and still opens search', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(const App());
+      await tester.pumpAndSettle();
+
+      final search = find.byType(SearchFieldBox);
+      final restingTop = tester.getTopLeft(search).dy;
+      final scrollView = find.byType(CustomScrollView).first;
+
+      await tester.drag(scrollView, const Offset(0, -500));
+      await tester.pumpAndSettle();
+      final pinnedTop = tester.getTopLeft(search).dy;
+      expect(pinnedTop, lessThan(restingTop));
+
+      await tester.drag(scrollView, const Offset(0, -400));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(search).dy, closeTo(pinnedTop, 1));
+
+      await tester.tap(search);
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
     testWidgets('the box flies from Home into the app bar', (tester) async {
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
@@ -279,6 +361,10 @@ void main() {
     testWidgets('shows an animated SIM instead of the default spinner', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
       await tester.runAsync(() => getIt<CatalogCubit>().load());
       await tester.pumpWidget(const App());
       await tester.pumpAndSettle();

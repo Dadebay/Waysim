@@ -126,10 +126,10 @@ class PurchaseCubit extends Cubit<PurchaseState> {
         _wallet.set(data.balanceAfter);
         _esims.replace(data.esim);
         _analytics.purchased(
-          transactionId: data.esim.id,
+          transactionId: data.orderId,
           packageId: package.id,
           destination: package.destinationCode,
-          price: package.price,
+          price: data.charged,
           addOn: esimId != null,
         );
         emit(PurchaseState(phase: PurchasePhase.success, esim: data.esim));

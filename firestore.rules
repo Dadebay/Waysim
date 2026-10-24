@@ -1,67 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // The app writes these reports without a signed-in user, so every field
-    // is typed and size-capped: nobody can park megabytes in a document or
-    // add fields the app never sends. Enforce App Check on Firestore in the
-    // console (App Check → Cloud Firestore → Enforce) to keep out clients
-    // that are not the genuine app.
-    function text(value, max) {
-      return value is string && value.size() <= max;
-    }
-
-    function optionalText(value, max) {
-      return value == null || text(value, max);
-    }
-
-    function deviceFields(data) {
-      return text(data.platform, 20)
-        && text(data.osVersion, 100)
-        && text(data.deviceModel, 100)
-        && text(data.appVersion, 30)
-        && text(data.buildNumber, 30)
-        && text(data.locale, 35)
-        && text(data.flavor, 20);
-    }
-
-    match /crash_reports/{id} {
-      allow create: if request.resource.data.keys().hasOnly([
-          'error', 'stack', 'fatal', 'screen', 'publicId', 'platform',
-          'osVersion', 'deviceModel', 'appVersion', 'buildNumber', 'locale',
-          'flavor', 'createdAt', 'status'])
-        && request.resource.data.error is string
-        && request.resource.data.error.size() <= 1600
-        && request.resource.data.stack is string
-        && request.resource.data.stack.size() <= 4100
-        && request.resource.data.fatal is bool
-        && text(request.resource.data.screen, 200)
-        && optionalText(request.resource.data.publicId, 32)
-        && deviceFields(request.resource.data)
-        && request.resource.data.status == 'new'
-        && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if false;
-    }
-
-    match /performance_reports/{id} {
-      allow create: if request.resource.data.keys().hasOnly([
-          'screen', 'publicId', 'platform', 'osVersion', 'deviceModel',
-          'appVersion', 'buildNumber', 'locale', 'flavor', 'buildMs',
-          'rasterMs', 'frameMs', 'createdAt', 'status'])
-        && request.resource.data.screen is string
-        && request.resource.data.screen.size() <= 100
-        && optionalText(request.resource.data.publicId, 32)
-        && deviceFields(request.resource.data)
-        && request.resource.data.buildMs is int
-        && request.resource.data.rasterMs is int
-        && request.resource.data.frameMs is int
-        && request.resource.data.buildMs >= 0
-        && request.resource.data.rasterMs >= 0
-        && request.resource.data.frameMs >= 0
-        && request.resource.data.status == 'new'
-        && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if false;
-    }
-
+    // Reports are no longer written by clients. Keep Firestore closed until
+    // an authenticated, rate-limited server reporting path exists.
     match /{document=**} {
       allow read, write: if false;
     }

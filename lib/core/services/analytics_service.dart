@@ -1,8 +1,7 @@
 import '../utils/formatters/money.dart';
 
-/// Product analytics. The contract the app logs through; Firebase Analytics
-/// implements it in release, [NoopAnalytics] everywhere else (tests, builds
-/// without Firebase).
+/// Product analytics. Firebase implements it whenever initialization succeeds;
+/// [NoopAnalytics] is used in tests and builds without Firebase.
 ///
 /// What the dashboards answer, and how:
 /// * **Where users come from** — Firebase collects the install source on its
@@ -14,6 +13,10 @@ import '../utils/formatters/money.dart';
 ///   (engagement time) are automatic; `screen_view` shows the path taken.
 abstract interface class AnalyticsService {
   void logEvent(String name, [Map<String, Object> parameters]);
+
+  /// Uses Firebase's typed ecommerce API, which sends [AnalyticsPurchase]'s
+  /// item as an `items` array rather than a regular event parameter.
+  void logPurchase(AnalyticsPurchase purchase);
 
   void logScreen(String name);
 
@@ -28,6 +31,9 @@ class NoopAnalytics implements AnalyticsService {
   void logEvent(String name, [Map<String, Object> parameters = const {}]) {}
 
   @override
+  void logPurchase(AnalyticsPurchase purchase) {}
+
+  @override
   void logScreen(String name) {}
 
   @override
@@ -35,6 +41,41 @@ class NoopAnalytics implements AnalyticsService {
 
   @override
   void setUserProperty(String name, String? value) {}
+}
+
+class AnalyticsPurchase {
+  const AnalyticsPurchase({
+    required this.transactionId,
+    required this.packageId,
+    required this.destination,
+    required this.price,
+    required this.addOn,
+  });
+
+  final String transactionId;
+  final String packageId;
+  final String destination;
+  final Money price;
+  final bool addOn;
+
+  double get value => price.cents / 100;
+
+  /// Mirrors the Firebase event for recorders and contract tests.
+  Map<String, Object> get eventParameters => {
+    'transaction_id': transactionId,
+    'currency': AnalyticsEvents.currency,
+    'value': value,
+    'destination_code': destination,
+    'add_on': addOn ? 1 : 0,
+    'items': [
+      {
+        'item_id': packageId,
+        'item_category': destination,
+        'price': value,
+        'quantity': 1,
+      },
+    ],
+  };
 }
 
 /// Event names and parameters in one place, so the dashboards and the code
@@ -85,22 +126,22 @@ extension AnalyticsEvents on AnalyticsService {
     'add_on': addOn ? 1 : 0,
   });
 
-  /// A paid order that finished. [transactionId] is the eSIM's id.
+  /// A paid order that finished. [transactionId] is the server order's id.
   void purchased({
     required String transactionId,
     required String packageId,
     required String destination,
     required Money price,
     required bool addOn,
-  }) => logEvent('purchase', {
-    'transaction_id': transactionId,
-    'currency': currency,
-    'value': dollars(price),
-    'item_id': packageId,
-    'item_category': destination,
-    'destination_code': destination,
-    'add_on': addOn ? 1 : 0,
-  });
+  }) => logPurchase(
+    AnalyticsPurchase(
+      transactionId: transactionId,
+      packageId: packageId,
+      destination: destination,
+      price: price,
+      addOn: addOn,
+    ),
+  );
 
   void purchaseFailed({required String packageId, required String reason}) =>
       logEvent('purchase_failed', {'item_id': packageId, 'reason': reason});

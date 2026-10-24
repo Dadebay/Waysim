@@ -4,8 +4,15 @@ import '../../../esim/domain/entities/esim.dart';
 
 /// What a successful order hands back.
 class PurchaseReceipt {
-  const PurchaseReceipt({required this.esim, required this.balanceAfter});
+  const PurchaseReceipt({
+    required this.orderId,
+    required this.charged,
+    required this.esim,
+    required this.balanceAfter,
+  });
 
+  final String orderId;
+  final Money charged;
   final Esim esim;
   final Money balanceAfter;
 }

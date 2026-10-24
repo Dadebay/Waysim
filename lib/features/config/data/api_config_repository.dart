@@ -34,14 +34,17 @@ class ApiConfigRepository implements ConfigRepository {
         .where((code) => const {'en', 'zh', 'ru', 'es', 'fr'}.contains(code))
         .toSet()
         .toList();
+    final contacts = _contacts(j.mapOrNull('contacts'));
     return AppConfig(
       referralEnabled: referral.boolVal('enabled'),
       referralRewardCents: referral.intVal('bonusCents'),
-      minTopUpCents: limits.intVal('minCents', 500),
+      minTopUpCents: limits.intVal('minCents', 100),
       maxTopUpCents: limits.intVal('maxCents', 50000),
       maintenance: j.boolVal('maintenance'),
       minSupportedVersion: j.strOrNull('minAppVersion'),
-      supportEmail: j.str('supportEmail', 'support@waysim.co'),
+      supportEmail:
+          contacts.email?.label ?? j.str('supportEmail', 'support@waysim.co'),
+      contacts: contacts,
       supportedLocales: serverLocales.isEmpty
           ? const ['en', 'zh', 'ru', 'es', 'fr']
           : serverLocales,
@@ -50,4 +53,23 @@ class ApiConfigRepository implements ConfigRepository {
       cryptoEnabled: true,
     );
   });
+
+  static AppContacts _contacts(Map<String, dynamic>? json) {
+    ContactLink? link(String key) {
+      final j = json?.mapOrNull(key);
+      final label = j?.strOrNull('label');
+      final url = j?.strOrNull('url');
+      if (label == null || label.isEmpty || url == null || url.isEmpty) {
+        return null;
+      }
+      return ContactLink(label: label, url: url);
+    }
+
+    return AppContacts(
+      website: link('website'),
+      email: link('email'),
+      telegram: link('telegram'),
+      instagram: link('instagram'),
+    );
+  }
 }

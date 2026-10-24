@@ -267,7 +267,7 @@ void main() {
     test('money goes out in dollars, as a number', () {
       final a = RecordingAnalytics()
         ..purchased(
-          transactionId: 'esim_1',
+          transactionId: 'order_1',
           packageId: 'TR_5_30',
           destination: 'TR',
           price: const Money(599),
@@ -276,9 +276,16 @@ void main() {
       final event = a.named('purchase').single;
       expect(event['value'], 5.99);
       expect(event['currency'], 'USD');
-      expect(event['transaction_id'], 'esim_1');
-      expect(event['item_id'], 'TR_5_30');
+      expect(event['transaction_id'], 'order_1');
       expect(event['destination_code'], 'TR');
+      expect(event['items'], [
+        {
+          'item_id': 'TR_5_30',
+          'item_category': 'TR',
+          'price': 5.99,
+          'quantity': 1,
+        },
+      ]);
     });
 
     test('selected search result carries the destination code', () {

@@ -6,8 +6,9 @@ import '../../../core/network/token_refresher.dart';
 import '../../../core/storage/secure_storage.dart';
 
 /// Renews the session: `POST /v1/auth/refresh { refreshToken }` answers with a
-/// new access token (~15 min) and a **new** refresh token — each one works
-/// once. The session ends only after 180 days without opening the app.
+/// new access token (its lifetime is `accessExpiresIn`, a server setting) and
+/// a **new** refresh token — each one works once. Only one refresh runs at a
+/// time (see AuthInterceptor), or the second would look like token reuse.
 ///
 /// Uses its own bare [Dio]: the refresh call must not pass through the
 /// interceptor that is waiting for it.

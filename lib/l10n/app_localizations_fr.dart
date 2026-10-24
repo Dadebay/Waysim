@@ -637,6 +637,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Scannez le code QR avec l’appareil photo du téléphone que vous emporterez : ouvrez cet écran sur un autre appareil ou imprimez le code.';
 
   @override
+  String get installQrRetryNote =>
+      'L’installation a échoué ? Essayez une deuxième fois. Si cela ne fonctionne toujours pas, attendez 5 minutes puis réessayez pendant que nous terminons l’ajout de cette eSIM à notre système.';
+
+  @override
   String get installManual => 'Installation manuelle';
 
   @override
@@ -647,6 +651,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get esimIccid => 'ICCID';
+
+  @override
+  String get esimFullActivationCode => 'Code d’activation complet';
+
+  @override
+  String get esimFullActivationCodeHint =>
+      'Sur Samsung/Android, choisissez Ajouter une eSIM → Scanner un code QR → Saisir le code d’activation manuellement, puis collez le code complet ci-dessus, en commençant par LPA:1\$. Les intitulés peuvent varier selon le téléphone.';
 
   @override
   String get esimKeepWarning =>
@@ -689,11 +700,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get androidStep2 =>
-      'Ouvrez Paramètres → Réseau et Internet → SIM → Ajouter une eSIM (les noms varient selon le téléphone).';
+      'Dans Paramètres, ouvrez le gestionnaire de SIM ou SIM, puis choisissez Ajouter une eSIM (les intitulés varient selon le téléphone).';
 
   @override
   String get androidStep3 =>
-      'Choisissez « Scanner le code QR » ou saisissez les informations manuellement.';
+      'Choisissez « Scanner le code QR ». Si vous ne pouvez pas le scanner, touchez la saisie manuelle sous le scanner et collez le code d’activation complet ci-dessus.';
 
   @override
   String get androidStep4 =>
@@ -1055,6 +1066,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String cryptoRateLocked(String rate, String amount) {
     return 'Taux verrouillé : $rate · Recharge de $amount';
   }
+
+  @override
+  String cryptoFeeOnTop(String amount, String fee, String total) {
+    return '$amount + frais $fee = $total';
+  }
+
+  @override
+  String get contactsTitle => 'Nous contacter';
 
   @override
   String cryptoWarning(String coin, String network) {

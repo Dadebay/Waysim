@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -169,12 +171,79 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets(
+    'sharing uses the Waysim link and logo even if API host changes',
+    (tester) async {
+      getIt
+        ..unregister<ReferralRepository>()
+        ..registerSingleton<ReferralRepository>(
+          _EmptyInvitesRepository(
+            getIt<MockBackend>(),
+            link: Uri.parse('https://other.example/r/PHISH'),
+          ),
+        );
+      const shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
+      const pathChannel = MethodChannel('plugins.flutter.io/path_provider');
+      final shareDirectory = (await tester.runAsync(
+        () => Directory.systemTemp.createTemp('waysim-share-test-'),
+      ))!;
+      Map<Object?, Object?>? shared;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(shareChannel, (call) async {
+            if (call.method == 'share') {
+              shared = call.arguments as Map<Object?, Object?>;
+            }
+            return null;
+          });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(pathChannel, (call) async {
+            if (call.method == 'getTemporaryDirectory') {
+              return shareDirectory.path;
+            }
+            return null;
+          });
+      addTearDown(() async {
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        messenger.setMockMethodCallHandler(shareChannel, null);
+        messenger.setMockMethodCallHandler(pathChannel, null);
+        await shareDirectory.delete(recursive: true);
+      });
+
+      await tester.pumpWidget(const App());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Профиль').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Пригласить друзей'));
+      await tester.pumpAndSettle();
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Поделиться приглашением'));
+        for (var attempt = 0; attempt < 50 && shared == null; attempt++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
+      await tester.pump();
+
+      expect(shared?['text'], contains('https://waysim.co/en/r/WAY7K2Q'));
+      expect(shared?['text'], contains('WAY7K2Q'));
+      expect(shared?['text'], contains('Waysim'));
+      expect(shared?['mimeTypes'], ['image/png']);
+      expect(
+        (shared?['paths'] as List<Object?>).single,
+        endsWith('waysim.png'),
+      );
+
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 }
 
 class _EmptyInvitesRepository implements ReferralRepository {
-  _EmptyInvitesRepository(this.backend);
+  _EmptyInvitesRepository(this.backend, {this.link});
 
   final MockBackend backend;
+  final Uri? link;
 
   @override
   Future<Result<ReferralInfo>> load() async {
@@ -182,7 +251,7 @@ class _EmptyInvitesRepository implements ReferralRepository {
     return Success(
       ReferralInfo(
         code: data.code,
-        link: data.link,
+        link: link ?? data.link,
         reward: data.reward,
         invited: 0,
         credited: data.credited,

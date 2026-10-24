@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/utils/formatters/labels.dart';
@@ -32,11 +33,12 @@ class EsimCard extends StatelessWidget {
     final now = DateTime.now();
 
     final lead = esim.isRegion
-        ? const RegionIcon(size: 40)
-        : FlagIcon(esim.destinationCode, size: 40);
+        ? const RegionIcon(size: 44)
+        : FlagIcon(esim.destinationCode, size: 44);
 
     return AppCard(
       onTap: () => context.push(AppRoute.esim.withParams({'id': esim.id})),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,8 +55,13 @@ class EsimCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l10n.esimTitle(esim), style: context.text.h3),
-                        const SizedBox(height: 2),
+                        Text(
+                          l10n.esimTitle(esim),
+                          style: context.text.h3.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           l10n.esimPlan(esim),
                           style: context.text.bodySm.copyWith(
@@ -92,37 +99,52 @@ class EsimCard extends StatelessWidget {
       case EsimStatus.active:
         final days = esim.daysLeft(now);
         return [
+          const SizedBox(height: AppSpacing.xl),
+          Divider(height: 1, thickness: 1, color: c.border),
           const SizedBox(height: AppSpacing.lg),
+          Text(
+            esim.isUnlimited || esim.remainingBytes == null
+                ? l10n.dataUnlimited
+                : l10n.esimLeftOf(
+                    l10n.dataSize(esim.remainingBytes!),
+                    l10n.dataSize(esim.volumeBytes!),
+                  ),
+            style: context.text.bodyMed.copyWith(
+              color: c.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (days != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.esimDaysLeft(days),
+              style: muted.copyWith(fontWeight: FontWeight.w500),
+            ),
+          ],
+          if (!esim.isUnlimited) ...[
+            const SizedBox(height: AppSpacing.md),
+            UsageProgress(remainingFraction: esim.remainingFraction),
+          ],
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
-                child: Text(
-                  esim.isUnlimited || esim.remainingBytes == null
-                      ? l10n.dataUnlimited
-                      : l10n.esimLeftOf(
-                          l10n.dataSize(esim.remainingBytes!),
-                          l10n.dataSize(esim.volumeBytes!),
+                child: esim.updatedAt == null
+                    ? const SizedBox.shrink()
+                    : Text(
+                        l10n.esimUpdated(l10n.ago(esim.updatedAt!, now)),
+                        style: context.text.caption.copyWith(
+                          color: c.textSecondary,
                         ),
-                  style: small.copyWith(fontWeight: FontWeight.w600),
-                ),
+                      ),
               ),
-              if (days != null) Text(l10n.esimDaysLeft(days), style: muted),
+              HugeIcon(
+                icon: AppIcons.chevronRight,
+                size: 18,
+                color: c.textSecondary,
+              ),
             ],
           ),
-          if (!esim.isUnlimited) ...[
-            const SizedBox(height: AppSpacing.sm),
-            UsageProgress(remainingFraction: esim.remainingFraction),
-          ],
-          if (esim.deviceName != null && esim.updatedAt != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.esimDeviceUpdated(
-                esim.deviceName!,
-                l10n.ago(esim.updatedAt!, now),
-              ),
-              style: muted,
-            ),
-          ],
         ];
       case EsimStatus.notInstalled:
         final by = esim.installBy;

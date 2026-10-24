@@ -84,6 +84,10 @@ class RecordingAnalytics implements AnalyticsService {
       events.add((name, parameters));
 
   @override
+  void logPurchase(AnalyticsPurchase purchase) =>
+      events.add(('purchase', purchase.eventParameters));
+
+  @override
   void logScreen(String name) => screens.add(name);
 
   @override

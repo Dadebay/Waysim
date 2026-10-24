@@ -44,9 +44,9 @@ class TopUpState extends Equatable {
   final bool optionsLoading;
   int get minCents =>
       method == TopUpMethod.crypto &&
-          (crypto.minCents ?? 0) > (options?.minCents ?? 500)
+          (crypto.minCents ?? 0) > (options?.minCents ?? 100)
       ? crypto.minCents!
-      : (options?.minCents ?? 500);
+      : (options?.minCents ?? 100);
   bool get canPay =>
       options != null &&
       options!.methods.contains(method) &&

@@ -19,7 +19,6 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/services/device_integrity.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
-import '../../data/referral_link_checker.dart';
 import '../../domain/entities/referral.dart';
 
 /// "Invite friends": the code, the numbers and the rules.
@@ -85,28 +84,25 @@ class _Content extends StatelessWidget {
   final ReferralInfo info;
 
   Future<void> _share(BuildContext context) async {
-    final linkIsAvailable = await referralLinkReturnsOk(info.link);
+    // Build the invite URL on our own domain. A malformed server-provided
+    // link must never become a link that customers send to their friends.
+    final link = Uri(
+      scheme: 'https',
+      host: 'waysim.co',
+      pathSegments: ['en', 'r', info.code],
+    );
+    final data = await rootBundle.load('assets/brand/app_icon.png');
     if (!context.mounted) return;
-    final text = linkIsAvailable
-        ? context.l10n.referralShareLinkText(info.link.toString(), info.code)
-        : context.l10n.referralShareText(info.code);
-    XFile? logo;
-    try {
-      final data = await rootBundle.load('assets/brand/app_icon.png');
-      logo = XFile.fromData(
-        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-        mimeType: 'image/png',
-      );
-    } on Object {
-      // Keep the invite code shareable if the bundled image cannot be loaded.
-    }
-    if (!context.mounted) return;
+    final logo = XFile.fromData(
+      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      mimeType: 'image/png',
+    );
     getIt<AnalyticsService>().shared('referral');
     await SharePlus.instance.share(
       ShareParams(
-        text: text,
-        files: logo == null ? null : [logo],
-        fileNameOverrides: logo == null ? null : const ['waysim.png'],
+        text: context.l10n.referralShareLinkText(link.toString(), info.code),
+        files: [logo],
+        fileNameOverrides: const ['waysim.png'],
       ),
     );
   }

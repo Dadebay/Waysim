@@ -67,7 +67,8 @@ class DeviceSession {
         'locale': language,
         'appVersion': appVersion,
         'osVersion': context.osVersion,
-        'model': context.model,
+        // `model` is sent once, at registration: the server answers 422
+        // "property model should not exist" when it is in this update.
         'timezone': context.timezone,
       },
     );

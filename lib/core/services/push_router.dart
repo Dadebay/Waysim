@@ -6,7 +6,17 @@ import '../../app/router/app_routes.dart';
 abstract final class PushRouter {
   static final _id = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
 
+  static const _locales = {'en', 'zh', 'ru', 'es', 'fr'};
+
   static String? routeFor(Map<String, String> data) {
+    // A credited top-up opens that payment (the push carries its uuid), not
+    // just the wallet its deep link names.
+    final paymentId = data['paymentId'];
+    if (data['type'] == 'payment_credited' &&
+        paymentId != null &&
+        _id.hasMatch(paymentId)) {
+      return AppRoute.paymentDetail.withParams({'id': paymentId});
+    }
     final deepLink = routeForLink(data['deepLink'] ?? data['link'] ?? '');
     if (deepLink != null) return deepLink;
     final id = data['esimId'];
@@ -60,11 +70,18 @@ abstract final class PushRouter {
       if (uri.scheme == 'waysim' && uri.host.isNotEmpty) uri.host,
       ...uri.pathSegments,
     ];
+    // The site localizes its pages: https://waysim.co/ru/r/CODE.
+    if (uri.scheme == 'https' &&
+        parts.length == 3 &&
+        _locales.contains(parts.first)) {
+      parts.removeAt(0);
+    }
     if (parts.length == 1) {
       return switch (parts.first) {
         'home' => AppRoute.home.path,
         'esims' => AppRoute.myEsim.path,
-        'profile' || 'wallet' => AppRoute.profile.path,
+        'profile' => AppRoute.profile.path,
+        'wallet' || 'top-up' || 'balance-top-up' => AppRoute.balanceTopUp.path,
         'how-it-works' => '${AppRoute.home.path}?guide=true',
         'support' => AppRoute.supportChat.path,
         'referral' => AppRoute.referral.path,
@@ -83,7 +100,7 @@ abstract final class PushRouter {
       'orders' => AppRoute.orders.path,
       'packages' => '/package/${Uri.encodeComponent(parts[1])}',
       'legal' => AppRoute.legalDocument.withParams({'id': parts[1]}),
-      'r' => AppRoute.invite.withParams({'code': parts[1]}),
+      'r' || 'invite' => AppRoute.invite.withParams({'code': parts[1]}),
       _ => null,
     };
   }

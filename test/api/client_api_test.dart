@@ -159,6 +159,113 @@ void main() {
   });
 
   test(
+    'meta contacts keep the server labels and drop empty channels',
+    () async {
+      final adapter = ContractAdapter(
+        (o) => {
+          'supportEmail': 'old@waysim.co',
+          'contacts': {
+            'website': {'label': 'waysim.co', 'url': 'https://waysim.co'},
+            'email': {
+              'label': 'support@waysim.co',
+              'url': 'mailto:support@waysim.co',
+            },
+            'telegram': {
+              'label': '@waysim_support',
+              'url': 'https://t.me/waysim_support',
+            },
+            'instagram': null,
+          },
+        },
+      );
+      final config = (await ApiConfigRepository(
+        ApiClient(transport(adapter)),
+      ).load()).dataOrNull!;
+      expect(config.contacts.website?.url, 'https://waysim.co');
+      expect(config.contacts.telegram?.label, '@waysim_support');
+      expect(config.contacts.instagram, isNull);
+      // `supportEmail` follows contacts.email, which is what the admin edits.
+      expect(config.supportEmail, 'support@waysim.co');
+      expect(config.minTopUpCents, 100);
+    },
+  );
+
+  test('crypto coins[] drive the coin and network pickers', () async {
+    Map<String, dynamic> network(String code, String net, bool feeOnTop) => {
+      'code': code,
+      'coin': code == 'btc' ? 'BTC' : 'USDT',
+      'network': net,
+      'minCents': feeOnTop ? 100 : 940,
+      'feeOnTop': feeOnTop,
+    };
+    final adapter = ContractAdapter(
+      (o) => switch (o.path) {
+        '/v1/wallet' => {
+          'balanceCents': 0,
+          'limits': {'minCents': 100, 'maxCents': 50000},
+          'pendingPayment': null,
+        },
+        '/v1/payments/methods' => [
+          {'provider': 'crypto', 'enabled': true},
+        ],
+        '/v1/payments/crypto/currencies' => {
+          'currencies': [network('usdtbsc', 'BEP-20', true)],
+          'coins': [
+            {
+              'coin': 'USDT',
+              'networks': [
+                network('usdtbsc', 'BEP-20', true),
+                network('usdttrc20', 'TRC-20', true),
+              ],
+            },
+            {
+              'coin': 'BTC',
+              'networks': [network('btc', 'Bitcoin', false)],
+            },
+          ],
+        },
+        _ => throw StateError('Unexpected ${o.path}'),
+      },
+    );
+    final options = (await ApiWalletRepository(
+      ApiClient(transport(adapter)),
+    ).options()).dataOrNull!;
+    expect(options.minCents, 100);
+    expect(options.currencies.map((c) => c.code), [
+      'usdtbsc',
+      'usdttrc20',
+      'btc',
+    ]);
+    expect(options.currencies.map((c) => c.feeOnTop), [true, true, false]);
+  });
+
+  test('invite links and a credited-payment push open the right screens', () {
+    for (final link in [
+      'https://waysim.co/r/A001248',
+      'https://waysim.co/ru/r/A001248',
+      'waysim://invite/A001248',
+    ]) {
+      expect(PushRouter.routeForLink(link), '/r/A001248', reason: link);
+    }
+    expect(PushRouter.routeForLink('https://waysim.co/xx/r/A001248'), isNull);
+    expect(
+      PushRouter.routeFor({
+        'type': 'payment_credited',
+        'deepLink': 'waysim://wallet',
+        'paymentId': '01a125bb-c253-7672-be0a-bd2fcb9113e1',
+      }),
+      '/payments/01a125bb-c253-7672-be0a-bd2fcb9113e1',
+    );
+    expect(
+      PushRouter.routeFor({
+        'type': 'payment_credited',
+        'paymentId': '../login',
+      }),
+      '/profile',
+    );
+  });
+
+  test(
     'server push links map to supported screens and reject external commands',
     () {
       expect(
@@ -588,12 +695,17 @@ void main() {
       final adapter = ContractAdapter(
         (o) => switch (o.path) {
           '/v1/orders' => {
-            'order': {'id': 'order-1', 'status': 'processing'},
+            'order': {
+              'id': 'order-1',
+              'status': 'processing',
+              'amountCents': 599,
+            },
             'pollAfterMs': 1000,
           },
           '/v1/orders/order-1' => {
             'id': 'order-1',
             'status': ++polls < 2 ? 'processing' : 'done',
+            'amountCents': 575,
             'esimId': 'esim-1',
           },
           '/v1/esims/esim-1' => esim(detail: true),
@@ -615,6 +727,8 @@ void main() {
         days: 7,
       );
       expect(result.isSuccess, true);
+      expect(result.dataOrNull!.orderId, 'order-1');
+      expect(result.dataOrNull!.charged.cents, 575);
       expect(result.dataOrNull!.balanceAfter.cents, 1851);
       expect(result.dataOrNull!.esim.lpa, 'LPA:1\$smdp.test\$activation');
       expect(adapter.requests.first.headers['Idempotency-Key'], 'key-1');

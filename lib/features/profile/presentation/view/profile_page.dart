@@ -41,7 +41,15 @@ class ProfilePage extends StatelessWidget {
         color: background,
         child: SafeArea(
           bottom: false,
-          child: auth.isSignedIn ? const _SignedIn() : const _Guest(),
+          child: switch (auth.status) {
+            AuthStatus.unknown => const Center(
+              child: CircularProgressIndicator(
+                key: ValueKey('profile-auth-loading'),
+              ),
+            ),
+            AuthStatus.guest => const _Guest(),
+            AuthStatus.signedIn => const _SignedIn(),
+          },
         ),
       ),
     );

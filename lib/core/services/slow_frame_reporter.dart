@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../utils/app_logger.dart';
@@ -49,22 +48,6 @@ class SlowFrameReport {
 
 abstract interface class SlowFrameReportStore {
   Future<void> save(SlowFrameReport report);
-}
-
-class FirestoreSlowFrameReportStore implements SlowFrameReportStore {
-  FirestoreSlowFrameReportStore([FirebaseFirestore? firestore])
-    : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  static const collection = 'performance_reports';
-  final FirebaseFirestore _firestore;
-
-  @override
-  Future<void> save(SlowFrameReport report) =>
-      _firestore.collection(collection).add({
-        ...report.toMap(),
-        'createdAt': FieldValue.serverTimestamp(),
-        'status': 'new',
-      });
 }
 
 /// Reports severe UI/GPU stalls. One report per screen per minute and at most

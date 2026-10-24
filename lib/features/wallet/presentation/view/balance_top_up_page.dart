@@ -1139,10 +1139,18 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
         ],
         const SizedBox(height: AppSpacing.md),
         Text(
-          l10n.cryptoRateLocked(
-            invoice.rateText,
-            widget.session.amount.format(),
-          ),
+          // Stablecoins carry the fee on top ("$3.00 + $0.04 fee = $3.04");
+          // for the other coins it is inside the frozen rate.
+          invoice.feeCents != null && invoice.totalCents != null
+              ? l10n.cryptoFeeOnTop(
+                  widget.session.amount.format(),
+                  Money(invoice.feeCents!).format(),
+                  Money(invoice.totalCents!).format(),
+                )
+              : l10n.cryptoRateLocked(
+                  invoice.rateText,
+                  widget.session.amount.format(),
+                ),
           style: context.text.caption.copyWith(color: c.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),

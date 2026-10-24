@@ -603,6 +603,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get installQrNote => '用你出行时使用的手机摄像头扫描二维码：可在另一台设备上打开此页面或打印二维码。';
 
   @override
+  String get installQrRetryNote =>
+      '安装失败？请再试一次。如果仍未成功，请等待 5 分钟后重试，我们正在完成将此 eSIM 接入系统的处理。';
+
+  @override
   String get installManual => '手动安装';
 
   @override
@@ -613,6 +617,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get esimIccid => 'ICCID';
+
+  @override
+  String get esimFullActivationCode => '完整激活码';
+
+  @override
+  String get esimFullActivationCodeHint =>
+      '在三星或其他 Android 手机上，选择“添加 eSIM”→“扫描二维码”→“手动输入激活码”，然后粘贴上方的完整代码，包括开头的 LPA:1\$。菜单名称可能因手机而异。';
 
   @override
   String get esimKeepWarning => '套餐有效期间请勿从手机中删除 eSIM，只能在同一部手机上重新安装。';
@@ -648,10 +659,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get androidStep1 => '连接 Wi-Fi。';
 
   @override
-  String get androidStep2 => '打开 设置 → 网络和互联网 → SIM 卡 → 添加 eSIM（不同手机名称略有差异）。';
+  String get androidStep2 =>
+      '在设置中找到“SIM 卡管理器”或“SIM 卡”，然后选择“添加 eSIM”（不同手机的菜单名称可能不同）。';
 
   @override
-  String get androidStep3 => '选择“扫描二维码”或手动输入信息。';
+  String get androidStep3 => '选择“扫描二维码”。如果无法扫描，点按扫描界面下方的“手动输入”，粘贴上方的完整激活码。';
 
   @override
   String get androidStep4 => '将该线路命名为“Waysim”，主 SIM 卡保留用于通话。';
@@ -994,6 +1006,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String cryptoRateLocked(String rate, String amount) {
     return '汇率已锁定：$rate · 充值 $amount';
   }
+
+  @override
+  String cryptoFeeOnTop(String amount, String fee, String total) {
+    return '$amount + 手续费 $fee = $total';
+  }
+
+  @override
+  String get contactsTitle => '联系我们';
 
   @override
   String cryptoWarning(String coin, String network) {

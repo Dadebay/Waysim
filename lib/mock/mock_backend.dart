@@ -31,7 +31,19 @@ class MockBackend {
     this.latency = const Duration(milliseconds: 400),
     this.purchaseLatency = const Duration(milliseconds: 1600),
   }) : _now = now ?? DateTime.now {
-    config = const AppConfig();
+    config = const AppConfig(
+      contacts: AppContacts(
+        website: ContactLink(label: 'waysim.co', url: 'https://waysim.co'),
+        email: ContactLink(
+          label: 'support@waysim.co',
+          url: 'mailto:support@waysim.co',
+        ),
+        telegram: ContactLink(
+          label: '@waysim_support',
+          url: 'https://t.me/waysim_support',
+        ),
+      ),
+    );
   }
 
   final DateTime Function() _now;
@@ -357,9 +369,15 @@ class MockBackend {
     _balance -= package.price;
     final esim = _newEsim(package, destination);
     _esims.insert(0, esim);
-    _orders.insert(0, _order(package, destination, OrderOutcome.completed));
+    final order = _order(package, destination, OrderOutcome.completed);
+    _orders.insert(0, order);
     return Success(
-      _receipts[key] = PurchaseReceipt(esim: esim, balanceAfter: _balance),
+      _receipts[key] = PurchaseReceipt(
+        orderId: order.id!,
+        charged: order.amount,
+        esim: esim,
+        balanceAfter: _balance,
+      ),
     );
   }
 
@@ -406,17 +424,20 @@ class MockBackend {
       updatedAt: _now(),
     );
     _esims[i] = updated;
-    _orders.insert(
-      0,
-      _order(
-        package,
-        _destination(package.destinationCode),
-        OrderOutcome.completed,
-        addOn: true,
-      ),
+    final order = _order(
+      package,
+      _destination(package.destinationCode),
+      OrderOutcome.completed,
+      addOn: true,
     );
+    _orders.insert(0, order);
     return Success(
-      _receipts[key] = PurchaseReceipt(esim: updated, balanceAfter: _balance),
+      _receipts[key] = PurchaseReceipt(
+        orderId: order.id!,
+        charged: order.amount,
+        esim: updated,
+        balanceAfter: _balance,
+      ),
     );
   }
 
@@ -453,6 +474,7 @@ class MockBackend {
     bool addOn = false,
   }) => WalletOrder(
     number: '${++_orderSeq}',
+    id: 'mock-order-$_orderSeq',
     type: addOn ? OrderType.topUp : OrderType.purchase,
     outcome: outcome,
     amount: p.price,

@@ -34,6 +34,8 @@ dependencies:
 
   # --------------------------------------------------------------- storage --
   shared_preferences: ^2.5.5
+  # 2.5.1's JNI bridge fails at startup in minified Android release builds.
+  shared_preferences_android: 2.4.28
   flutter_secure_storage: ^11.2.0
   path_provider: ^2.1.6
 
@@ -41,6 +43,8 @@ dependencies:
   intl: ^0.20.2
 
   # -------------------------------------------------------------------- ui --
+  # Cupertino transitions and controls reference this font on iOS.
+  cupertino_icons: ^2.0.0
   hugeicons: ^1.1.7
   cached_network_image: ^3.4.1
   flutter_svg: ^2.3.0
@@ -77,9 +81,6 @@ dependencies:
   firebase_crashlytics: ^5.3.0
   firebase_app_check: ^0.4.2
   firebase_analytics: ^12.4.5
-  # Crash reports are also written here (who, which phone, which error) so
-  # they can be read and fixed without a Crashlytics account.
-  cloud_firestore: ^6.3.0
   # An app that is open receives a push but the system draws nothing for it
   # on Android; this draws the banner by hand.
   flutter_local_notifications: ^22.3.1

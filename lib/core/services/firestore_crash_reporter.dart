@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../utils/app_logger.dart';
 import '../utils/scrub.dart';
 import 'analytics_service.dart';
@@ -54,25 +52,6 @@ class FirestoreCrashReporter implements CrashReporter {
 
   static String _clip(String text, int max) =>
       text.length <= max ? text : '${text.substring(0, max)}…';
-}
-
-/// The real store.
-class FirestoreCrashReportStore implements CrashReportStore {
-  FirestoreCrashReportStore([FirebaseFirestore? firestore])
-    : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  static const collection = 'crash_reports';
-
-  final FirebaseFirestore _firestore;
-
-  @override
-  Future<void> save(CrashReport report) =>
-      _firestore.collection(collection).add({
-        ...report.toMap(),
-        // The server's clock, not the phone's.
-        'createdAt': FieldValue.serverTimestamp(),
-        'status': 'new',
-      });
 }
 
 /// Sends every crash to all of [reporters].

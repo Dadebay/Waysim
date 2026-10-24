@@ -173,7 +173,10 @@ void main() {
     expect(checkout['item_id'], 'TR_5_30');
     expect(checkout['value'], 5.99);
     final purchase = analytics.named('purchase').single;
-    expect(purchase['item_category'], 'TR');
+    expect(
+      (purchase['items'] as List<Object?>).single,
+      containsPair('item_category', 'TR'),
+    );
     expect(purchase['value'], 5.99);
     expect(analytics.userId, 'A0123');
 

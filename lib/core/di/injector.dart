@@ -1,6 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,7 +61,6 @@ import '../services/device_context.dart';
 import '../services/fcm_push_service.dart';
 import '../services/firebase_services.dart';
 import '../services/firebase_setup.dart';
-import '../services/firestore_crash_reporter.dart';
 import '../services/slow_frame_reporter.dart';
 import '../services/local_notifications_service.dart';
 import '../services/crash_reporter.dart';
@@ -139,24 +137,9 @@ void _registerCore() {
       () => FirebaseSetup.ready ? FirebaseAnalyticsService() : NoopAnalytics(),
     )
     ..registerLazySingleton<CrashReporter>(
-      () => FirebaseSetup.ready
-          ? CompositeCrashReporter([
-              CrashlyticsReporter(),
-              FirestoreCrashReporter(
-                store: FirestoreCrashReportStore(),
-                device: getIt<DeviceContext>(),
-              ),
-            ])
-          : LogCrashReporter(),
+      () => FirebaseSetup.ready ? CrashlyticsReporter() : LogCrashReporter(),
     )
-    ..registerLazySingleton<SlowFrameReporter>(
-      () => FirebaseSetup.ready && kReleaseMode
-          ? FirestoreSlowFrameReporter(
-              store: FirestoreSlowFrameReportStore(),
-              device: getIt<DeviceContext>(),
-            )
-          : NoopSlowFrameReporter(),
-    )
+    ..registerLazySingleton<SlowFrameReporter>(NoopSlowFrameReporter.new)
     ..registerLazySingleton<PushService>(
       () => FirebaseSetup.ready
           ? FcmPushService(

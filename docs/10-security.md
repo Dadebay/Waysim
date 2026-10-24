@@ -2,7 +2,7 @@
 
 Kod tabanı elle okunarak denetlendi (ağ, depolama, kimlik, deep link, URL açma, Firebase, native ayarlar,
 bağımlılıklar). Tasarım ve akışlar **değişmedi**. Başlangıç: `flutter analyze` temiz, 218 test yeşil;
-bitiş: 227 test yeşil.
+bitiş (24 Ekim 2026): 234 test yeşil.
 
 ## Kapatılan açıklar
 
@@ -14,10 +14,10 @@ bitiş: 227 test yeşil.
 | 4 | `AuthInterceptor` Bearer token'ı, mutlak URL'li her isteğe eklerdi | Token yalnız `baseUrl` ile aynı host'a gider |
 | 5 | Sunucudan gelen bağlantılar (ödeme sayfası, mağaza sayfası, eSIM kurulum linki) doğrulanmadan açılıyordu | `safeHttpsUri` / `safeHttpsUriOn`: yalnız `https`, host dolu, kullanıcı bilgisi yok; eSIM linki yalnız `esimsetup.apple.com`, aksi halde LPA'dan yeniden üretilir |
 | 6 | `/gallery` (tasarım galerisi) release'te deep link ile açılabiliyordu | Rota yalnız release dışı derlemelerde kayıtlı |
-| 7 | Çökme raporlarına (Firestore) hata metniyle e-posta, Bearer/JWT, LPA, `code=`/`token=` sızabilirdi | `scrubSensitive` raporu yazmadan önce temizler |
-| 8 | Firestore kuralları: yalnız birkaç alan sınırlıydı; `publicId`, `osVersion`… sınırsız, `fatal`/`status` tipsiz | Tüm alanlar tipli ve boyut sınırlı, `status == 'new'`, `fatal` bool |
+| 7 | Doğrudan Firestore çökme raporlaması hassas veriyi veya sahte raporları taşıyabilirdi | İstemci yazımları kaldırıldı; Crashlytics'e gönderilen Dart hata metni ve stack trace hassas veri temizleyicisinden geçer |
+| 8 | Firestore kuralları: yalnız birkaç alan sınırlıydı; `publicId`, `osVersion`… sınırsız, `fatal`/`status` tipsiz | Tüm istemci okuma/yazmaları yeni kurallarda reddedilir |
 | 9 | Android: otomatik yedekleme açıktı (token/tercih dosyaları buluta gidebilir) | `allowBackup="false"`, `usesCleartextTraffic="false"` |
-| 10 | Android release, debug anahtarıyla imzalanıyordu | `android/key.properties` varsa upload anahtarıyla imzalar (dosya `.gitignore`'da); yoksa yerel `--release` için debug'a düşer |
+| 10 | Android release, debug anahtarıyla imzalanıyordu | Upload anahtarı yoksa release derlemesi hata verir; debug anahtarına düşmez |
 | 11 | iOS Keychain `first_unlock`: yedekten başka telefona token taşınabilir | `first_unlock_this_device` |
 | 12 | Root/jailbreak tespiti okunuyordu ama arayüz hiç tetiklenmiyordu (`NoopDeviceIntegrity`) | `DeviceContextIntegrity`: uyarı ve gizlenen davet alanı artık gerçekten çalışır |
 
@@ -31,16 +31,13 @@ bitiş: 227 test yeşil.
 
 ## Elle yapılması gerekenler (kod dışı)
 
-1. **Firestore kurallarını yayınla:** `firebase deploy --only firestore:rules`. Emülatörde bir çökme ve bir yavaş-kare
-   raporu yazarak kabul edildiğini doğrula (kurallar bu denetimde cihazda denenmedi).
-2. **App Check'i zorunlu kıl:** Firebase konsolu → App Check → Cloud Firestore → Enforce. Kurallar `request.auth`
-   istemediği için sahte istemcileri ancak App Check keser.
+1. **Firestore kuralları yayımlandı:** 24 Ekim 2026 tarihinde `waysim` projesine kapalı kurallar gönderildi; tüm istemci erişimi reddedilir.
+2. **App Check'i doğrula:** Backend, korunan işlemler için `X-Firebase-AppCheck` başlığını doğrulamalı.
 3. **API anahtarlarını kısıtla:** Google Cloud → Credentials; `google-services.json` / `GoogleService-Info.plist` /
    `firebase_options.dart` içindeki anahtarları paket adı (`com.waysim.app`) + SHA-1 / bundle id ile sınırla.
    Bu anahtarlar gizli değildir ama kısıtsız bırakılırsa kötüye kullanılır.
-4. **Android upload anahtarı:** `android/key.properties` oluştur (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`).
-   Anahtarı git dışında yedekle.
-5. **Release komutu:** `flutter build ipa|appbundle --release --obfuscate --split-debug-info=build/symbols --dart-define=FLAVOR=prod`.
+4. **Android upload anahtarı:** Yerel `android/upload-keystore.jks` ve `android/key.properties` oluşturuldu. İkisini de git dışında güvenli yerde yedekle.
+5. **Android release komutu:** `flutter build appbundle --release --dart-define=FLAVOR=prod`. AAB ve APK upload anahtarıyla imzalanarak doğrulandı.
 
 ## Sonraya bırakılanlar (öneri)
 

@@ -16,6 +16,20 @@ val keystoreProperties = Properties().apply {
     val file = rootProject.file("key.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
+val releaseTasksRequested = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+if (releaseTasksRequested) {
+    val required = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+    val missing = required.filter { keystoreProperties.getProperty(it).isNullOrBlank() }
+    if (missing.isNotEmpty()) {
+        throw GradleException("Release signing is not configured: missing ${missing.joinToString()} in android/key.properties")
+    }
+    val keyFile = file(keystoreProperties.getProperty("storeFile"))
+    if (!keyFile.isFile) {
+        throw GradleException("Release signing is not configured: storeFile does not exist")
+    }
+}
 
 android {
     namespace = "com.waysim.app"
@@ -54,12 +68,7 @@ android {
 
     buildTypes {
         release {
-            // Signed with the upload key when android/key.properties exists.
-            // Without it the build falls back to the debug key so that
-            // `flutter run --release` keeps working locally — such an APK
-            // must never be published.
             signingConfig = signingConfigs.findByName("release")
-                ?: signingConfigs.getByName("debug")
         }
     }
 }

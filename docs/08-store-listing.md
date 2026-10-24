@@ -51,7 +51,7 @@ destek `support@waysim.co`.
 | Kullanıcı kimliği (A0123) | Evet | Hesap, destek |
 | Cihaz kimliği / model | Evet | eSIM'i tek cihaza bağlama, sahtekârlık önleme |
 | Satın alma geçmişi | Evet | Siparişler, iade |
-| Çökme günlükleri (cihaz modeli, sürüm, ekran, hata) | Evet (Crashlytics + Firestore) | Kararlılık |
+| Çökme günlükleri (cihaz modeli, sürüm, ekran, hata) | Evet (Crashlytics) | Kararlılık |
 | Kullanım verisi (ekranlar, aramalar, satın alma olayları, oturum süresi) | Evet (Firebase Analytics) | Analitik, ürün iyileştirme |
 | Konum, kişiler, fotoğraflar, mikrofon, kamera | Hayır | — |
 

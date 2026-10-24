@@ -8,6 +8,7 @@ import 'package:waysim/core/di/injector.dart';
 import 'package:waysim/core/constants/app_icons.dart';
 import 'package:waysim/core/utils/result.dart';
 import 'package:waysim/core/widgets/app_bottom_sheet.dart';
+import 'package:waysim/core/widgets/copy_field.dart';
 import 'package:waysim/features/auth/domain/repositories/auth_repository.dart';
 import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
@@ -64,6 +65,8 @@ void main() {
     expect(find.text('Türkiye'), findsOneWidget);
     expect(find.text('Active'), findsOneWidget);
     expect(find.text('3.2 GB of 5 GB left'), findsOneWidget);
+    expect(find.textContaining('iPhone 15'), findsNothing);
+    expect(find.textContaining('Updated'), findsOneWidget);
     // Not installed: offers the install button.
     expect(find.text('Install'), findsOneWidget);
     expect(find.text('Installed'), findsOneWidget);
@@ -102,6 +105,31 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('smdp.example.com'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('esim-full-activation-code')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    final fullCode = tester.widget<CopyField>(
+      find.byKey(const ValueKey('esim-full-activation-code')),
+    );
+    expect(find.text('Full activation code'), findsOneWidget);
+    expect(fullCode.value, startsWith('LPA:1\$'));
+    final activationCode = tester
+        .widgetList<CopyField>(find.byType(CopyField))
+        .firstWhere((field) => field.label == 'Activation code')
+        .value;
+    expect(fullCode.value, 'LPA:1\$smdp.example.com\$$activationCode');
+    expect(
+      fullCode.copyValue,
+      isNull,
+      reason: 'CopyField copies its displayed value',
+    );
+    expect(
+      find.textContaining('Enter activation code manually'),
+      findsOneWidget,
+    );
 
     await tester.pumpWidget(const SizedBox());
   });
@@ -176,7 +204,7 @@ void main() {
     expect(find.text('Network'), findsOneWidget);
     expect(find.text('USDT'), findsOneWidget);
     expect(find.text('TRC-20'), findsOneWidget);
-    expect(find.text(r'Minimum top-up · $5.00'), findsOneWidget);
+    expect(find.text(r'Minimum top-up · $1.00'), findsOneWidget);
     expect(
       find.text('Payment fee is included in the amount to send'),
       findsOneWidget,

@@ -70,7 +70,7 @@ Future<void> bootstrap(Widget Function() builder) async {
 
   // Session first, so sign-in state reaches the coordinator before the data
   // loads. None of this blocks the first frame: Home shows skeletons, the
-  // profile shows a guest until the stored session answers.
+  // profile shows a loading indicator until the stored session answers.
   getIt<SessionCoordinator>().start();
   getIt<TelemetryCoordinator>().start();
   getIt<SlowFrameReporter>().start();

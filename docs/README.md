@@ -17,7 +17,7 @@ derlenmiş **tek doğruluk kaynağıdır**. Kod yazarken önce buraya bak.
 | [05-platform-ios-android.md](05-platform-ios-android.md) | iOS/Android'e özel gereksinimler (deep link, push, eSIM kurulum, izinler, mağaza) |
 | [06-roadmap.md](06-roadmap.md) | **Adım adım görev listesi** (checkbox'lı, durumu burada tutulur) |
 | [07-open-questions.md](07-open-questions.md) | Verilen kararlar, TZ ile çelişen noktalar, müşteriden beklenenler |
-| [09-firebase.md](09-firebase.md) | Push (topic `waysim`), Analytics olayları, Firestore çökme raporları, konsol adımları |
+| [09-firebase.md](09-firebase.md) | Push (topic `waysim`), Analytics olayları, Crashlytics çökme raporları, konsol adımları |
 | [10-security.md](10-security.md) | Güvenlik denetimi: kapatılan açıklar, elle yapılacak adımlar (kurallar, App Check, anahtar kısıtı), sonraya kalanlar |
 | [08-store-listing.md](08-store-listing.md) | App Store / Google Play metinleri (5 dil), inceleme notları, gizlilik formu taslağı |
 | [reference/](reference/) | Ham kaynaklar: TZ ve tasarım PDF'leri (+ metin çıktıları), eSIM Access API ham çıktısı |

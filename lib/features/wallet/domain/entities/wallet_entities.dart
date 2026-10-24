@@ -218,6 +218,7 @@ class CryptoOption extends Equatable {
     this.code,
     this.minCents,
     this.logoUrl,
+    this.feeOnTop = false,
   });
 
   final String coin;
@@ -226,18 +227,22 @@ class CryptoOption extends Equatable {
   final int? minCents;
   final String? logoUrl;
 
+  /// Stablecoins: the processing and network fee is added on top of the
+  /// amount (`crypto.feeCents`). Otherwise it is inside the frozen rate.
+  final bool feeOnTop;
+
   static const usdtTrc20 = CryptoOption('USDT', 'TRC-20');
   static const usdtBep20 = CryptoOption('USDT', 'BEP-20');
 
   String get label => '$coin · $network';
 
   @override
-  List<Object?> get props => [coin, network, code, minCents, logoUrl];
+  List<Object?> get props => [coin, network, code, minCents, logoUrl, feeOnTop];
 }
 
 class WalletOptions {
   const WalletOptions({
-    this.minCents = 500,
+    this.minCents = 100,
     this.maxCents = 50000,
     this.methods = const [TopUpMethod.paypal, TopUpMethod.crypto],
     this.currencies = const [

@@ -30,6 +30,7 @@ class ApiPurchaseRepository implements PurchaseRepository {
     '/v1/orders',
     packageId,
     idempotencyKey,
+    expectedPrice: expectedPrice,
     days: days,
     cancelled: cancelled,
   );
@@ -45,6 +46,7 @@ class ApiPurchaseRepository implements PurchaseRepository {
     '/v1/esims/${Uri.encodeComponent(esimId)}/topups',
     packageId,
     idempotencyKey,
+    expectedPrice: expectedPrice,
     cancelled: cancelled,
   );
 
@@ -52,6 +54,7 @@ class ApiPurchaseRepository implements PurchaseRepository {
     String path,
     String packageId,
     String key, {
+    required Money expectedPrice,
     int? days,
     bool Function()? cancelled,
   }) => apiResult(() async {
@@ -86,6 +89,7 @@ class ApiPurchaseRepository implements PurchaseRepository {
       _orders[key] = order.str('id');
     }
     final orderId = order.str('id');
+    final acceptedAmount = order.intOrNull('amountCents');
     var status = order.str('status');
     var polls = 0;
     AppLogger.group(
@@ -161,6 +165,10 @@ class ApiPurchaseRepository implements PurchaseRepository {
       'elapsedMs=${elapsed.elapsedMilliseconds}',
     );
     return PurchaseReceipt(
+      orderId: orderId,
+      charged: Money(
+        order.intOrNull('amountCents') ?? acceptedAmount ?? expectedPrice.cents,
+      ),
       esim: esim.dataOrNull!,
       balanceAfter: Money(wallet.intVal('balanceCents')),
     );
