@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "V793RH49BX.com.waysim.app",
+        "paths": [
+          "/r/*",
+          "/en/r/*",
+          "/zh/r/*",
+          "/ru/r/*",
+          "/es/r/*",
+          "/fr/r/*",
+          "/pay/return"
+        ]
+      }
+    ]
+  }
+}

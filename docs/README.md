@@ -19,6 +19,7 @@ derlenmiş **tek doğruluk kaynağıdır**. Kod yazarken önce buraya bak.
 | [07-open-questions.md](07-open-questions.md) | Verilen kararlar, TZ ile çelişen noktalar, müşteriden beklenenler |
 | [09-firebase.md](09-firebase.md) | Push (topic `waysim`), Analytics olayları, Crashlytics çökme raporları, konsol adımları |
 | [10-security.md](10-security.md) | Güvenlik denetimi: kapatılan açıklar, elle yapılacak adımlar (kurallar, App Check, anahtar kısıtı), sonraya kalanlar |
+| [11-ios-release.md](11-ios-release.md) | iOS release hazırlığı, Apple hesabı ve Universal Links için kalan adımlar |
 | [08-store-listing.md](08-store-listing.md) | App Store / Google Play metinleri (5 dil), inceleme notları, gizlilik formu taslağı |
 | [reference/](reference/) | Ham kaynaklar: TZ ve tasarım PDF'leri (+ metin çıktıları), eSIM Access API ham çıktısı |
 

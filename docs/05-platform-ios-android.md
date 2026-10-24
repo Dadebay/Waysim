@@ -8,15 +8,15 @@ Kimlikler (onay bekliyor, bkz. [07](07-open-questions.md)): **`com.waysim.app`**
 - ⬜ Marka ikonları: iOS `AppIcon.appiconset`, Android `mipmap-*` (ic_launcher, round, foreground, **monochrome**), bildirim ikonu `ic_stat_waysim`, `waysim_colors.xml` — hepsi `design/brand` paketinin `flutter/` klasöründe hazır (T0.5).
 - ⬜ Splash: `flutter_native_splash` (açık `splash_logo.png`, koyu `splash_logo_dark.png`, Android 12 `android12_splash(.dark).png`, arka plan açık `#FFFFFF` / koyu `#0E121A`).
 - ⬜ Uygulama adı: **Waysim** (`CFBundleDisplayName`, `android:label`).
-- ⬜ Yalnızca dikey yön (telefon). iPad desteği: ilk sürümde kapalı (TZ sadece telefon) — Xcode `TARGETED_DEVICE_FAMILY = 1`.
+- ✅ Yalnızca dikey yön ve iPhone hedefi. iPad desteği ilk sürümde kapalı — Xcode `TARGETED_DEVICE_FAMILY = 1`.
 - ⬜ Tüm metinler yerelleştirilmiş: iOS `CFBundleLocalizations` (en, zh-Hans, ru, es, fr) + `InfoPlist.strings`; Android `res/xml/locales_config.xml` + `android:localeConfig` (uygulama içi dil).
 
 ## iOS
 
 | Konu | Yapılacak |
 | --- | --- |
-| Min iOS | 13.0 → önerilen **15.0** (Flutter 3.41 min'ine uy; Firebase gereksinimi) |
-| **Associated Domains** | `applinks:waysim.co` (Universal Links: `/r/KOD` davet, `/pay/return`, push yönlendirme). Sunucu: `https://waysim.co/.well-known/apple-app-site-association` |
+| Min iOS | Runner hedefinde **15.6** |
+| **Associated Domains** | `applinks:waysim.co` entitlement'ı hazır. Davet ve ödeme dönüşü için [AASA dosyası](../deployment/waysim.co/.well-known/apple-app-site-association) `https://waysim.co/.well-known/apple-app-site-association` adresinde yayınlanmalı; 24 Ekim 2026'da 404 dönüyordu. |
 | URL şeması | `CFBundleURLTypes` → `waysim` |
 | **Push** | Capabilities: Push Notifications + Background Modes (`remote-notification`); APNs key'i Firebase'e yükle; izin **ilk satın almadan sonra** (`requestPermission`) |
 | **App Attest** | Firebase App Check için `com.apple.developer.devicecheck.appattest-environment` entitlement |
@@ -25,7 +25,7 @@ Kimlikler (onay bekliyor, bkz. [07](07-open-questions.md)): **`com.waysim.app`**
 | `LSApplicationQueriesSchemes` | `mailto`, `https`, `tel` (`canLaunchUrl` için) |
 | Ödeme dönüşü | PayPal: `SFSafariViewController` (`url_launcher` `LaunchMode.inAppBrowserView`) → dönüş `https://waysim.co/pay/return` universal link |
 | Hesap silme | Uygulama içinden mümkün olmalı (App Store 5.1.1(v)) — profilde var, kodla onaylı |
-| Gizlilik | `PrivacyInfo.xcprivacy` (kullanılan API'ler: UserDefaults, vb.) + App Privacy etiketleri (e-posta, cihaz ID, satın alma) |
+| Gizlilik | Runner `PrivacyInfo.xcprivacy` derlemeye giriyor; paketlerin kendi manifest'leri ayrıca mevcut. App Store Connect gizlilik yanıtları gerçek veri akışıyla eşleştirilmeli. |
 | **Mağaza riski** | Dijital içerik değil **hizmet/eSIM** satışı + dahili bakiye: Apple 3.1.1/3.1.3 ve kripto kuralları **ödeme geliştirmesinden önce** kontrol edilmeli |
 | Jailbreak | tespit → uyarı, referral bonusu yok |
 
