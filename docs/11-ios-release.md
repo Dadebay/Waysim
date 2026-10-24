@@ -10,8 +10,8 @@
 
 1. `com.waysim.app` App ID'sinde **Push Notifications**, **Associated Domains** ve **App Attest** yeteneklerini açın. Geliştirme ve dağıtım provisioning profillerini bu yeteneklerle yeniden oluşturun.
 2. APNs Authentication Key (`.p8`) oluşturun ve Firebase Console → Project settings → Cloud Messaging içindeki iOS uygulamasına Key ID ve Team ID ile yükleyin. Anahtarı Git'e koymayın; `/Users/dadebay/Developer/apps/Project Keys/22.Waysim/` altında güvenli tutun.
-3. Bu Mac'te Apple Development ve macOS Developer ID kimlikleri var, ancak **Apple Distribution sertifikası ve iOS provisioning profili yok**. Bu nedenle henüz App Store'a yüklenebilir imzalı IPA çıkarılamıyor. Doğru Apple Developer takımına erişim sağlandığında Xcode'un Signing & Capabilities bölümünde `Runner` için Automatic Signing ile sertifika/profil oluşturun.
-4. App Store Connect'te uygulama kaydı, gizlilik etiketleri, güncel yaş derecelendirmesi, iPhone ekran görüntüleri, destek ve gizlilik URL'leri ve inceleme için çalışan test hesabı hazırlayın. Ödeme/bakiye akışını App Review kuralları açısından kontrol edin.
+3. Bu Mac'te yerel Apple Distribution sertifikası yok. Xcode Organizer'daki **Distribute App → App Store Connect** akışı otomatik imzalama ve Apple'ın bulutta yönettiği dağıtım sertifikasıyla paketi imzalayabilir. Komut satırından `flutter build ipa` kullanmak için ayrıca yerel dağıtım imzalama ayarlarını hazırlayın.
+4. App Store Connect'te **Waysim** uygulama kaydı `com.waysim.app` için oluşturuldu. Gizlilik etiketleri, güncel yaş derecelendirmesi, iPhone ekran görüntüleri, destek ve gizlilik URL'leri ve inceleme için çalışan test hesabı hazırlayın. Ödeme/bakiye akışını App Review kuralları açısından kontrol edin.
 
 ## Derleme ve doğrulama
 
@@ -25,11 +25,13 @@ Xcode bir Firebase eklentisinin `PrivacyInfo.xcprivacy` dosyasını bulamazsa pr
 flutter build ios --release --no-codesign --dart-define=FLAVOR=prod
 ```
 
-Dağıtım sertifikası ve provisioning profili hazır olduğunda:
+Yerel dağıtım sertifikası ve provisioning profili hazır olduğunda komut satırından:
 
 ```sh
 flutter build ipa --release --dart-define=FLAVOR=prod
 ```
+
+24 Ekim 2026'da Xcode Organizer, `1.0.0 (1)` arşivini **Uploaded to Apple** olarak doğruladı. İlk yükleme denemesinde yeni App Store Connect kaydı oluşturulmasına rağmen kayıt hemen sorguda görünmedi; aynı arşivin ikinci denemesi başarılı oldu. Xcode beş üçüncü taraf framework için eksik dSYM uyarısı verdi (FirebaseAnalytics, GoogleAdsOnDeviceConversion, GoogleAppMeasurement, GoogleAppMeasurementIdentitySupport, RecaptchaEnterpriseSDK); uyarılar yüklemeyi durdurmadı. App Store Connect'teki build işlemesinin tamamlanmasını ayrıca kontrol edin.
 
 Gerçek iPhone/TestFlight'ta giriş, davet Universal Link'i, PayPal dönüşü, eSIM kurulum bağlantısı, APNs/FCM ve App Check'i doğrulayın. Simülatör eSIM ve APNs davranışı için yeterli değildir. İmzalı arşivdeki `aps-environment` değerini ve Crashlytics dSYM yüklemesini de kontrol edin.
 
