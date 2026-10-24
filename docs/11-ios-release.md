@@ -4,12 +4,12 @@
 
 ## Sitede gereken Universal Links dosyası
 
-`https://waysim.co/.well-known/apple-app-site-association` 24 Ekim 2026'da **404** dönüyordu. [Hazır dosyayı](../deployment/waysim.co/.well-known/apple-app-site-association) bu adreste, uzantısız, HTTPS üzerinden `application/json` olarak ve yönlendirme olmadan yayınlayın. Dosyadaki `V793RH49BX` Team ID'si Xcode projesinden alındı; Apple Developer hesabındaki Waysim App ID'si farklı takıma aitse dosyayı ve Xcode Team ayarını birlikte düzeltin. Ardından gerçek iPhone'da `https://waysim.co/en/r/TESTCODE` ve `https://waysim.co/pay/return` bağlantılarını deneyin. Apple'ın Associated Domains CDN önbelleği nedeniyle yeni dosyanın cihaza ulaşması zaman alabilir.
+`https://waysim.co/.well-known/apple-app-site-association` 24 Ekim 2026'da **404** dönüyordu. Yerel kopya `/Users/dadebay/Developer/apps/Project Keys/22.Waysim/website/.well-known/apple-app-site-association` konumunda; bu dosyayı sitede aynı adrese, uzantısız, HTTPS üzerinden `application/json` olarak ve yönlendirme olmadan yayınlayın. Dosyadaki `V793RH49BX` Team ID'si Xcode projesinden alındı; Apple Developer hesabındaki Waysim App ID'si farklı takıma aitse dosyayı ve Xcode Team ayarını birlikte düzeltin. Ardından gerçek iPhone'da `https://waysim.co/en/r/TESTCODE` ve `https://waysim.co/pay/return` bağlantılarını deneyin. Apple'ın Associated Domains CDN önbelleği nedeniyle yeni dosyanın cihaza ulaşması zaman alabilir.
 
 ## Apple hesabında gerekenler
 
 1. `com.waysim.app` App ID'sinde **Push Notifications**, **Associated Domains** ve **App Attest** yeteneklerini açın. Geliştirme ve dağıtım provisioning profillerini bu yeteneklerle yeniden oluşturun.
-2. APNs Authentication Key (`.p8`) oluşturun ve Firebase Console → Project settings → Cloud Messaging içindeki iOS uygulamasına Key ID ve Team ID ile yükleyin. Anahtarı Git'e koymayın; `/Users/dadebay/Developer/apps/Project Keys/Waysim/` altında güvenli tutun.
+2. APNs Authentication Key (`.p8`) oluşturun ve Firebase Console → Project settings → Cloud Messaging içindeki iOS uygulamasına Key ID ve Team ID ile yükleyin. Anahtarı Git'e koymayın; `/Users/dadebay/Developer/apps/Project Keys/22.Waysim/` altında güvenli tutun.
 3. Bu Mac'te Apple Development ve macOS Developer ID kimlikleri var, ancak **Apple Distribution sertifikası ve iOS provisioning profili yok**. Bu nedenle henüz App Store'a yüklenebilir imzalı IPA çıkarılamıyor. Doğru Apple Developer takımına erişim sağlandığında Xcode'un Signing & Capabilities bölümünde `Runner` için Automatic Signing ile sertifika/profil oluşturun.
 4. App Store Connect'te uygulama kaydı, gizlilik etiketleri, güncel yaş derecelendirmesi, iPhone ekran görüntüleri, destek ve gizlilik URL'leri ve inceleme için çalışan test hesabı hazırlayın. Ödeme/bakiye akışını App Review kuralları açısından kontrol edin.
 

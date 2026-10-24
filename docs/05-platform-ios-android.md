@@ -16,7 +16,7 @@ Kimlikler (onay bekliyor, bkz. [07](07-open-questions.md)): **`com.waysim.app`**
 | Konu | Yapılacak |
 | --- | --- |
 | Min iOS | Runner hedefinde **15.6** |
-| **Associated Domains** | `applinks:waysim.co` entitlement'ı hazır. Davet ve ödeme dönüşü için [AASA dosyası](../deployment/waysim.co/.well-known/apple-app-site-association) `https://waysim.co/.well-known/apple-app-site-association` adresinde yayınlanmalı; 24 Ekim 2026'da 404 dönüyordu. |
+| **Associated Domains** | `applinks:waysim.co` entitlement'ı hazır. Davet ve ödeme dönüşü için AASA dosyası `https://waysim.co/.well-known/apple-app-site-association` adresinde yayınlanmalı; 24 Ekim 2026'da 404 dönüyordu. Yerel kopya proje dışında `Project Keys/22.Waysim/website/.well-known/` altında. |
 | URL şeması | `CFBundleURLTypes` → `waysim` |
 | **Push** | Capabilities: Push Notifications + Background Modes (`remote-notification`); APNs key'i Firebase'e yükle; izin **ilk satın almadan sonra** (`requestPermission`) |
 | **App Attest** | Firebase App Check için `com.apple.developer.devicecheck.appattest-environment` entitlement |

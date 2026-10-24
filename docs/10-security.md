@@ -36,7 +36,7 @@ bitiş (24 Ekim 2026): 234 test yeşil.
 3. **API anahtarlarını kısıtla:** Google Cloud → Credentials; `google-services.json` / `GoogleService-Info.plist` /
    `firebase_options.dart` içindeki anahtarları paket adı (`com.waysim.app`) + SHA-1 / bundle id ile sınırla.
    Bu anahtarlar gizli değildir ama kısıtsız bırakılırsa kötüye kullanılır.
-4. **Android upload anahtarı:** Yerel `android/upload-keystore.jks` ve `android/key.properties` oluşturuldu. İkisini de git dışında güvenli yerde yedekle.
+4. **Android upload anahtarı:** `key.properties` ve `upload-keystore.jks` proje dışında `/Users/dadebay/Developer/apps/Project Keys/22.Waysim/` altında. `~/.gradle/gradle.properties` içindeki `waysimSigningProperties` yolu Gradle'a bu dosyayı gösterir. Anahtarları ayrıca güvenli yerde yedekle.
 5. **Android release komutu:** `flutter build appbundle --release --dart-define=FLAVOR=prod`. AAB ve APK upload anahtarıyla imzalanarak doğrulandı.
 
 ## Sonraya bırakılanlar (öneri)

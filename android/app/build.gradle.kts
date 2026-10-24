@@ -10,11 +10,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Release signing: android/key.properties (never committed) holds
+// Release signing: an external properties file holds
 //   storeFile=/path/to/upload.jks  storePassword=…  keyAlias=…  keyPassword=…
+// Set waysimSigningProperties in ~/.gradle/gradle.properties to keep it outside the repo.
+val signingPropertiesFile = providers.gradleProperty("waysimSigningProperties")
+    .orNull?.let { file(it) } ?: rootProject.file("key.properties")
 val keystoreProperties = Properties().apply {
-    val file = rootProject.file("key.properties")
-    if (file.exists()) file.inputStream().use { load(it) }
+    if (signingPropertiesFile.exists()) signingPropertiesFile.inputStream().use { load(it) }
 }
 val releaseTasksRequested = gradle.startParameter.taskNames.any {
     it.contains("release", ignoreCase = true)
@@ -23,7 +25,7 @@ if (releaseTasksRequested) {
     val required = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
     val missing = required.filter { keystoreProperties.getProperty(it).isNullOrBlank() }
     if (missing.isNotEmpty()) {
-        throw GradleException("Release signing is not configured: missing ${missing.joinToString()} in android/key.properties")
+        throw GradleException("Release signing is not configured: missing ${missing.joinToString()} in $signingPropertiesFile")
     }
     val keyFile = file(keystoreProperties.getProperty("storeFile"))
     if (!keyFile.isFile) {
