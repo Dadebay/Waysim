@@ -17,6 +17,8 @@
 
 Bu projede CocoaPods kaldırıldı ve eklentiler Swift Package Manager ile çözülüyor. `ios` içinde Podfile olmadığı için `pod install` çalıştırmayın. Proje kökünden `flutter pub get` ve aşağıdaki Flutter derlemesini kullanın; Xcode'da `ios/Runner.xcworkspace` dosyasını açın.
 
+Xcode bir Firebase eklentisinin `PrivacyInfo.xcprivacy` dosyasını bulamazsa proje kökünden `flutter build ios --release --no-codesign --config-only --dart-define=FLAVOR=prod` çalıştırın. Flutter, bazı FlutterFire Swift paketlerini üretilmiş `build/ios/SourcePackages` önbelleğine kopyalar; bu klasörü silmek Xcode'un paket bağlantılarını kırar. Bu Mac'te gerçek önbellek `Project Keys/22.Waysim/flutter-build-cache` altında, proje içindeki `build` yolu ona giden kısayoldur.
+
 İmza olmadan kaynak ve iOS release derlemesini doğrulama:
 
 ```sh
