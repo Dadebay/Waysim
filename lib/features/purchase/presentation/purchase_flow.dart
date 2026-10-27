@@ -20,7 +20,7 @@ import 'widgets/confirm_sheet.dart';
 
 /// Everything between "Buy" and the order screen, in one place:
 ///
-/// 1. a phone that reports no eSIM support gets a warning first;
+/// 1. a phone without confirmed eSIM support gets a warning first;
 /// 2. a guest signs in and lands back here;
 /// 3. the confirmation sheet shows price and balance; if the balance is short
 ///    it offers the exact top-up and comes back to the confirmation;
@@ -40,7 +40,7 @@ Future<bool> startPurchase(
     AppToast.show(context, l10n.maintenanceBanner, isError: true);
     return false;
   }
-  if (support == EsimSupport.no && !await confirmBuyWithoutEsim(context)) {
+  if (support != EsimSupport.yes && !await confirmBuyWithoutEsim(context)) {
     return false;
   }
   if (!context.mounted) return false;

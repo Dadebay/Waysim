@@ -74,27 +74,57 @@ class ApiCatalogRepository implements CatalogRepository {
   });
 
   @override
-  Future<Result<List<EsimPackage>>> packages(String destinationCode) =>
-      apiResult(() async {
-        final j = asMap(
-          await api.get(
-            '/v1/catalog/locations/${Uri.encodeComponent(destinationCode)}',
-          ),
-        );
-        final limits = j.mapOrNull('perDay') ?? {};
-        final result = [
-          for (final p in j.listOf('limited'))
-            packageFromApi(p, kind: PackageKind.limited, perDayOptions: limits),
-          for (final p in j.listOf('unlimited'))
-            packageFromApi(
-              p,
-              kind: PackageKind.unlimited,
-              perDayOptions: limits,
-            ),
-        ];
-        result.sort((a, b) => a.price.cents.compareTo(b.price.cents));
-        return result;
-      });
+  Future<Result<List<EsimPackage>>> packages(
+    String destinationCode,
+  ) => apiResult(() async {
+    final j = asMap(
+      await api.get(
+        '/v1/catalog/locations/${Uri.encodeComponent(destinationCode)}',
+      ),
+    );
+    final location = j.mapOrNull('location') ?? <String, dynamic>{};
+    final limited = j.listOf('limited');
+    final unlimited = j.listOf('unlimited');
+    var coverage = _coverageFrom(location.listOf('countries'));
+    final firstCard = [...limited, ...unlimited].firstOrNull;
+    final isRegion =
+        location.str('kind') == 'region' ||
+        firstCard?.mapOrNull('direction')?.str('kind') == 'region';
+    if (isRegion && coverage.codes.isEmpty && firstCard != null) {
+      final id = firstCard.str('id', firstCard.str('slug'));
+      if (id.isNotEmpty) {
+        try {
+          final detail = asMap(
+            await api.get('/v1/catalog/packages/${Uri.encodeComponent(id)}'),
+          );
+          coverage = _coverageFrom(detail.listOf('coverage'));
+        } on Object {
+          // Plans remain available even if the optional coverage lookup fails.
+        }
+      }
+    }
+    final limits = j.mapOrNull('perDay') ?? {};
+    final result = [
+      for (final p in limited)
+        packageFromApi(
+          p,
+          kind: PackageKind.limited,
+          perDayOptions: limits,
+          regionCoverage: coverage.codes,
+          regionCoverageNames: coverage.names,
+        ),
+      for (final p in unlimited)
+        packageFromApi(
+          p,
+          kind: PackageKind.unlimited,
+          perDayOptions: limits,
+          regionCoverage: coverage.codes,
+          regionCoverageNames: coverage.names,
+        ),
+    ];
+    result.sort((a, b) => a.price.cents.compareTo(b.price.cents));
+    return result;
+  });
 
   @override
   Future<Result<EsimPackage>> detail(EsimPackage package) => apiResult(
@@ -128,6 +158,8 @@ EsimPackage packageFromApi(
   int? days,
   PackageKind? kind,
   Map<String, dynamic>? perDayOptions,
+  List<String> regionCoverage = const [],
+  Map<String, String> regionCoverageNames = const {},
 }) {
   final direction = j.mapOrNull('direction') ?? {};
   final perDay = j.boolVal('perDay');
@@ -150,6 +182,7 @@ EsimPackage packageFromApi(
       (j.numOrNull('dataGb') == null
           ? null
           : (j.numVal('dataGb') * 1073741824).round());
+  final packageCoverage = _coverageFrom(j.listOf('coverage'));
   return EsimPackage(
     id: j.str('id', j.str('slug')),
     destinationCode: direction.str('code'),
@@ -167,10 +200,28 @@ EsimPackage packageFromApi(
     topUp: j.boolVal('topUpAllowed'),
     installWithinDays: j.intVal('installWithinDays', 180),
     speed: j.strOrNull('speed'),
-    coverage: j.listOf('coverage').map((c) => c.str('code')).toList(),
+    coverage: regionCoverage.isNotEmpty
+        ? regionCoverage
+        : packageCoverage.codes,
+    coverageNames: regionCoverage.isNotEmpty
+        ? regionCoverageNames
+        : packageCoverage.names,
     purchaseDays: perDay ? duration : null,
     dailyPrice: perDay ? Money(priceCents) : null,
     minPurchaseDays: perDay ? minDays : null,
     maxPurchaseDays: perDay ? maxDays : null,
   );
+}
+
+({List<String> codes, Map<String, String> names}) _coverageFrom(
+  List<Map<String, dynamic>> entries,
+) {
+  final names = <String, String>{};
+  for (final country in entries) {
+    final code = country.str('code').trim().toUpperCase();
+    if (code.isEmpty) continue;
+    final name = country.str('name').trim();
+    if (!names.containsKey(code) || names[code]!.isEmpty) names[code] = name;
+  }
+  return (codes: names.keys.toList(), names: names);
 }

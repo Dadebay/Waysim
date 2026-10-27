@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/services/push_router.dart';
 
-import '../../../../app/auth_gate.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -110,12 +107,7 @@ class _HomePageState extends State<HomePage> {
                   const SliverToBoxAdapter(
                     child: SizedBox(height: AppSpacing.sm),
                   ),
-                if (showBanners)
-                  SliverToBoxAdapter(
-                    child: _Banners(
-                      onShowLocal: () => setState(() => _tab = 0),
-                    ),
-                  ),
+                if (showBanners) SliverToBoxAdapter(child: const _Banners()),
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
                     AppSpacing.page,
@@ -303,9 +295,7 @@ class _SearchField extends StatelessWidget {
 /// programme is on) and the Local list. Content comes from the server in the
 /// real app; here the copy is local.
 class _Banners extends StatelessWidget {
-  const _Banners({required this.onShowLocal});
-
-  final VoidCallback onShowLocal;
+  const _Banners();
 
   @override
   Widget build(BuildContext context) {
@@ -325,17 +315,7 @@ class _Banners extends StatelessWidget {
               child: Material(
                 color: context.colors.surface,
                 child: InkWell(
-                  onTap: banner.link == null
-                      ? null
-                      : () {
-                          final uri = Uri.tryParse(banner.link!);
-                          if (uri?.scheme == 'https') {
-                            launchUrl(uri!, mode: LaunchMode.inAppBrowserView);
-                            return;
-                          }
-                          final route = PushRouter.routeForLink(banner.link!);
-                          if (route != null) context.push(route);
-                        },
+                  onTap: () => context.go(AppRoute.myEsim.path),
                   child: CachedNetworkImage(
                     imageUrl: banner.imageUrl,
                     width: double.infinity,
@@ -354,6 +334,7 @@ class _Banners extends StatelessWidget {
         ],
       );
     }
+    void openMyEsims() => context.go(AppRoute.myEsim.path);
     return PromoCarousel(
       aspectRatio: 16 / 9,
       children: [
@@ -364,7 +345,7 @@ class _Banners extends StatelessWidget {
           action: l10n.bannerEsimAction,
           icon: AppIcons.myEsim,
           compact: true,
-          onTap: () => showHowItWorksSheet(context),
+          onTap: openMyEsims,
         ),
         if (config.referralEnabled)
           PromoBanner(
@@ -376,11 +357,7 @@ class _Banners extends StatelessWidget {
             action: l10n.bannerInviteAction,
             icon: AppIcons.gift,
             compact: true,
-            onTap: () async {
-              if (await requireSignIn(context) && context.mounted) {
-                await context.push(AppRoute.referral.path);
-              }
-            },
+            onTap: openMyEsims,
           ),
         PromoBanner(
           key: const ValueKey('travel'),
@@ -389,7 +366,7 @@ class _Banners extends StatelessWidget {
           action: l10n.bannerTravelAction,
           icon: AppIcons.globe,
           compact: true,
-          onTap: onShowLocal,
+          onTap: openMyEsims,
         ),
       ],
     );

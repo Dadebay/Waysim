@@ -20,7 +20,6 @@ import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/otp_field.dart';
 import '../../../../core/services/device_integrity.dart';
 import '../../../../mock/demo_credentials.dart';
-import '../../../config/presentation/cubit/config_cubit.dart';
 import '../cubit/login_cubit.dart';
 import '../cubit/auth_cubit.dart';
 
@@ -150,10 +149,11 @@ class _EmailStepState extends State<_EmailStep> {
     final c = context.colors;
     final state = context.watch<LoginCubit>().state;
     final showDemo = AppEnvironment.useMockApi && !AppEnvironment.isProd;
-    // No invite code on a rooted/jailbroken device: it would not earn a bonus.
-    final referralOn =
-        context.watch<ConfigCubit>().state.referralEnabled &&
-        !context.watch<DeviceIntegrityCubit>().compromised;
+    // The referral switch comes from `/v1/referral`, which needs a session, so
+    // a signed-out visitor never sees it on; the server checks the code
+    // instead. No invite code on a rooted/jailbroken device: it would not earn
+    // a bonus.
+    final referralOn = !context.watch<DeviceIntegrityCubit>().compromised;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.page),
@@ -209,7 +209,6 @@ class _EmailStepState extends State<_EmailStep> {
             ],
           ),
         ],
-        // The invite field only exists while the referral programme is on.
         if (referralOn) ...[
           const SizedBox(height: AppSpacing.lg),
           AppTextField(

@@ -6,6 +6,7 @@ import 'package:waysim/app/app.dart';
 import 'package:waysim/app/session_coordinator.dart';
 import 'package:waysim/core/di/injector.dart';
 import 'package:waysim/core/constants/app_icons.dart';
+import 'package:waysim/core/services/esim_compatibility.dart';
 import 'package:waysim/core/utils/result.dart';
 import 'package:waysim/core/widgets/app_bottom_sheet.dart';
 import 'package:waysim/core/widgets/copy_field.dart';
@@ -130,6 +131,34 @@ void main() {
       find.textContaining('Enter activation code manually'),
       findsOneWidget,
     );
+    expect(find.textContaining('connects when you arrive'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('one-tap install explains it connects only on arrival', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    (getIt<EsimCompatibility>() as FakeCompatibility).oneTap = true;
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('My eSIM').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Türkiye'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Install in one tap'), findsOneWidget);
+    expect(
+      find.text(
+        'The eSIM connects when you arrive in the destination and your '
+        'phone finds a local network.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Stuck on “Connecting”'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
   });

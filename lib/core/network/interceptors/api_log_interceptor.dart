@@ -35,10 +35,24 @@ class ApiLogInterceptor extends Interceptor {
     AppLogger.group(
       '${AnsiColor.paint('→ ${options.method}', AnsiColor.cyan)} '
       '${options.uri}',
-      lines: _body(options.data),
+      lines: [
+        if (options.path.contains('/auth/')) _authHeaders(options.headers),
+        ..._body(options.data),
+      ],
     );
 
     handler.next(options);
+  }
+
+  /// Sign-in requests: which of the headers the server judges them by were
+  /// actually sent — present or missing, never their values.
+  String _authHeaders(Map<String, dynamic> headers) {
+    String has(String name) => headers[name] == null ? 'missing' : 'sent';
+    return 'headers: Accept-Language=${headers['Accept-Language'] ?? 'missing'} '
+        'X-Device-Id=${has('X-Device-Id')} '
+        'X-Firebase-AppCheck=${has('X-Firebase-AppCheck')} '
+        'Authorization=${has('Authorization')} '
+        'X-App-Version=${headers['X-App-Version'] ?? 'missing'}';
   }
 
   @override

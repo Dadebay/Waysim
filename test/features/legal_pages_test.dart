@@ -135,6 +135,22 @@ We do not sell your personal data.
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('More shows Contact us without a session or loaded config', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(const LegalListPage()));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('more-contact-links')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Contact us'), findsOneWidget);
+    expect(find.text('support@waysim.co'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('About the app opens a branded dialog and closes cleanly', (
     tester,
   ) async {

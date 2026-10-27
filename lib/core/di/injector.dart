@@ -68,6 +68,8 @@ import '../services/device_integrity.dart';
 import '../services/esim_compatibility.dart';
 import '../services/esim_support_cubit.dart';
 import '../services/push_service.dart';
+import '../services/startup_permissions.dart';
+import '../services/tracking_permission.dart';
 import '../constants/app_environment.dart';
 import '../network/api_client.dart';
 import '../network/device_session.dart';
@@ -156,6 +158,18 @@ void _registerCore() {
               },
             )
           : NoopPushService(),
+    )
+    ..registerLazySingleton<TrackingPermission>(
+      () => FirebaseSetup.ready
+          ? AttTrackingPermission()
+          : NoopTrackingPermission(),
+    )
+    ..registerLazySingleton<StartupPermissions>(
+      () => StartupPermissions(
+        getIt<PushService>(),
+        getIt<TrackingPermission>(),
+        getIt<LocalStorage>(),
+      ),
     )
     ..registerLazySingleton<PushPermissionGate>(
       () => PushPermissionGate(getIt<PushService>(), getIt<LocalStorage>()),
@@ -336,7 +350,7 @@ void _registerSessionCubits() {
     )
     ..registerLazySingleton<EsimCompatibility>(DeviceEsimCompatibility.new)
     ..registerLazySingleton<EsimSupportCubit>(
-      () => EsimSupportCubit(getIt<EsimCompatibility>()),
+      () => EsimSupportCubit(getIt<EsimCompatibility>(), getIt<LocalStorage>()),
     )
     ..registerLazySingleton<TelemetryCoordinator>(
       () => TelemetryCoordinator(

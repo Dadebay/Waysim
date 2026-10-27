@@ -342,6 +342,16 @@ class _OneTap extends StatelessWidget {
             style: context.text.caption.copyWith(color: c.textSecondary),
           ),
         ],
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          l10n.installArrivalNote,
+          textAlign: TextAlign.center,
+          style: context.text.caption.copyWith(color: c.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Apple's installer waits on "Connecting" until a local network is in
+        // reach, so before the trip it looks frozen.
+        _Notice(text: l10n.installStuckNote, info: true),
       ],
     );
   }

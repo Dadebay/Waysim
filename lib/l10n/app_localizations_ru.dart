@@ -268,10 +268,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get compatYes => 'Да';
 
   @override
+  String get compatLikely =>
+      'Эта модель iPhone может поддерживать eSIM. В Настройки → Основные → Об этом устройстве есть EID? SEID — это другое.';
+
+  @override
+  String get compatEidFound => 'Вижу EID';
+
+  @override
+  String get compatEidMissing => 'EID нет';
+
+  @override
+  String get compatChangeEid => 'Изменить';
+
+  @override
   String get compatNo => 'Нет';
 
   @override
-  String get compatUnknown => 'Не определено';
+  String get compatUnknown => 'Проверьте';
 
   @override
   String get compatHowToCheck => 'Как проверить';
@@ -281,7 +294,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      'iPhone XS, XR и новее поддерживают eSIM. Проверьте: Настройки → Основные → Об этом устройстве — должна быть строка «Цифровая SIM» или номер EID. Телефон также не должен быть привязан к оператору.';
+      'Некоторые региональные версии iPhone не поддерживают eSIM, даже если название модели совпадает. На этом телефоне откройте Настройки → Основные → Об этом устройстве и найдите номер EID. Если EID нет, не покупайте eSIM для этого телефона. Также проверьте, что в строке «Блокировка оператором» указано «SIM без ограничений».';
 
   @override
   String get compatSheetAndroid =>
@@ -648,6 +661,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get installQrRetryNote =>
       'Не удалось установить? Попробуйте второй раз. Если снова не получится, подождите 5 минут и повторите попытку: мы завершаем добавление этой eSIM в нашу систему.';
+
+  @override
+  String get installArrivalNote =>
+      'eSIM подключится, когда вы прилетите в страну назначения и телефон найдёт местную сеть.';
+
+  @override
+  String get installStuckNote =>
+      'Зависло на «Подключение» или в Настройках написано «Активация…»? До поездки это нормально: закройте экран и не удаляйте eSIM. Она подключится, когда вы прилетите.';
 
   @override
   String get installManual => 'Ручная установка';
@@ -1512,4 +1533,38 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get activationOnInstall => 'Начинается с момента установки eSIM.';
+
+  @override
+  String get notifPromptTitle =>
+      'Включите уведомления, чтобы получить максимум от Waysim';
+
+  @override
+  String get notifPromptBody =>
+      'Получайте оповещения, например о заканчивающемся трафике. Иногда мы также будем присылать акции и предложения — настройки уведомлений можно изменить в профиле в любой момент.';
+
+  @override
+  String get notifPromptLater => 'Позже';
+
+  @override
+  String get notifPromptEnable => 'Включить';
+
+  @override
+  String get compatNoRow => 'Ваше устройство не поддерживает eSIM';
+
+  @override
+  String get compatNoSheetTitle => 'Проверьте устройство';
+
+  @override
+  String get compatNoBody =>
+      'Возможно, вы не сможете использовать Waysim на этом устройстве.';
+
+  @override
+  String get compatNoOtherLead => 'Если вы покупаете для другого устройства, ';
+
+  @override
+  String get compatNoOtherBold =>
+      'убедитесь, что оно поддерживает eSIM и не привязано к оператору или сети.';
+
+  @override
+  String get compatNoCheckDevices => 'Проверить поддерживаемые устройства';
 }

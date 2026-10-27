@@ -265,10 +265,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get compatYes => 'Oui';
 
   @override
+  String get compatLikely =>
+      'Ce modèle d’iPhone peut prendre en charge l’eSIM. Dans Réglages → Général → Informations, voyez-vous l’EID ? Le SEID est différent.';
+
+  @override
+  String get compatEidFound => 'Je vois l’EID';
+
+  @override
+  String get compatEidMissing => 'Pas d’EID';
+
+  @override
+  String get compatChangeEid => 'Modifier';
+
+  @override
   String get compatNo => 'Non';
 
   @override
-  String get compatUnknown => 'Inconnu';
+  String get compatUnknown => 'À vérifier';
 
   @override
   String get compatHowToCheck => 'Comment vérifier';
@@ -278,7 +291,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      'Les iPhone XS, XR et plus récents sont compatibles eSIM. Vérifiez dans Réglages → Général → Informations : cherchez « SIM numérique » ou un numéro EID. Le téléphone doit aussi être désimlocké.';
+      'Certaines variantes régionales d’iPhone ne prennent pas en charge l’eSIM, même si le nom du modèle est identique. Sur ce téléphone, ouvrez Réglages → Général → Informations et cherchez le numéro EID. S’il n’apparaît pas, n’achetez pas d’eSIM pour ce téléphone. Vérifiez aussi que « Verrouillage de l’opérateur » indique « Aucune restriction de SIM ».';
 
   @override
   String get compatSheetAndroid =>
@@ -639,6 +652,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get installQrRetryNote =>
       'L’installation a échoué ? Essayez une deuxième fois. Si cela ne fonctionne toujours pas, attendez 5 minutes puis réessayez pendant que nous terminons l’ajout de cette eSIM à notre système.';
+
+  @override
+  String get installArrivalNote =>
+      'L’eSIM se connecte lorsque vous arrivez à destination et que votre téléphone trouve un réseau local.';
+
+  @override
+  String get installStuckNote =>
+      'Bloqué sur « Connexion » ou Réglages affiche « Activation… » ? C’est normal avant le voyage : fermez l’écran et ne supprimez pas l’eSIM. Elle se connectera à votre arrivée.';
 
   @override
   String get installManual => 'Installation manuelle';
@@ -1512,4 +1533,38 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activationOnInstall => 'Commence à l’installation de l’eSIM.';
+
+  @override
+  String get notifPromptTitle =>
+      'Activez les notifications pour profiter au mieux de Waysim';
+
+  @override
+  String get notifPromptBody =>
+      'Recevez des alertes comme celle de données bientôt épuisées. Nous enverrons aussi des offres de temps en temps ; vous pouvez modifier vos préférences à tout moment depuis votre profil.';
+
+  @override
+  String get notifPromptLater => 'Plus tard';
+
+  @override
+  String get notifPromptEnable => 'Activer';
+
+  @override
+  String get compatNoRow => 'Votre appareil ne prend pas en charge l\'eSIM';
+
+  @override
+  String get compatNoSheetTitle => 'Vérifiez votre appareil';
+
+  @override
+  String get compatNoBody =>
+      'Vous ne pourrez peut-être pas utiliser Waysim sur cet appareil.';
+
+  @override
+  String get compatNoOtherLead => 'Si vous achetez pour un autre appareil, ';
+
+  @override
+  String get compatNoOtherBold =>
+      'assurez-vous qu\'il prend en charge l\'eSIM et n\'est pas verrouillé sur un opérateur ou un réseau.';
+
+  @override
+  String get compatNoCheckDevices => 'Voir les appareils compatibles';
 }

@@ -536,6 +536,30 @@ abstract class AppLocalizations {
   /// **'Yes'**
   String get compatYes;
 
+  /// No description provided for @compatLikely.
+  ///
+  /// In en, this message translates to:
+  /// **'This iPhone model may support eSIM. In Settings → General → About, do you see EID? SEID is different.'**
+  String get compatLikely;
+
+  /// No description provided for @compatEidFound.
+  ///
+  /// In en, this message translates to:
+  /// **'I see EID'**
+  String get compatEidFound;
+
+  /// No description provided for @compatEidMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No EID'**
+  String get compatEidMissing;
+
+  /// No description provided for @compatChangeEid.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get compatChangeEid;
+
   /// No description provided for @compatNo.
   ///
   /// In en, this message translates to:
@@ -545,7 +569,7 @@ abstract class AppLocalizations {
   /// No description provided for @compatUnknown.
   ///
   /// In en, this message translates to:
-  /// **'Unknown'**
+  /// **'Check first'**
   String get compatUnknown;
 
   /// No description provided for @compatHowToCheck.
@@ -563,7 +587,7 @@ abstract class AppLocalizations {
   /// No description provided for @compatSheetIos.
   ///
   /// In en, this message translates to:
-  /// **'iPhone XS, XR and newer support eSIM. Check it: Settings → General → About and look for “Digital SIM” or an EID number. The phone must also be unlocked from the carrier.'**
+  /// **'Some regional iPhone models do not support eSIM, even when the model name is the same. On this phone, open Settings → General → About and look for an EID number. If there is no EID, do not buy an eSIM for this phone. Also check that Carrier Lock says “No SIM restrictions”.'**
   String get compatSheetIos;
 
   /// No description provided for @compatSheetAndroid.
@@ -1117,6 +1141,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Didn\'t install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.'**
   String get installQrRetryNote;
+
+  /// No description provided for @installArrivalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The eSIM connects when you arrive in the destination and your phone finds a local network.'**
+  String get installArrivalNote;
+
+  /// No description provided for @installStuckNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Stuck on “Connecting”, or Settings shows “Activating…”? That’s normal before the trip: close the screen and don’t delete the eSIM. It connects when you arrive.'**
+  String get installStuckNote;
 
   /// No description provided for @installManual.
   ///
@@ -2653,6 +2689,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Starts when the eSIM is installed.'**
   String get activationOnInstall;
+
+  /// Title of the pre-permission card shown before the system notification dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications for the best Waysim experience'**
+  String get notifPromptTitle;
+
+  /// Notification pre-permission card text
+  ///
+  /// In en, this message translates to:
+  /// **'Get alerts like low data warnings. We\'ll also send occasional deals and offers — you can change your notification preferences anytime from your profile.'**
+  String get notifPromptBody;
+
+  /// Notification pre-permission card text
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get notifPromptLater;
+
+  /// Notification pre-permission card text
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get notifPromptEnable;
+
+  /// Unsupported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Your device doesn\'t support eSIMs'**
+  String get compatNoRow;
+
+  /// Unsupported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Check your device'**
+  String get compatNoSheetTitle;
+
+  /// Unsupported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'You might not be able to use Waysim on this device.'**
+  String get compatNoBody;
+
+  /// Unsupported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'If you\'re buying for another device, just '**
+  String get compatNoOtherLead;
+
+  /// Unsupported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'make sure it supports eSIMs and is not locked to a carrier or network.'**
+  String get compatNoOtherBold;
+
+  /// Unsupported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Check supported devices'**
+  String get compatNoCheckDevices;
 }
 
 class _AppLocalizationsDelegate

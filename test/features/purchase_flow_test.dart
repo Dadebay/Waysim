@@ -5,6 +5,8 @@ import 'package:waysim/app/app.dart';
 import 'package:waysim/app/session_coordinator.dart';
 import 'package:waysim/app/telemetry_coordinator.dart';
 import 'package:waysim/core/di/injector.dart';
+import 'package:waysim/core/services/esim_compatibility.dart';
+import 'package:waysim/core/services/esim_support_cubit.dart';
 import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
 import 'package:waysim/features/wallet/presentation/cubit/wallet_cubit.dart';
@@ -25,6 +27,7 @@ void main() {
     await setUpTestDependencies(analytics: analytics);
     await getIt<CatalogCubit>().load();
     await getIt<AuthCubit>().restore();
+    await getIt<EsimSupportCubit>().check();
     getIt<SessionCoordinator>().start();
     getIt<TelemetryCoordinator>().start();
   });
@@ -181,5 +184,40 @@ void main() {
     expect(analytics.userId, 'A0123');
 
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('missing EID changes model estimate to No and warns', (
+    tester,
+  ) async {
+    (getIt<EsimCompatibility>() as FakeCompatibility).support =
+        EsimSupport.likely;
+    await getIt<EsimSupportCubit>().check();
+    await phone(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Where do you need an eSIM?'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'tur');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Türkiye'));
+    await tester.pumpAndSettle();
+    expect(find.text('Device supports eSIM: Check first'), findsOneWidget);
+    expect(find.text('How to check'), findsNothing);
+    expect(find.text('No EID'), findsOneWidget);
+    await tester.tap(find.text('No EID'));
+    await tester.pumpAndSettle();
+    expect(find.text('Device supports eSIM: No'), findsOneWidget);
+    await getIt<EsimSupportCubit>().check();
+    await tester.pumpAndSettle();
+    expect(find.text('Device supports eSIM: No'), findsOneWidget);
+    await tester.tap(find.text(r'Buy for $5.99'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your phone may not support eSIM'), findsOneWidget);
+    expect(find.text('Sign in or sign up'), findsNothing);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text(r'Buy for $5.99'), findsOneWidget);
   });
 }

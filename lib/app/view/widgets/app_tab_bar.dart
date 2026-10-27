@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -41,7 +43,16 @@ class AppTabBar extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.background,
-        border: Border(top: BorderSide(color: colors.border)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.sheet),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -52,6 +63,7 @@ class AppTabBar extends StatelessWidget {
               for (final (index, item) in items.indexed)
                 Expanded(
                   child: _TabItem(
+                    index: index,
                     icon: item.$1,
                     label: item.$2,
                     selected: index == currentIndex,
@@ -72,8 +84,9 @@ class AppTabBar extends StatelessWidget {
   }
 }
 
-class _TabItem extends StatelessWidget {
+class _TabItem extends StatefulWidget {
   const _TabItem({
+    required this.index,
     required this.icon,
     required this.label,
     required this.selected,
@@ -81,6 +94,7 @@ class _TabItem extends StatelessWidget {
     required this.onTap,
   });
 
+  final int index;
   final AppIconData icon;
   final String label;
   final bool selected;
@@ -88,8 +102,67 @@ class _TabItem extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_TabItem> createState() => _TabItemState();
+}
+
+class _TabItemState extends State<_TabItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _tap = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 520),
+  );
+  bool _pressed = false;
+
+  @override
+  void dispose() {
+    _tap.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    // Reduce Motion: no movement, the tab still switches.
+    if (widget.duration != Duration.zero) _tap.forward(from: 0);
+    widget.onTap();
+  }
+
+  /// Per-tab motion played once on tap: Home hops, My eSIM wiggles,
+  /// Profile pops.
+  Widget _animated(Widget child) {
+    return AnimatedBuilder(
+      animation: _tap,
+      child: child,
+      builder: (context, child) {
+        final t = _tap.value;
+        final decay = 1 - t;
+        var dy = 0.0;
+        var angle = 0.0;
+        var scale = 1.0;
+        switch (widget.index) {
+          case 0:
+            dy = -8 * math.sin(t * math.pi) * decay;
+          case 1:
+            angle = 0.35 * math.sin(t * math.pi * 4) * decay;
+          default:
+            scale = 1 + 0.3 * math.sin(t * math.pi) * decay;
+        }
+        return Transform.translate(
+          offset: Offset(0, dy),
+          child: Transform.rotate(
+            angle: angle,
+            child: Transform.scale(scale: scale, child: child),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final selected = widget.selected;
+    final duration = widget.duration;
+    final icon = widget.icon;
+    final label = widget.label;
     final color = selected ? colors.link : colors.textSecondary;
 
     return Semantics(
@@ -98,7 +171,8 @@ class _TabItem extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: InkResponse(
-        onTap: onTap,
+        onTap: _handleTap,
+        onHighlightChanged: (value) => setState(() => _pressed = value),
         containedInkWell: true,
         highlightShape: BoxShape.rectangle,
         child: ConstrainedBox(
@@ -127,7 +201,13 @@ class _TabItem extends StatelessWidget {
                   curve: Curves.easeOutBack,
                   builder: (context, t, child) =>
                       Transform.scale(scale: 1 + 0.1 * t, child: child),
-                  child: HugeIcon(icon: icon, size: 24, color: color),
+                  child: AnimatedScale(
+                    scale: _pressed ? 0.8 : 1,
+                    duration: const Duration(milliseconds: 90),
+                    child: _animated(
+                      HugeIcon(icon: icon, size: 24, color: color),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 2),

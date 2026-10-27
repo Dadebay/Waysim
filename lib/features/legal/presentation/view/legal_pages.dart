@@ -63,30 +63,28 @@ class _ListView extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: switch (state) {
-        AsyncLoading() => const Padding(
-          padding: EdgeInsets.all(AppSpacing.page),
-          child: SkeletonList(count: 6),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.page,
+          AppSpacing.sm,
+          AppSpacing.page,
+          AppSpacing.xxxl,
         ),
-        AsyncFailure(:final failure) => ErrorView(
-          failure: failure,
-          onRetry: () => context.read<AsyncCubit<List<LegalDocument>>>().load(),
-        ),
-        AsyncData(:final data) => ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.page,
-            AppSpacing.sm,
-            AppSpacing.page,
-            AppSpacing.xxxl,
-          ),
-          children: [
-            _DocumentLinks(documents: data),
-            const _ContactLinks(),
-            const SizedBox(height: AppSpacing.md),
-            const _AboutBlock(),
-          ],
-        ),
-      },
+        children: [
+          switch (state) {
+            AsyncLoading() => const SkeletonList(count: 6),
+            AsyncFailure(:final failure) => ErrorView(
+              failure: failure,
+              onRetry: () =>
+                  context.read<AsyncCubit<List<LegalDocument>>>().load(),
+            ),
+            AsyncData(:final data) => _DocumentLinks(documents: data),
+          },
+          const _ContactLinks(),
+          const SizedBox(height: AppSpacing.md),
+          const _AboutBlock(),
+        ],
+      ),
     );
   }
 }
@@ -167,22 +165,34 @@ class _DocumentLinks extends StatelessWidget {
   }
 }
 
-/// `meta.contacts`: website, e-mail, Telegram, Instagram. Whatever the admin
-/// left empty is not shown; the label is the server's text, the link opens
-/// outside the app.
+/// `meta.contacts`: website, e-mail, Telegram, Instagram. The server's labels
+/// and links are used when available; the support e-mail remains accessible
+/// while public config is unavailable.
 class _ContactLinks extends StatelessWidget {
   const _ContactLinks();
 
   @override
   Widget build(BuildContext context) {
-    final contacts = context.watch<ConfigCubit>().state.contacts;
+    final config = context.watch<ConfigCubit>().state;
+    final contacts = config.contacts;
     final rows = <(AppIconData, ContactLink)>[
       if (contacts.website != null) (AppIcons.globe, contacts.website!),
       if (contacts.email != null) (AppIcons.mail, contacts.email!),
       if (contacts.telegram != null) (AppIcons.send, contacts.telegram!),
       if (contacts.instagram != null) (AppIcons.sparkles, contacts.instagram!),
     ];
-    if (rows.isEmpty) return const SizedBox.shrink();
+    if (rows.isEmpty) {
+      final email = config.supportEmail.trim().isNotEmpty
+          ? config.supportEmail.trim()
+          : 'support@waysim.co';
+      rows.add((
+        AppIcons.mail,
+        ContactLink(
+          label: email,
+          url: Uri(scheme: 'mailto', path: email).toString(),
+        ),
+      ));
+    }
 
     final c = context.colors;
     return Padding(

@@ -4,19 +4,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/di/injector.dart';
+import '../../core/services/startup_permissions.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/offline_banner.dart';
 import '../../core/widgets/support_fab.dart';
 import '../../features/support/presentation/view/support_sheet.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import 'widgets/app_tab_bar.dart';
+import 'widgets/notification_prompt_dialog.dart';
 
 /// The frame around the three tab roots: the tab bar and the floating
 /// support button that follows the customer across every screen.
-class HomeShell extends StatelessWidget {
+class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
+
+  @override
+  State<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends State<HomeShell> {
+  StatefulNavigationShell get navigationShell => widget.navigationShell;
+
+  @override
+  void initState() {
+    super.initState();
+    // First launch only: notifications card, system dialog, then tracking.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(
+        getIt<StartupPermissions>().run(
+          confirmNotifications: () async =>
+              mounted && await showNotificationPrompt(context),
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

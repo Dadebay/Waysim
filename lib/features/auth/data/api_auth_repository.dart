@@ -4,6 +4,7 @@ import '../../../core/network/api_helpers.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/network/device_session.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/result.dart';
 import '../domain/entities/user.dart';
 import '../domain/repositories/auth_repository.dart';
@@ -48,25 +49,58 @@ class ApiAuthRepository implements AuthRepository {
     required String email,
     String? inviteCode,
   }) => apiResult(() async {
-    if (inviteCode != null && inviteCode.isNotEmpty) {
-      final validation = asMap(
-        await api.get('/v1/referral/codes/${Uri.encodeComponent(inviteCode)}'),
-      );
-      if (!validation.boolVal('valid')) {
-        throw const ServerException(
-          'Invalid invite code',
-          statusCode: 422,
-          code: 'invite_code_invalid',
-        );
-      }
-    }
-    final j = asMap(
-      await api.post(
-        '/v1/auth/otp/request',
-        data: {'email': email, 'adultConsent': true, 'inviteCode': ?inviteCode},
-      ),
+    final started = DateTime.now();
+    AppLogger.group(
+      '[AUTH] OTP request → sending',
+      lines: [
+        'email=${_maskEmail(email)} invite=${inviteCode ?? 'none'}',
+        'deviceId=${await secure.readDeviceId() == null ? 'missing' : 'present'}',
+      ],
     );
-    resendAfterSeconds = j.intVal('resendAfterSeconds', 60);
+    try {
+      if (inviteCode != null && inviteCode.isNotEmpty) {
+        final validation = asMap(
+          await api.get(
+            '/v1/referral/codes/${Uri.encodeComponent(inviteCode)}',
+          ),
+        );
+        AppLogger.d(
+          '[AUTH] invite $inviteCode valid=${validation.boolVal('valid')}',
+        );
+        if (!validation.boolVal('valid')) {
+          throw const ServerException(
+            'Invalid invite code',
+            statusCode: 422,
+            code: 'invite_code_invalid',
+          );
+        }
+      }
+      final j = asMap(
+        await api.post(
+          '/v1/auth/otp/request',
+          data: {
+            'email': email,
+            'adultConsent': true,
+            'inviteCode': ?inviteCode,
+          },
+        ),
+      );
+      resendAfterSeconds = j.intVal('resendAfterSeconds', 60);
+      AppLogger.group(
+        '[AUTH] OTP request ✓ accepted by server — e-mail is now up to the '
+        'server/mail provider',
+        level: Level.info,
+        lines: [
+          'email=${_maskEmail(email)} took=${_since(started)}',
+          'resendAfterSeconds=$resendAfterSeconds '
+              'ttlSeconds=${j.intOrNull('ttlSeconds') ?? 'missing'}',
+          'response keys=${j.keys.join(', ')}',
+        ],
+      );
+    } on AppException catch (e) {
+      _logFailure('OTP request', email, started, e);
+      rethrow;
+    }
   });
 
   @override
@@ -74,11 +108,28 @@ class ApiAuthRepository implements AuthRepository {
     required String email,
     required String code,
   }) => apiResult(() async {
-    final j = asMap(
-      await api.post(
-        '/v1/auth/otp/verify',
-        data: {'email': email, 'code': code},
-      ),
+    final started = DateTime.now();
+    AppLogger.d('[AUTH] OTP verify → sending for ${_maskEmail(email)}');
+    final Map<String, dynamic> j;
+    try {
+      j = asMap(
+        await api.post(
+          '/v1/auth/otp/verify',
+          data: {'email': email, 'code': code},
+        ),
+      );
+    } on AppException catch (e) {
+      _logFailure('OTP verify', email, started, e);
+      rethrow;
+    }
+    AppLogger.group(
+      '[AUTH] OTP verify ✓ signed in',
+      level: Level.info,
+      lines: [
+        'email=${_maskEmail(email)} took=${_since(started)}',
+        'isNewUser=${j.boolVal('isNewUser')} '
+            'userId=${j.mapOrNull('user')?.str('id') ?? 'missing'}',
+      ],
     );
     final tokens = asMap(j['tokens']);
     await secure.saveTokens(
@@ -201,4 +252,33 @@ class ApiAuthRepository implements AuthRepository {
     device.invalidate();
     _email = null;
   });
+
+  /// `an***@gmail.com` — enough to tell two addresses apart in a log, not
+  /// enough to read one off a shared screenshot.
+  static String _maskEmail(String email) {
+    final at = email.indexOf('@');
+    if (at < 1) return '***';
+    final name = email.substring(0, at);
+    return '${name.substring(0, name.length < 2 ? 1 : 2)}***'
+        '${email.substring(at)}';
+  }
+
+  static String _since(DateTime started) =>
+      '${DateTime.now().difference(started).inMilliseconds}ms';
+
+  static void _logFailure(
+    String step,
+    String email,
+    DateTime started,
+    AppException e,
+  ) => AppLogger.group(
+    '[AUTH] $step ✗ ${e.runtimeType}',
+    level: Level.error,
+    lines: [
+      'email=${_maskEmail(email)} took=${_since(started)}',
+      'status=${e.statusCode ?? 'none'} code=${e.code ?? 'none'}',
+      'message=${e.message}',
+      if (e.details != null) 'details=${e.details}',
+    ],
+  );
 }

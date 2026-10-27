@@ -688,6 +688,77 @@ void main() {
     },
   );
 
+  test('regional location countries populate package coverage', () async {
+    final adapter = ContractAdapter((o) {
+      expect(o.path, '/v1/catalog/locations/GLOBAL');
+      return {
+        'location': {
+          'code': 'GLOBAL',
+          'kind': 'region',
+          'countriesCount': 2,
+          'countries': [
+            {'code': 'TR', 'name': 'Türkiye'},
+            {'code': 'XK', 'name': 'Kosovo'},
+          ],
+        },
+        'limited': [
+          {
+            ...package,
+            'id': 'global-1',
+            'direction': {'kind': 'region', 'code': 'GLOBAL', 'name': 'Global'},
+          },
+        ],
+        'unlimited': [],
+      };
+    });
+    final plans = (await ApiCatalogRepository(
+      ApiClient(transport(adapter)),
+      local,
+    ).packages('GLOBAL')).dataOrNull!;
+
+    expect(plans.single.coverage, ['TR', 'XK']);
+    expect(plans.single.coverageNames['XK'], 'Kosovo');
+    expect(adapter.requests, hasLength(1));
+  });
+
+  test('regional coverage falls back to package detail', () async {
+    final adapter = ContractAdapter(
+      (o) => switch (o.path) {
+        '/v1/catalog/locations/GLOBAL' => {
+          'location': {'code': 'GLOBAL', 'kind': 'region', 'countriesCount': 2},
+          'limited': [
+            {
+              ...package,
+              'id': 'global-1',
+              'direction': {
+                'kind': 'region',
+                'code': 'GLOBAL',
+                'name': 'Global',
+              },
+            },
+          ],
+          'unlimited': [],
+        },
+        '/v1/catalog/packages/global-1' => {
+          ...package,
+          'coverage': [
+            {'code': 'TR', 'name': 'Türkiye'},
+            {'code': 'XK', 'name': 'Kosovo'},
+          ],
+        },
+        _ => throw StateError('Unexpected ${o.path}'),
+      },
+    );
+    final plans = (await ApiCatalogRepository(
+      ApiClient(transport(adapter)),
+      local,
+    ).packages('GLOBAL')).dataOrNull!;
+
+    expect(plans.single.coverage, ['TR', 'XK']);
+    expect(plans.single.coverageNames['TR'], 'Türkiye');
+    expect(adapter.requests, hasLength(2));
+  });
+
   test(
     'purchase polls to done, gets installation and wallet, retries the same order without another POST',
     () async {

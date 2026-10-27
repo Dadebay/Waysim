@@ -165,11 +165,15 @@
   "searchBack": "Back",
   "compatLabel": "Device supports eSIM:",
   "compatYes": "Yes",
+  "compatLikely": "This iPhone model may support eSIM. In Settings → General → About, do you see EID? SEID is different.",
+  "compatEidFound": "I see EID",
+  "compatEidMissing": "No EID",
+  "compatChangeEid": "Change",
   "compatNo": "No",
-  "compatUnknown": "Unknown",
+  "compatUnknown": "Check first",
   "compatHowToCheck": "How to check",
   "compatSheetTitle": "Does my phone support eSIM?",
-  "compatSheetIos": "iPhone XS, XR and newer support eSIM. Check it: Settings → General → About and look for “Digital SIM” or an EID number. The phone must also be unlocked from the carrier.",
+  "compatSheetIos": "Some regional iPhone models do not support eSIM, even when the model name is the same. On this phone, open Settings → General → About and look for an EID number. If there is no EID, do not buy an eSIM for this phone. Also check that Carrier Lock says “No SIM restrictions”.",
   "compatSheetAndroid": "Open the dialer and enter *#06#. If you see an EID number, your phone supports eSIM. You can also check Settings → Connections → SIM manager. The phone must be unlocked from the carrier.",
   "compatWarningTitle": "Your phone may not support eSIM",
   "compatWarningBody": "You can still buy this plan, but the eSIM won’t work on a phone without eSIM support. Continue anyway?",
@@ -407,6 +411,8 @@
   "installByQr": "Install by QR code",
   "installQrNote": "Scan the QR code with the camera of the phone you’ll travel with: open this screen on another device or print the code.",
   "installQrRetryNote": "Didn't install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.",
+  "installArrivalNote": "The eSIM connects when you arrive in the destination and your phone finds a local network.",
+  "installStuckNote": "Stuck on “Connecting”, or Settings shows “Activating…”? That’s normal before the trip: close the screen and don’t delete the eSIM. It connects when you arrive.",
   "installManual": "Manual installation",
   "esimSmdp": "SM-DP+ address",
   "esimActivationCode": "Activation code",
@@ -880,5 +886,45 @@
   "inviteCodeInvalid": "Invalid invitation code. Check it and try again.",
   "paymentFailed": "Payment not completed",
   "paymentFailedBody": "This payment did not complete. Contact support if you already sent funds.",
-  "activationOnInstall": "Starts when the eSIM is installed."
+  "activationOnInstall": "Starts when the eSIM is installed.",
+  "notifPromptTitle": "Allow notifications for the best Waysim experience",
+  "@notifPromptTitle": {
+    "description": "Title of the pre-permission card shown before the system notification dialog"
+  },
+  "notifPromptBody": "Get alerts like low data warnings. We'll also send occasional deals and offers — you can change your notification preferences anytime from your profile.",
+  "@notifPromptBody": {
+    "description": "Notification pre-permission card text"
+  },
+  "notifPromptLater": "Maybe later",
+  "@notifPromptLater": {
+    "description": "Notification pre-permission card text"
+  },
+  "notifPromptEnable": "Turn on",
+  "@notifPromptEnable": {
+    "description": "Notification pre-permission card text"
+  },
+  "compatNoRow": "Your device doesn't support eSIMs",
+  "@compatNoRow": {
+    "description": "Unsupported-device card and sheet text"
+  },
+  "compatNoSheetTitle": "Check your device",
+  "@compatNoSheetTitle": {
+    "description": "Unsupported-device card and sheet text"
+  },
+  "compatNoBody": "You might not be able to use Waysim on this device.",
+  "@compatNoBody": {
+    "description": "Unsupported-device card and sheet text"
+  },
+  "compatNoOtherLead": "If you're buying for another device, just ",
+  "@compatNoOtherLead": {
+    "description": "Unsupported-device card and sheet text"
+  },
+  "compatNoOtherBold": "make sure it supports eSIMs and is not locked to a carrier or network.",
+  "@compatNoOtherBold": {
+    "description": "Unsupported-device card and sheet text"
+  },
+  "compatNoCheckDevices": "Check supported devices",
+  "@compatNoCheckDevices": {
+    "description": "Unsupported-device card and sheet text"
+  }
 }

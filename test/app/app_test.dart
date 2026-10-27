@@ -108,6 +108,29 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('sign-up offers the invite field before the referral flag is '
+      'known', (tester) async {
+    // Signed out, the real API reports the programme as off: `/v1/referral`
+    // needs a session.
+    getIt<MockBackend>().config = const AppConfig(referralEnabled: false);
+    await getIt<ConfigCubit>().refresh();
+    final auth = getIt<AuthCubit>();
+    final login = await getIt<MockBackend>().verifyCode(
+      'person@example.com',
+      '123456',
+    );
+    auth.signedIn(login.dataOrNull!.user);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    auth.sessionExpired(revoked: true);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.text('Invite code (optional)'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('remote sign-out opens sign-in with an explanation', (
     tester,
   ) async {

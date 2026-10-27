@@ -6,6 +6,8 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This allows Waysim to provide you with a more personalized experience.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Waysim</string>
 	<key>CFBundleExecutable</key>

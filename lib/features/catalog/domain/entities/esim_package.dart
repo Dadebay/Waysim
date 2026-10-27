@@ -27,6 +27,7 @@ class EsimPackage extends Equatable {
     this.smsAndCalls = false,
     this.installWithinDays = 180,
     this.coverage = const [],
+    this.coverageNames = const {},
     this.speed,
     this.purchaseDays,
     this.dailyPrice,
@@ -59,6 +60,9 @@ class EsimPackage extends Equatable {
 
   /// Country codes covered; one entry for a country plan.
   final List<String> coverage;
+
+  /// Names supplied with [coverage], for countries absent from the catalog.
+  final Map<String, String> coverageNames;
   final String? speed;
   final String? details;
   final bool activationOnInstall;
@@ -89,6 +93,7 @@ class EsimPackage extends Equatable {
       smsAndCalls: smsAndCalls,
       installWithinDays: installWithinDays,
       coverage: coverage,
+      coverageNames: coverageNames,
       speed: speed,
       purchaseDays: days,
       dailyPrice: daily,
@@ -116,6 +121,7 @@ class EsimPackage extends Equatable {
     smsAndCalls,
     installWithinDays,
     coverage,
+    coverageNames,
     speed,
     purchaseDays,
     dailyPrice,

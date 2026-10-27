@@ -291,7 +291,11 @@ class _DestinationViewState extends State<_DestinationView> {
                 const CompatBanner(),
                 if (d.isRegion) ...[
                   const SizedBox(height: AppSpacing.md),
-                  _Coverage(codes: all.first.coverage, language: language),
+                  _Coverage(
+                    codes: all.first.coverage,
+                    names: all.first.coverageNames,
+                    language: language,
+                  ),
                 ],
                 const SizedBox(height: AppSpacing.lg),
                 if (kinds.length > 1) ...[
@@ -675,9 +679,14 @@ class _BuyBarState extends State<_BuyBar> with SingleTickerProviderStateMixin {
 
 /// A region's countries as an expandable list of flag + name.
 class _Coverage extends StatefulWidget {
-  const _Coverage({required this.codes, required this.language});
+  const _Coverage({
+    required this.codes,
+    required this.names,
+    required this.language,
+  });
 
   final List<String> codes;
+  final Map<String, String> names;
   final String language;
 
   @override
@@ -753,10 +762,12 @@ class _CoverageState extends State<_Coverage> {
                                 const SizedBox(width: AppSpacing.md),
                                 Expanded(
                                   child: Text(
-                                    catalog
-                                            .byCode(code)
-                                            ?.nameFor(widget.language) ??
-                                        code,
+                                    widget.names[code]?.isNotEmpty == true
+                                        ? widget.names[code]!
+                                        : catalog
+                                                  .byCode(code)
+                                                  ?.nameFor(widget.language) ??
+                                              code,
                                     style: context.text.bodySm,
                                   ),
                                 ),

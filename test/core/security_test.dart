@@ -95,6 +95,29 @@ void main() {
     expect(esim.appleInstallUri.host, 'esimsetup.apple.com');
   });
 
+  test('the one-tap link is Apple’s plain carddata form', () {
+    const esim = Esim(
+      id: 'e1',
+      destinationCode: 'AE',
+      destinationNames: {'en': 'UAE'},
+      kind: PackageKind.limited,
+      days: 7,
+      status: EsimStatus.notInstalled,
+      smdpAddress: 'rsp-eu.redteamobile.com',
+      activationCode: '43DE23C67EE747BCAD6B63E8B67B261F',
+      iccid: '1',
+      appleUniversalLink:
+          'https://esimsetup.apple.com/esim_qrcode_provisioning'
+          '?carddata=LPA%3A1%24other%24code',
+    );
+    expect(
+      esim.appleInstallUri.toString(),
+      'https://esimsetup.apple.com/esim_qrcode_provisioning'
+      '?carddata=LPA:1\$rsp-eu.redteamobile.com'
+      '\$43DE23C67EE747BCAD6B63E8B67B261F',
+    );
+  });
+
   group('scrubSensitive', () {
     test('removes e-mail, tokens and install strings', () {
       final text = scrubSensitive(

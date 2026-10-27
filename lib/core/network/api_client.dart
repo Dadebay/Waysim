@@ -28,11 +28,7 @@ class ApiClient {
     return dio;
   }
 
-  Future<dynamic> get(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-  }) => _request(
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters, CancelToken? cancelToken}) => _request(
     () => _dio.get<dynamic>(
       path,
       // The API rejects unknown query params, so nulls are stripped rather
@@ -42,14 +38,7 @@ class ApiClient {
     ),
   );
 
-  Future<dynamic> post(
-    String path, {
-    Object? data,
-    Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    Duration? receiveTimeout,
-    Map<String, dynamic>? headers,
-  }) => _request(
+  Future<dynamic> post(String path, {Object? data, Map<String, dynamic>? queryParameters, CancelToken? cancelToken, Duration? receiveTimeout, Map<String, dynamic>? headers}) => _request(
     () => _dio.post<dynamic>(
       path,
       data: data,
@@ -59,26 +48,11 @@ class ApiClient {
     ),
   );
 
-  Future<dynamic> put(String path, {Object? data, CancelToken? cancelToken}) =>
-      _request(
-        () => _dio.put<dynamic>(path, data: data, cancelToken: cancelToken),
-      );
+  Future<dynamic> put(String path, {Object? data, CancelToken? cancelToken}) => _request(() => _dio.put<dynamic>(path, data: data, cancelToken: cancelToken));
 
-  Future<dynamic> patch(
-    String path, {
-    Object? data,
-    CancelToken? cancelToken,
-  }) => _request(
-    () => _dio.patch<dynamic>(path, data: data, cancelToken: cancelToken),
-  );
+  Future<dynamic> patch(String path, {Object? data, CancelToken? cancelToken}) => _request(() => _dio.patch<dynamic>(path, data: data, cancelToken: cancelToken));
 
-  Future<dynamic> delete(
-    String path, {
-    Object? data,
-    CancelToken? cancelToken,
-  }) => _request(
-    () => _dio.delete<dynamic>(path, data: data, cancelToken: cancelToken),
-  );
+  Future<dynamic> delete(String path, {Object? data, CancelToken? cancelToken}) => _request(() => _dio.delete<dynamic>(path, data: data, cancelToken: cancelToken));
 
   Map<String, dynamic>? _clean(Map<String, dynamic>? params) {
     if (params == null) return null;
@@ -107,46 +81,24 @@ class ApiClient {
     final errors = _extractErrors(body);
 
     return switch (e.type) {
-      DioExceptionType.connectionTimeout ||
-      DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout => const TimeoutException(),
+      DioExceptionType.connectionTimeout || DioExceptionType.sendTimeout || DioExceptionType.receiveTimeout => const TimeoutException(),
       DioExceptionType.connectionError => const NetworkException(),
       DioExceptionType.badResponse => switch (status) {
-        400 || 422 => ValidationException(
-          message,
-          errors: errors,
-          code: code,
-          details: details,
-        ),
+        400 || 422 => ValidationException(message, errors: errors, code: code, details: details),
         401 => UnauthorizedException(message, code),
         403 => ForbiddenException(message, code: code, details: details),
         404 => NotFoundException(message, code: code, details: details),
         409 => ConflictException(message, code: code, details: details),
         429 => RateLimitException(message, code: code, details: details),
-        503 => ServiceUnavailableException(
-          message,
-          code: code,
-          details: details,
-        ),
-        _ => ServerException(
-          message,
-          statusCode: status,
-          code: code,
-          details: details,
-        ),
+        503 => ServiceUnavailableException(message, code: code, details: details),
+        _ => ServerException(message, statusCode: status, code: code, details: details),
       },
       DioExceptionType.cancel => const NetworkException('Request cancelled'),
-      _ => ServerException(
-        message,
-        statusCode: status,
-        code: code,
-        details: details,
-      ),
+      _ => ServerException(message, statusCode: status, code: code, details: details),
     };
   }
 
-  String? _extractMessage(dynamic data) =>
-      _extractString(data, 'message') ?? _extractString(data, 'error');
+  String? _extractMessage(dynamic data) => _extractString(data, 'message') ?? _extractString(data, 'error');
 
   String? _extractString(dynamic data, String key) {
     if (data is Map && data[key] is String) return data[key] as String;

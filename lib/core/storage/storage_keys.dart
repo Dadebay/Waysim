@@ -26,4 +26,8 @@ abstract final class StorageKeys {
   /// Set once the user has been asked for push permission (after the first
   /// purchase), so the prompt never repeats.
   static const pushPromptShown = 'push_prompt_shown';
+
+  /// Set once the first-launch permission screens (notifications, then iOS
+  /// tracking) have been shown.
+  static const startupPermissionsShown = 'startup_permissions_shown';
 }

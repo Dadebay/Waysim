@@ -265,10 +265,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get compatYes => 'Yes';
 
   @override
+  String get compatLikely =>
+      'This iPhone model may support eSIM. In Settings → General → About, do you see EID? SEID is different.';
+
+  @override
+  String get compatEidFound => 'I see EID';
+
+  @override
+  String get compatEidMissing => 'No EID';
+
+  @override
+  String get compatChangeEid => 'Change';
+
+  @override
   String get compatNo => 'No';
 
   @override
-  String get compatUnknown => 'Unknown';
+  String get compatUnknown => 'Check first';
 
   @override
   String get compatHowToCheck => 'How to check';
@@ -278,7 +291,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      'iPhone XS, XR and newer support eSIM. Check it: Settings → General → About and look for “Digital SIM” or an EID number. The phone must also be unlocked from the carrier.';
+      'Some regional iPhone models do not support eSIM, even when the model name is the same. On this phone, open Settings → General → About and look for an EID number. If there is no EID, do not buy an eSIM for this phone. Also check that Carrier Lock says “No SIM restrictions”.';
 
   @override
   String get compatSheetAndroid =>
@@ -648,6 +661,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get installQrRetryNote =>
       'Didn\'t install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.';
+
+  @override
+  String get installArrivalNote =>
+      'The eSIM connects when you arrive in the destination and your phone finds a local network.';
+
+  @override
+  String get installStuckNote =>
+      'Stuck on “Connecting”, or Settings shows “Activating…”? That’s normal before the trip: close the screen and don’t delete the eSIM. It connects when you arrive.';
 
   @override
   String get installManual => 'Manual installation';
@@ -1511,4 +1532,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activationOnInstall => 'Starts when the eSIM is installed.';
+
+  @override
+  String get notifPromptTitle =>
+      'Allow notifications for the best Waysim experience';
+
+  @override
+  String get notifPromptBody =>
+      'Get alerts like low data warnings. We\'ll also send occasional deals and offers — you can change your notification preferences anytime from your profile.';
+
+  @override
+  String get notifPromptLater => 'Maybe later';
+
+  @override
+  String get notifPromptEnable => 'Turn on';
+
+  @override
+  String get compatNoRow => 'Your device doesn\'t support eSIMs';
+
+  @override
+  String get compatNoSheetTitle => 'Check your device';
+
+  @override
+  String get compatNoBody =>
+      'You might not be able to use Waysim on this device.';
+
+  @override
+  String get compatNoOtherLead => 'If you\'re buying for another device, just ';
+
+  @override
+  String get compatNoOtherBold =>
+      'make sure it supports eSIMs and is not locked to a carrier or network.';
+
+  @override
+  String get compatNoCheckDevices => 'Check supported devices';
 }

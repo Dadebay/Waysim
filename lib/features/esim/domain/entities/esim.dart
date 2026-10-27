@@ -113,13 +113,24 @@ class Esim extends Equatable {
 
   /// iOS 17.4+: opens Apple's installer straight from a link.
   ///
-  /// A link from the server is used only when it points at Apple's installer;
-  /// anything else is rebuilt from the LPA string.
-  Uri get appleInstallUri =>
-      safeHttpsUriOn(appleUniversalLink, 'esimsetup.apple.com') ??
-      Uri.https('esimsetup.apple.com', '/esim_qrcode_provisioning', {
-        'carddata': lpa,
-      });
+  /// Built from the SM-DP+ address and activation code (the pair that installs
+  /// when typed by hand) in Apple's documented form, `carddata=LPA:1$host$code`
+  /// with `:` and `$` left as they are. On a real iPhone the server's link and
+  /// the percent-encoded form left Apple's installer spinning on
+  /// "Connecting". A server link is the fallback, and only on Apple's host.
+  Uri get appleInstallUri {
+    final plain = RegExp(r'^[A-Za-z0-9.-]+$');
+    if (plain.hasMatch(smdpAddress) && plain.hasMatch(activationCode)) {
+      return Uri.parse(
+        'https://esimsetup.apple.com/esim_qrcode_provisioning'
+        '?carddata=LPA:1\$$smdpAddress\$$activationCode',
+      );
+    }
+    return safeHttpsUriOn(appleUniversalLink, 'esimsetup.apple.com') ??
+        Uri.https('esimsetup.apple.com', '/esim_qrcode_provisioning', {
+          'carddata': lpa,
+        });
+  }
 
   Esim copyWith({
     EsimStatus? status,

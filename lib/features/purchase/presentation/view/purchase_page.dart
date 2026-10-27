@@ -206,6 +206,12 @@ class _Success extends StatelessWidget {
             onPressed: () => installEsim(context, esim),
           ),
           const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.installArrivalNote,
+            textAlign: TextAlign.center,
+            style: context.text.caption.copyWith(color: c.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           AppButton(
             label: l10n.actionLater,
             variant: AppButtonVariant.ghost,

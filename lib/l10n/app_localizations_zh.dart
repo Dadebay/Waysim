@@ -255,10 +255,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get compatYes => '是';
 
   @override
+  String get compatLikely =>
+      '此 iPhone 机型可能支持 eSIM。请在 设置 → 通用 → 关于本机 中查找 EID；SEID 不是 EID。';
+
+  @override
+  String get compatEidFound => '有 EID';
+
+  @override
+  String get compatEidMissing => '没有 EID';
+
+  @override
+  String get compatChangeEid => '更改';
+
+  @override
   String get compatNo => '否';
 
   @override
-  String get compatUnknown => '未知';
+  String get compatUnknown => '请先确认';
 
   @override
   String get compatHowToCheck => '如何检查';
@@ -268,7 +281,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      'iPhone XS、XR 及更新机型支持 eSIM。请在 设置 → 通用 → 关于本机 中查看是否有“数字 SIM 卡”或 EID 号码。手机还必须未锁定运营商。';
+      '部分地区版本的 iPhone 即使机型名称相同，也不支持 eSIM。请在这部手机上打开 设置 → 通用 → 关于本机，查找 EID 号码。如果没有 EID，请不要为这部手机购买 eSIM。还应确认“运营商锁”显示“无 SIM 卡限制”。';
 
   @override
   String get compatSheetAndroid =>
@@ -605,6 +618,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get installQrRetryNote =>
       '安装失败？请再试一次。如果仍未成功，请等待 5 分钟后重试，我们正在完成将此 eSIM 接入系统的处理。';
+
+  @override
+  String get installArrivalNote => '到达目的地且手机找到当地网络后，eSIM 才会连接。';
+
+  @override
+  String get installStuckNote =>
+      '卡在“正在连接”，或设置中显示“正在激活…”？出发前这是正常的：关闭该页面，不要删除 eSIM。到达后它会自动连接。';
 
   @override
   String get installManual => '手动安装';
@@ -1432,4 +1452,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get activationOnInstall => '有效期从安装 eSIM 时开始。';
+
+  @override
+  String get notifPromptTitle => '开启通知，获得更好的 Waysim 体验';
+
+  @override
+  String get notifPromptBody => '接收流量不足等提醒。我们也会偶尔发送优惠信息，您可随时在个人资料中更改通知偏好。';
+
+  @override
+  String get notifPromptLater => '稍后再说';
+
+  @override
+  String get notifPromptEnable => '开启';
+
+  @override
+  String get compatNoRow => '您的设备不支持 eSIM';
+
+  @override
+  String get compatNoSheetTitle => '检查您的设备';
+
+  @override
+  String get compatNoBody => '您可能无法在此设备上使用 Waysim。';
+
+  @override
+  String get compatNoOtherLead => '如果您是为其他设备购买，请';
+
+  @override
+  String get compatNoOtherBold => '确保该设备支持 eSIM 且未被运营商或网络锁定。';
+
+  @override
+  String get compatNoCheckDevices => '查看支持的设备';
 }
