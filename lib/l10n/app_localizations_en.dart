@@ -263,11 +263,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      'Some regional iPhone models do not support eSIM, even when the model name is the same. On this phone, open Settings → General → About and look for an EID number. If there is no EID, do not buy an eSIM for this phone. Also check that Carrier Lock says “No SIM restrictions”.';
+      'Waysim cannot verify eSIM hardware on this iPhone automatically. Some regional versions use two physical SIM cards, so an eSIM plan may not work on this phone.';
 
   @override
   String get compatSheetAndroid =>
-      'Open the dialer and enter *#06#. If you see an EID number, your phone supports eSIM. You can also check Settings → Connections → SIM manager. The phone must be unlocked from the carrier.';
+      'Waysim couldn\'t verify eSIM availability on this device. Check the manufacturer\'s specifications before buying a plan.';
+
+  @override
+  String get compatUnverifiedRow => 'eSIM support not verified';
 
   @override
   String get compatWarningTitle => 'Your phone may not support eSIM';
@@ -1565,7 +1568,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get compatLockIos =>
-      'Open Settings → General → About. If Carrier Lock says “No SIM restrictions” and you see an EID number, you’re good to go. Some iPhones sold in mainland China, Hong Kong and Macau don’t support eSIM.';
+      'Open Settings → General → About. Carrier Lock should say “No SIM restrictions”. A carrier lock can prevent a travel eSIM from working.';
 
   @override
   String get compatLockAndroid =>

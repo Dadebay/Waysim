@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waysim/app/app.dart';
@@ -215,6 +216,24 @@ void main() {
     expect(find.text('Your device supports eSIMs'), findsOneWidget);
   });
 
+  testWidgets('an unverified iPhone has no EID confirmation controls', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    (getIt<EsimCompatibility>() as FakeCompatibility).support =
+        EsimSupport.likely;
+    await getIt<EsimSupportCubit>().check();
+    await phone(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    expect(find.text('eSIM support not verified'), findsOneWidget);
+    expect(find.textContaining('EID'), findsNothing);
+    expect(find.text('Got it'), findsNothing);
+    expect(find.text('eSIM support not verified'), findsOneWidget);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('a phone without eSIM warns before buying', (tester) async {
     (getIt<EsimCompatibility>() as FakeCompatibility).support = EsimSupport.no;
     await getIt<EsimSupportCubit>().check();
@@ -237,5 +256,27 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(find.text(r'Buy for $5.99'), findsOneWidget);
+  });
+
+  testWidgets('an unconfirmed iPhone warns before checkout', (tester) async {
+    (getIt<EsimCompatibility>() as FakeCompatibility).support =
+        EsimSupport.likely;
+    await getIt<EsimSupportCubit>().check();
+    await phone(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Where do you need an eSIM?'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'tur');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Türkiye'));
+    await tester.pumpAndSettle();
+    expect(find.text('eSIM support not verified'), findsOneWidget);
+
+    await tester.tap(find.text(r'Buy for $5.99'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your phone may not support eSIM'), findsOneWidget);
+    expect(find.text('Sign in or sign up'), findsNothing);
   });
 }

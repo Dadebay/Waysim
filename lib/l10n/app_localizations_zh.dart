@@ -253,11 +253,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      '部分地区版本的 iPhone 即使机型名称相同，也不支持 eSIM。请在这部手机上打开 设置 → 通用 → 关于本机，查找 EID 号码。如果没有 EID，请不要为这部手机购买 eSIM。还应确认“运营商锁”显示“无 SIM 卡限制”。';
+      'Waysim 无法自动确认这部 iPhone 是否具备 eSIM 硬件。部分地区版本使用两张实体 SIM 卡，因此 eSIM 套餐可能无法在此手机上使用。';
 
   @override
-  String get compatSheetAndroid =>
-      '打开拨号盘并输入 *#06#。如果显示 EID 号码，说明你的手机支持 eSIM。也可在 设置 → 连接 → SIM 卡管理 中查看。手机必须未锁定运营商。';
+  String get compatSheetAndroid => 'Waysim 无法确认此设备是否支持 eSIM。购买套餐前请查看制造商的设备规格。';
+
+  @override
+  String get compatUnverifiedRow => 'eSIM 支持情况尚未确认';
 
   @override
   String get compatWarningTitle => '你的手机可能不支持 eSIM';
@@ -1477,7 +1479,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get compatLockIos =>
-      '打开 设置 → 通用 → 关于本机。如果“运营商锁”显示“无 SIM 卡限制”，并且能看到 EID 号码，就可以使用了。部分在中国大陆、香港和澳门销售的 iPhone 不支持 eSIM。';
+      '打开“设置 → 通用 → 关于本机”。“运营商锁”应显示“无 SIM 卡限制”。运营商锁可能导致旅行 eSIM 无法使用。';
 
   @override
   String get compatLockAndroid =>

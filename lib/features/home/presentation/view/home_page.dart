@@ -24,6 +24,7 @@ import '../../../config/presentation/cubit/config_cubit.dart';
 import '../../../esim/presentation/view/how_it_works_sheet.dart';
 import '../../../wallet/presentation/cubit/wallet_cubit.dart';
 import '../../../catalog/presentation/widgets/search_field_box.dart';
+import '../../../catalog/presentation/widgets/compat_banner.dart';
 import '../widgets/destination_list.dart';
 import '../widgets/home_header.dart';
 import '../widgets/promo_banner.dart';
@@ -102,6 +103,15 @@ class _HomePageState extends State<HomePage> {
                 const SliverPersistentHeader(
                   pinned: true,
                   delegate: _SearchHeaderDelegate(),
+                ),
+                const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.page,
+                    AppSpacing.sm,
+                    AppSpacing.page,
+                    AppSpacing.sm,
+                  ),
+                  sliver: SliverToBoxAdapter(child: CompatBanner()),
                 ),
                 if (showBanners)
                   const SliverToBoxAdapter(

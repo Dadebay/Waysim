@@ -263,11 +263,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      'Certaines variantes régionales d’iPhone ne prennent pas en charge l’eSIM, même si le nom du modèle est identique. Sur ce téléphone, ouvrez Réglages → Général → Informations et cherchez le numéro EID. S’il n’apparaît pas, n’achetez pas d’eSIM pour ce téléphone. Vérifiez aussi que « Verrouillage de l’opérateur » indique « Aucune restriction de SIM ».';
+      'Waysim ne peut pas vérifier automatiquement la présence d’une eSIM sur cet iPhone. Certaines variantes régionales utilisent deux cartes SIM physiques ; un forfait eSIM pourrait donc ne pas fonctionner sur ce téléphone.';
 
   @override
   String get compatSheetAndroid =>
-      'Ouvrez le clavier et saisissez *#06#. Si un numéro EID s’affiche, votre téléphone est compatible eSIM. Vous pouvez aussi vérifier Paramètres → Connexions → Gestionnaire de SIM. Le téléphone doit être désimlocké.';
+      'Waysim n’a pas pu vérifier la disponibilité de l’eSIM sur cet appareil. Consultez les caractéristiques du fabricant avant d’acheter un forfait.';
+
+  @override
+  String get compatUnverifiedRow => 'Compatibilité eSIM non vérifiée';
 
   @override
   String get compatWarningTitle =>
@@ -1566,7 +1569,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get compatLockIos =>
-      'Ouvrez Réglages → Général → Informations. Si « Verrouillage de l’opérateur » indique « Aucune restriction de SIM » et qu’un numéro EID s’affiche, tout est prêt. Certains iPhone vendus en Chine continentale, à Hong Kong et à Macao ne prennent pas en charge l’eSIM.';
+      'Ouvrez Réglages → Général → Informations. « Verrouillage de l’opérateur » doit indiquer « Aucune restriction de SIM ». Un verrouillage peut empêcher une eSIM de voyage de fonctionner.';
 
   @override
   String get compatLockAndroid =>

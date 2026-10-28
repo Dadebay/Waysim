@@ -77,7 +77,8 @@ Future<void> bootstrap(Widget Function() builder) async {
   unawaited(getIt<AuthCubit>().restore());
   unawaited(getIt<ConfigCubit>().refresh());
   unawaited(getIt<CatalogCubit>().load());
-  unawaited(getIt<EsimSupportCubit>().check());
+  // Show the fresh compatibility result on the first frame.
+  await getIt<EsimSupportCubit>().check();
 
   unawaited(getIt<DeviceIntegrityCubit>().check());
   unawaited(getIt<PushService>().init());

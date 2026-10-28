@@ -264,11 +264,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get compatSheetIos =>
-      'Algunas variantes regionales del iPhone no admiten eSIM, aunque tengan el mismo nombre de modelo. En este teléfono, abre Ajustes → General → Información y busca el número EID. Si no aparece, no compres una eSIM para este teléfono. Comprueba también que en «Bloqueo de operador» figure «Sin restricciones de SIM».';
+      'Waysim no puede verificar automáticamente si este iPhone tiene hardware eSIM. Algunas variantes regionales usan dos tarjetas SIM físicas, por lo que un plan eSIM podría no funcionar en este teléfono.';
 
   @override
   String get compatSheetAndroid =>
-      'Abre el teclado de llamadas e introduce *#06#. Si ves un número EID, tu teléfono admite eSIM. También puedes mirar Ajustes → Conexiones → Administrador de SIM. El teléfono debe estar libre de operador.';
+      'Waysim no pudo verificar si este dispositivo admite eSIM. Consulta las especificaciones del fabricante antes de comprar un plan.';
+
+  @override
+  String get compatUnverifiedRow => 'Compatibilidad eSIM sin verificar';
 
   @override
   String get compatWarningTitle => 'Tu teléfono podría no admitir eSIM';
@@ -1559,7 +1562,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get compatLockIos =>
-      'Abre Ajustes → General → Información. Si en «Bloqueo de operador» figura «Sin restricciones de SIM» y ves un número EID, todo está listo. Algunos iPhone vendidos en China continental, Hong Kong y Macao no admiten eSIM.';
+      'Abre Ajustes → General → Información. En «Bloqueo de operador» debe figurar «Sin restricciones de SIM». Un bloqueo puede impedir que funcione una eSIM de viaje.';
 
   @override
   String get compatLockAndroid =>

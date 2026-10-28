@@ -3,15 +3,15 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 
-enum EsimSupport { yes, no, unknown }
+enum EsimSupport { yes, no, likely, unknown }
 
 /// Whether this phone can use an eSIM.
 ///
 /// * Android asks the platform: `EuiccManager.isEnabled` through a method
 ///   channel (`MainActivity.kt`).
-/// * iOS has no public check (CoreTelephony's needs a carrier entitlement),
-///   so the model identifier decides. It can't tell regional variants
-///   without eSIM apart; the "supported" sheet explains how to confirm.
+/// * iOS has no public eSIM hardware check without a carrier entitlement.
+///   Regional variants can share the same model identifier, so newer iPhones
+///   without a definitive result stay unverified.
 abstract interface class EsimCompatibility {
   Future<EsimSupport> check();
 
@@ -65,7 +65,8 @@ class DeviceEsimCompatibility implements EsimCompatibility {
     try {
       if (!Platform.isIOS) return false;
       final info = await _deviceInfo.iosInfo;
-      return iosVersionAtLeast(info.systemVersion, 17, 4);
+      return info.isPhysicalDevice &&
+          iosVersionAtLeast(info.systemVersion, 17, 4);
     } on Object {
       return false;
     }
@@ -79,12 +80,16 @@ class DeviceEsimCompatibility implements EsimCompatibility {
     return m > major || (m == major && n >= minor);
   }
 
-  /// Every iPhone from the XS/XR (`iPhone11,x`) on has eSIM, except some
-  /// regional variants that share the same identifier.
+  /// iPhone Air is eSIM only in every region. Other XS/XR and newer models
+  /// may have eSIM, but regional variants sharing the identifier can lack it.
+  /// For example, `iPhone11,6` also includes the dual-nano-SIM A2104 XS Max.
   EsimSupport iosSupport(String machine) {
+    if (machine == 'iPhone18,4') return EsimSupport.yes; // iPhone Air
     final match = RegExp(r'^iPhone(\d+),').firstMatch(machine);
     if (match == null) return EsimSupport.unknown; // iPad, iPod, …
-    return int.parse(match.group(1)!) >= 11 ? EsimSupport.yes : EsimSupport.no;
+    return int.parse(match.group(1)!) >= 11
+        ? EsimSupport.likely
+        : EsimSupport.no;
   }
 
   @override

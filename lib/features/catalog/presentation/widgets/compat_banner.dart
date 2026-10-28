@@ -31,17 +31,21 @@ class CompatBanner extends StatelessWidget {
         label: l10n.compatNoRow,
         onTap: () => showUnsupportedSheet(context),
       ),
+      EsimSupport.likely => _CompatRow(
+        icon: AppIcons.info,
+        color: c.warning,
+        label: l10n.compatUnverifiedRow,
+      ),
       _ => _CompatRow(
         icon: AppIcons.info,
         color: c.textSecondary,
-        label: l10n.compatSheetTitle,
-        onTap: () => showCompatSheet(context),
+        label: l10n.compatUnverifiedRow,
       ),
     };
   }
 }
 
-/// How to find out whether a phone has eSIM, in the words of its platform.
+/// Explains an unverified result without asking the customer to enter data.
 Future<void> showCompatSheet(BuildContext context) {
   final l10n = context.l10n;
   final isIos = Theme.of(context).platform == TargetPlatform.iOS;
@@ -49,7 +53,7 @@ Future<void> showCompatSheet(BuildContext context) {
     context,
     title: l10n.compatSheetTitle,
     closeLabel: l10n.actionClose,
-    builder: (_) => Padding(
+    builder: (sheetContext) => Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.page,
         0,
@@ -62,14 +66,12 @@ Future<void> showCompatSheet(BuildContext context) {
         children: [
           Text(
             isIos ? l10n.compatSheetIos : l10n.compatSheetAndroid,
-            style: context.text.body,
+            style: sheetContext.text.body,
           ),
           const SizedBox(height: AppSpacing.xl),
-          Builder(
-            builder: (sheetContext) => AppButton(
-              label: l10n.actionGotIt,
-              onPressed: () => Navigator.of(sheetContext).pop(),
-            ),
+          AppButton(
+            label: l10n.actionGotIt,
+            onPressed: () => Navigator.of(sheetContext).pop(),
           ),
         ],
       ),
@@ -121,19 +123,19 @@ class _CompatRow extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.label,
-    required this.onTap,
+    this.onTap,
   });
 
   final AppIconData icon;
   final Color color;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     return Semantics(
-      button: true,
+      button: onTap != null,
       label: label,
       excludeSemantics: true,
       child: Material(
@@ -149,11 +151,12 @@ class _CompatRow extends StatelessWidget {
                 _IconDisc(icon: icon, color: color),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(child: Text(label, style: context.text.bodyMed)),
-                HugeIcon(
-                  icon: AppIcons.chevronRight,
-                  size: 20,
-                  color: c.textSecondary,
-                ),
+                if (onTap != null)
+                  HugeIcon(
+                    icon: AppIcons.chevronRight,
+                    size: 20,
+                    color: c.textSecondary,
+                  ),
               ],
             ),
           ),
@@ -215,7 +218,7 @@ class _SheetBadge extends StatelessWidget {
 }
 
 /// "Check your device" for a phone with eSIM: it also has to be free of a
-/// carrier lock, and iPhone regional variants need the EID check.
+/// carrier lock.
 Future<void> showSupportedSheet(BuildContext context) {
   final l10n = context.l10n;
   final isIos = Theme.of(context).platform == TargetPlatform.iOS;
