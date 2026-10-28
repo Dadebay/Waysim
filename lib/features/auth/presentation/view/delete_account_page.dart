@@ -16,8 +16,6 @@ import '../../../wallet/presentation/cubit/wallet_cubit.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/delete_account_cubit.dart';
 
-/// Delete the account: what is lost, then a code sent by e-mail to confirm.
-/// App Store requires this to be possible from inside the app.
 class DeleteAccountPage extends StatelessWidget {
   const DeleteAccountPage({super.key});
 

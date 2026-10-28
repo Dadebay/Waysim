@@ -18,7 +18,6 @@ class ChatMessage extends Equatable {
   final ChatRole role;
   final String text;
 
-  /// The assistant could not help: show "Contact support".
   final bool offersHuman;
 
   @override

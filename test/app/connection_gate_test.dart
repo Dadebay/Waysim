@@ -74,7 +74,7 @@ void main() {
 
     await tester.tap(find.text('Try again'));
     await tester.pump();
-    // The check is deliberately slow enough to be seen, then it settles.
+
     await tester.pump(const Duration(seconds: 2));
 
     expect(find.byKey(offlineScreen), findsOneWidget);
@@ -90,7 +90,6 @@ void main() {
     await tester.pumpWidget(host(network));
     await tester.pump(const Duration(seconds: 1));
 
-    // Back online, but the change event was missed.
     network.connected = true;
     await tester.tap(find.text('Try again'));
     await tester.pump();

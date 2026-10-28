@@ -1,6 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Plain key/value preferences — settings, flags, small caches.
 abstract interface class LocalStorage {
   String? getString(String key);
   Future<void> setString(String key, String value);

@@ -55,7 +55,7 @@ void main() {
       final result = await b.buy('TR_5_30', 'k1', const Money(599));
 
       final receipt = result.dataOrNull!;
-      expect(receipt.balanceAfter, const Money(1851)); // $24.50 − $5.99
+      expect(receipt.balanceAfter, const Money(1851));
       expect(receipt.esim.status, EsimStatus.notInstalled);
       expect(receipt.esim.volumeBytes, 5 * 1024 * 1024 * 1024);
       expect(receipt.esim.lpa, startsWith(r'LPA:1$smdp.example.com$'));
@@ -83,7 +83,7 @@ void main() {
 
     test('cannot spend more than the balance', () async {
       final b = await signedIn();
-      // Europe 50 GB is far above $24.50.
+
       final result = await b.buy('EU_50_30', 'k', const Money(11699));
       expect(result.failureOrNull?.code, ApiCodes.insufficientBalance);
       expect((await b.balance()).dataOrNull, const Money(2450));

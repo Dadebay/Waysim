@@ -4,11 +4,6 @@ import '../../firebase_options.dart';
 import '../constants/app_environment.dart';
 import '../utils/app_logger.dart';
 
-/// Brings Firebase up once, before anything that uses it is built.
-///
-/// Never throws: a build without Firebase config, or a phone without Play
-/// services, must still open the app — every Firebase-backed service falls
-/// back to a no-op when [ready] is false.
 abstract final class FirebaseSetup {
   static bool ready = false;
 

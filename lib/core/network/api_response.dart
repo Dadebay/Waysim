@@ -1,16 +1,6 @@
 import '../error/exceptions.dart';
 
-/// Every response — success or error — has the same envelope:
-///
-/// ```json
-/// { "statusCode": 200, "message": "success", "data": { } }
-/// ```
-///
-/// Data sources only ever see `data`; [ApiClient] unwraps it.
 abstract final class ApiEnvelope {
-  /// Pulls `data` out of [body]. A response that is not enveloped (a bare
-  /// list or object) is passed through unchanged, so a backend tweak cannot
-  /// break every call at once.
   static dynamic unwrap(dynamic body) {
     if (body is Map<String, dynamic> && body.containsKey('data')) {
       return body['data'];
@@ -19,7 +9,6 @@ abstract final class ApiEnvelope {
   }
 }
 
-/// Small guards so `fromJson` bodies stay readable.
 extension JsonMap on Map<String, dynamic> {
   String str(String key, [String fallback = '']) =>
       this[key] is String ? this[key] as String : fallback;
@@ -59,7 +48,6 @@ extension JsonMap on Map<String, dynamic> {
           .toList();
 }
 
-/// Parses a payload the API returns as a bare list.
 List<T> parseList<T>(
   dynamic json,
   T Function(Map<String, dynamic> item) fromItem,
@@ -68,7 +56,6 @@ List<T> parseList<T>(
   return json.whereType<Map<String, dynamic>>().map(fromItem).toList();
 }
 
-/// Parses a payload the API returns as a single object.
 Map<String, dynamic> asMap(dynamic json) {
   if (json is! Map<String, dynamic>) {
     throw const ParsingException('Expected an object');

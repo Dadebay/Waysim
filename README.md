@@ -1,61 +1,73 @@
 # Waysim
 
-Waysim is a Flutter app for discovering and buying travel eSIM data plans on iOS and Android. Travellers can browse country and regional plans, top up an in-app balance, purchase an eSIM, and view its installation details and data usage.
+Travel eSIM app for iOS and Android. Customers pick a destination, buy a data plan, install the eSIM on their phone and top it up later, all from one app.
 
-> **API integration:** The app uses the Waysim mobile API by default. See the [integration checklist](docs/api/mobile-integration.md) for connected endpoints and verification boundaries.
+## What the app does
 
-## What is in the app?
+- **Browse and search** destinations and data plans, with prices in the customer's currency.
+- **Buy a plan** and pay from the in-app balance. The balance is topped up with PayPal or crypto.
+- **Install the eSIM**: one tap on iPhones that support it, otherwise by scanning a QR code. The app checks whether the device supports eSIM before checkout.
+- **My eSIMs**: usage, validity and top-up of an existing eSIM.
+- **Account**: sign in with an e-mail code, or keep using the app as a guest. Order history, referral link, notification settings, account deletion.
+- **Support chat** and legal pages.
+- **Push notifications** for eSIM and order updates.
+- **Languages**: English, Russian, Spanish, French, Chinese.
 
-- Searchable country and regional eSIM catalog with recent searches and package details.
-- eSIM compatibility guidance, purchase flow, and an eSIM library with QR code, activation details, usage, and top-up screens.
-- Passwordless email-code sign-in, profile, order history, referral, settings, legal pages, and support UI.
-- Balance top-ups using the payment methods, coins, networks, and limits returned by the API (currently cryptocurrency).
-- English, Chinese, Russian, Spanish, and French; light and dark themes.
-- Optional Firebase integration for push notifications, analytics, and crash reporting.
+## How it works
 
-The mobile app calls the Waysim API. The eSIM supplier API and its credentials belong on the backend and are never called directly from the app.
+The app talks only to the Waysim backend. The backend handles orders, payments and the eSIM supplier, so the app never contacts a supplier directly and holds no supplier keys.
 
-## Run locally
-
-Install a Flutter SDK compatible with the Dart constraint in [`pubspec.yaml`](pubspec.yaml) (currently Dart `^3.11.4`), then run:
-
-```bash
-flutter pub get
-flutter gen-l10n
-flutter run --dart-define=USE_MOCK_API=false
-```
-
-The default API address is `https://api.waysim.co`. Set `--dart-define=API_BASE_URL=...` to use another backend. Device registration, email verification, account sessions, catalog, orders, eSIMs, wallet, referrals, legal content, settings, and support use the documented mobile endpoints.
-
-For isolated UI development, `--dart-define=USE_MOCK_API=true` selects local fixtures. Remove that flag or set it to `false` when testing the real API. To open the component gallery, add `--dart-define=INITIAL_ROUTE=/gallery`.
-
+Sign-in gives the app an access token and a refresh token, kept in the system keychain (Keychain on iOS, Keystore on Android). An expired access token is renewed automatically and the failed request is repeated. If renewing fails, the session is cleared and the sign-in screen is shown.
 
 ## Project structure
 
-```text
+```
 lib/
-├── app/          # App shell, routing, session and theme/locale state
-├── core/         # Shared services, networking, storage, theme and widgets
-├── features/     # Auth, catalog, purchase, eSIM, wallet, profile, support…
-├── l10n/         # ARB translations and generated localization classes
-└── mock/         # In-memory backend for demos and tests
-assets/           # Branding, flags and Gilroy fonts
-docs/             # Product, design, architecture, API and roadmap notes
-test/             # Unit, widget and mock-flow tests
+  app/        app shell, routing, startup gates (connection, forced update)
+  core/       network, storage, theme, localization, shared widgets, services
+  features/   one folder per feature: auth, catalog, purchase, esim, wallet,
+              profile, referral, support, notification, legal, config, home
+  l10n/       translation files (arb) and generated localizations
+  mock/       in-memory backend for development and tests
+test/         unit and widget tests
+integration_test/
 ```
 
-The app uses BLoC/Cubit for state, `go_router` for navigation, `get_it` for dependency injection, `dio` for networking, and `hydrated_bloc` for persisted preferences. See the [architecture notes](docs/04-architecture.md) for details.
+Each feature is split into `data` (API and storage), `domain` (entities and repository interfaces) and `presentation` (cubits and screens).
 
-## Checks
+Main tools: Flutter, BLoC/Cubit for state, `go_router` for navigation, `dio` for networking, `get_it` for dependency injection, Firebase (push, crash reports, App Check).
+
+## Running
+
+Requirements: Flutter 3.47 or newer (Dart 3.12).
+
+```bash
+flutter pub get
+flutter run
+```
+
+Build settings are passed with `--dart-define`:
+
+| Name | Meaning |
+| --- | --- |
+| `FLAVOR` | `dev` (default), `staging` or `prod` |
+| `API_BASE_URL` | Backend root. Release builds accept `https://` only |
+| `USE_MOCK_API` | `true` runs against the in-memory backend. Ignored in release builds |
+| `FIREBASE` | `false` starts the app without Firebase |
+
+Run the app without a backend:
+
+```bash
+flutter run --dart-define=USE_MOCK_API=true
+```
+
+## Tests
 
 ```bash
 flutter analyze
 flutter test
-dart run tool/roadmap_status.dart
 ```
 
-The [integration checklist](docs/api/mobile-integration.md) records the current mobile API wiring; the [roadmap](docs/06-roadmap.md) contains the earlier implementation plan. Start at the [documentation index](docs/README.md) for the product specification, design system, platform notes, and Firebase setup.
+## Release
 
-## Before production
-
-Unit and widget tests exercise API contracts with intercepted HTTP responses. Real email delivery, payment-provider callbacks, supplier provisioning, push delivery, and installation on a physical eSIM-capable phone require end-to-end verification against the intended backend. Keep payment and supplier credentials on the backend.
+Android signing reads `android/key.properties`. Without it, the release build is unsigned. iOS builds go through Xcode or `flutter build ipa` with `FLAVOR=prod`.

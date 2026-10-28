@@ -2,8 +2,6 @@ import '../../../core/utils/result.dart';
 import '../domain/entities/chat_message.dart';
 import '../domain/repositories/support_repository.dart';
 
-/// Canned answers keyed on a few words, in the language asked. Stands in for
-/// the LLM behind our backend.
 class MockSupportRepository implements SupportRepository {
   MockSupportRepository({this.latency = const Duration(milliseconds: 900)});
 

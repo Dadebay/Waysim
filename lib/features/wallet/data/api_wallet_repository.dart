@@ -226,9 +226,6 @@ TopUpSession paymentFromApi(Map<String, dynamic> j) {
   );
 }
 
-/// The coin → network pairs in the admin's order. `coins[]` carries them
-/// grouped by coin; `currencies[]` has the same pairs flat, and is what an
-/// older server answers with.
 List<CryptoOption> _cryptoOptions(Map<String, dynamic> json) {
   CryptoOption option(Map<String, dynamic> j) => CryptoOption(
     j.str('coin'),

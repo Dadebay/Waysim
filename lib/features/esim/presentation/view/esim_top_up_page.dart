@@ -19,7 +19,6 @@ import '../../../purchase/presentation/purchase_subject.dart';
 import '../cubit/esim_list_cubit.dart';
 import '../esim_labels.dart';
 
-/// Add-on plans for an eSIM that is already installed.
 class EsimTopUpPage extends StatelessWidget {
   const EsimTopUpPage({super.key, required this.esimId});
 

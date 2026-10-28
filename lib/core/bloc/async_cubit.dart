@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../error/failure.dart';
 import '../utils/result.dart';
 
-/// Load-once state for a screen that shows one remote value.
 sealed class AsyncState<T> extends Equatable {
   const AsyncState();
 
@@ -26,7 +25,6 @@ class AsyncData<T> extends AsyncState<T> {
 
   final T data;
 
-  /// A reload is running behind the data already on screen.
   final bool refreshing;
 
   @override
@@ -42,16 +40,12 @@ class AsyncFailure<T> extends AsyncState<T> {
   List<Object?> get props => [failure];
 }
 
-/// A cubit that runs one loader and exposes loading / data / failure.
-/// Orders, referral, legal documents, devices and top-up plans all use it.
 class AsyncCubit<T> extends Cubit<AsyncState<T>> {
   AsyncCubit(this._loader) : super(const AsyncLoading());
 
   final Future<Result<T>> Function() _loader;
   int _generation = 0;
 
-  /// Loads. With [silent] the current data stays on screen (pull-to-refresh);
-  /// without it a failed first load shows the error view.
   Future<void> load({bool silent = false}) async {
     final generation = ++_generation;
     final current = state;
@@ -67,7 +61,6 @@ class AsyncCubit<T> extends Cubit<AsyncState<T>> {
       case Success(:final data):
         emit(AsyncData(data));
       case Error(:final failure):
-        // Keep showing what we had when a silent refresh fails.
         if (silent && current is AsyncData<T>) {
           emit(AsyncData(current.data));
         } else {
@@ -76,7 +69,6 @@ class AsyncCubit<T> extends Cubit<AsyncState<T>> {
     }
   }
 
-  /// Replaces the data without a round trip (an eSIM just bought).
   void put(T data) {
     _generation++;
     if (!isClosed) emit(AsyncData(data));

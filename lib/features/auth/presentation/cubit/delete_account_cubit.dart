@@ -25,7 +25,6 @@ class DeleteAccountState extends Equatable {
   List<Object?> get props => [step, loading, wrongCode, failure];
 }
 
-/// Account deletion: read the consequences, confirm with an e-mailed code.
 class DeleteAccountCubit extends Cubit<DeleteAccountState> {
   DeleteAccountCubit(this._repository, this._auth)
     : super(const DeleteAccountState());
@@ -33,7 +32,6 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
   final AuthRepository _repository;
   final AuthCubit _auth;
 
-  /// "Continue" on the warning: send the code.
   Future<void> requestCode() async {
     emit(const DeleteAccountState(loading: true));
     final result = await _repository.requestDeletionCode();
@@ -53,7 +51,6 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
     if (isClosed) return;
     switch (result) {
       case Success():
-        // Back to a guest: the repository already dropped the session.
         _auth.sessionExpired();
         emit(const DeleteAccountState(step: DeleteStep.done));
       case Error(:final failure):

@@ -18,16 +18,6 @@ import '../../wallet/presentation/cubit/wallet_cubit.dart';
 import 'purchase_subject.dart';
 import 'widgets/confirm_sheet.dart';
 
-/// Everything between "Buy" and the order screen, in one place:
-///
-/// 1. a phone without confirmed eSIM support gets a warning first;
-/// 2. a guest signs in and lands back here;
-/// 3. the confirmation sheet shows price and balance; if the balance is short
-///    it offers the exact top-up and comes back to the confirmation;
-/// 4. the order screen runs the purchase.
-///
-/// Resolves `true` when an order was placed and finished successfully (used
-/// by the eSIM top-up screen to close itself).
 Future<bool> startPurchase(
   BuildContext context,
   PurchaseSubject subject,
@@ -47,7 +37,6 @@ Future<bool> startPurchase(
   if (!await requireSignIn(context)) return false;
   if (!context.mounted) return false;
 
-  // The confirmation needs a current balance, whatever the cache says.
   unawaited(getIt<WalletCubit>().refresh());
 
   while (true) {
@@ -72,7 +61,7 @@ Future<bool> startPurchase(
           extra: missing.cents,
         );
         if (topped != true || !context.mounted) return false;
-      // Back to the confirmation with the new balance.
+
       case null:
         return false;
     }

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// One entry of `meta.contacts`: the text to show and where it leads.
 class ContactLink extends Equatable {
   const ContactLink({required this.label, required this.url});
 
@@ -11,8 +10,6 @@ class ContactLink extends Equatable {
   List<Object?> get props => [label, url];
 }
 
-/// Switches and numbers the server controls, fetched on launch and whenever
-/// the app returns to the foreground.
 class AppConfig extends Equatable {
   const AppConfig({
     this.referralEnabled = true,
@@ -33,20 +30,17 @@ class AppConfig extends Equatable {
   final bool referralEnabled;
   final int referralRewardCents;
 
-  /// Purchases and top-ups are paused (incident switch).
   final bool maintenance;
   final int minTopUpCents;
   final int maxTopUpCents;
   final String supportEmail;
   final AppContacts contacts;
 
-  /// Language codes currently offered by the server.
   final List<String> supportedLocales;
   final String defaultLocale;
   final bool cryptoEnabled;
   final bool paypalEnabled;
 
-  /// Versions below this are blocked until updated; `null` = no limit.
   final String? minSupportedVersion;
   final String storeUrl;
 
@@ -68,7 +62,6 @@ class AppConfig extends Equatable {
   ];
 }
 
-/// `meta.contacts`; a channel the admin left empty is `null` and not shown.
 class AppContacts extends Equatable {
   const AppContacts({this.website, this.email, this.telegram, this.instagram});
 

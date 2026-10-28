@@ -10,7 +10,6 @@ import 'package:waysim/features/auth/data/auth_token_refresher.dart';
 
 import '../helpers/test_dependencies.dart';
 
-/// Answers from a script; remembers the Authorization header of every call.
 class ScriptedAdapter implements HttpClientAdapter {
   ScriptedAdapter(this._respond);
 

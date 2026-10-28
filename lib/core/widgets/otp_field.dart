@@ -4,11 +4,6 @@ import 'package:flutter/services.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Six single-digit cells over one hidden text field.
-///
-/// A single field keeps paste, autofill (`oneTimeCode`) and the system
-/// keyboard working as they do for any input; the cells only draw it.
-/// [onCompleted] fires once, as the sixth digit arrives.
 class OtpField extends StatefulWidget {
   const OtpField({
     super.key,
@@ -86,7 +81,7 @@ class _OtpFieldState extends State<OtpField> {
             );
           },
         ),
-        // The real input, invisible but full size so a tap anywhere focuses.
+
         Positioned.fill(
           child: Opacity(
             opacity: 0,

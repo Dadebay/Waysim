@@ -1,7 +1,5 @@
 import 'package:markdown/markdown.dart' as md;
 
-/// Reflows GFM table rows into labeled cards without rewriting legal content.
-/// The standard parser handles escaped pipes, empty cells and inline Markdown.
 class MobileLegalTableSyntax extends md.TableSyntax {
   const MobileLegalTableSyntax();
 
@@ -16,7 +14,6 @@ class MobileLegalTableSyntax extends md.TableSyntax {
         ? sections[1].children!.cast<md.Element>()
         : <md.Element>[];
 
-    // A header-only table still has content that must remain visible.
     if (rows.isEmpty) {
       return md.Element('blockquote', [
         for (final header in headers)

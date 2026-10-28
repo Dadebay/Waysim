@@ -20,8 +20,6 @@ import '../cubit/purchase_cubit.dart';
 import '../../../../core/utils/formatters/money.dart';
 import '../purchase_subject.dart';
 
-/// The order screen: "Setting up your eSIM…", then "eSIM is ready!" — or why
-/// it did not work. The customer cannot back out while the order runs.
 class PurchasePage extends StatelessWidget {
   const PurchasePage({super.key, required this.subject});
 

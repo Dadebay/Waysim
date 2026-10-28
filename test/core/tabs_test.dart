@@ -54,9 +54,9 @@ void main() {
 
       await tester.tap(find.text('Regional'));
       await tester.pump(const Duration(milliseconds: 100));
-      // Mid-flight: not yet there, not still at the start.
+
       final mid = thumb(tester);
-      expect(mid.x, equals(1.0)); // target alignment is already the new one
+      expect(mid.x, equals(1.0));
       await tester.pumpAndSettle();
 
       expect(selected, 1);
@@ -140,7 +140,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Exactly one tab says "selected", and it is the one asked for.
       final selected = [
         for (final label in ['Home', 'My eSIM', 'Profile'])
           if (tester
@@ -186,14 +185,14 @@ void main() {
 
       await tester.pumpWidget(host(switcher(1)));
       await tester.pump(const Duration(milliseconds: 20));
-      expect(dx('page 1'), greaterThan(rest)); // coming in from the right
-      expect(dx('page 0'), lessThan(rest + 0.01)); // leaving to the left
+      expect(dx('page 1'), greaterThan(rest));
+      expect(dx('page 0'), lessThan(rest + 0.01));
       await tester.pumpAndSettle();
 
       await tester.pumpWidget(host(switcher(0)));
       await tester.pump(const Duration(milliseconds: 20));
-      expect(dx('page 0'), lessThan(rest + 24)); // from the left side
-      expect(dx('page 1'), greaterThan(rest - 0.01)); // leaving to the right
+      expect(dx('page 0'), lessThan(rest + 24));
+      expect(dx('page 1'), greaterThan(rest - 0.01));
       await tester.pumpAndSettle();
     });
 

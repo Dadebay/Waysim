@@ -4,8 +4,6 @@ import '../constants/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// A destination in a list: leading flag/globe, name (+ optional subtitle,
-/// e.g. "20 countries"), the lowest price and a chevron.
 class CountryRow extends StatelessWidget {
   const CountryRow({
     super.key,
@@ -24,16 +22,12 @@ class CountryRow extends StatelessWidget {
   final String title;
   final String? subtitle;
 
-  /// The price figure, already formatted (`$1.99`).
   final String price;
 
-  /// Words around the price, from the translated "from {price}" template
-  /// ("from " / "" in English, "" / " 起" in Chinese).
   final String pricePrefix;
   final String priceSuffix;
   final VoidCallback onTap;
 
-  /// Characters of [title] to emphasise (search match), as a prefix length.
   final int? highlight;
   final bool showChevron;
 
@@ -140,7 +134,6 @@ class CountryRow extends StatelessWidget {
   }
 }
 
-/// Round globe used for regions and as the stand-in for a missing flag.
 class RegionIcon extends StatelessWidget {
   const RegionIcon({super.key, this.size = 40});
 

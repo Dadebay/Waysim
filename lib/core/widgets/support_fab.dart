@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../constants/app_icons.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// 56 pt floating support button.
 class SupportFab extends StatelessWidget {
   const SupportFab({super.key, required this.onPressed, this.unread = 0});
 

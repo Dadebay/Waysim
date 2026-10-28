@@ -9,8 +9,6 @@ import 'analytics_service.dart';
 import 'app_attestation.dart';
 import 'crash_reporter.dart';
 
-/// Crash reports to Firebase Crashlytics. Collection is off in debug builds,
-/// so a developer's own crashes do not pollute the dashboard.
 class CrashlyticsReporter implements CrashReporter {
   CrashlyticsReporter() {
     FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
@@ -30,15 +28,11 @@ class CrashlyticsReporter implements CrashReporter {
     );
   }
 
-  /// Only the public id (`A0123`) — never an e-mail address.
   @override
   void setUserId(String? publicId) =>
       FirebaseCrashlytics.instance.setUserIdentifier(publicId ?? '');
 }
 
-/// App Check: App Attest / DeviceCheck on iOS, Play Integrity on Android. The
-/// debug providers are used in debug builds; their token has to be registered
-/// once in the Firebase console (App Check → Apps → Manage debug tokens).
 class FirebaseAppAttestation implements AppAttestation {
   bool _activated = false;
 
@@ -71,8 +65,6 @@ class FirebaseAppAttestation implements AppAttestation {
   }
 }
 
-/// Firebase Analytics. Collection is on in every build. Debug builds carry a
-/// `build=debug` user property, which can be filtered in Analytics reports.
 class FirebaseAnalyticsService implements AnalyticsService {
   FirebaseAnalyticsService() {
     _analytics.setAnalyticsCollectionEnabled(true);

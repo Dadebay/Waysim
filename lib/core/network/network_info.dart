@@ -1,7 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-/// Thin wrapper so blocs/repositories can check connectivity without
-/// depending on the plugin directly (and so it can be faked in tests).
 abstract interface class NetworkInfo {
   Future<bool> get isConnected;
   Stream<bool> get onConnectivityChanged;

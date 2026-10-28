@@ -9,8 +9,6 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../../../../core/widgets/app_button.dart';
 
-/// One tappable row with the device's eSIM support; each answer opens a sheet
-/// that says what to check next.
 class CompatBanner extends StatelessWidget {
   const CompatBanner({super.key});
 
@@ -45,7 +43,6 @@ class CompatBanner extends StatelessWidget {
   }
 }
 
-/// Explains an unverified result without asking the customer to enter data.
 Future<void> showCompatSheet(BuildContext context) {
   final l10n = context.l10n;
   final isIos = Theme.of(context).platform == TargetPlatform.iOS;
@@ -79,8 +76,6 @@ Future<void> showCompatSheet(BuildContext context) {
   );
 }
 
-/// Shown before buying on a phone that reports no eSIM support.
-/// Resolves `true` when the customer chooses to buy anyway.
 Future<bool> confirmBuyWithoutEsim(BuildContext context) async {
   final l10n = context.l10n;
   final proceed = await showAppSheet<bool>(
@@ -117,7 +112,6 @@ Future<bool> confirmBuyWithoutEsim(BuildContext context) async {
   return proceed ?? false;
 }
 
-/// White card row: tinted icon disc, label, chevron.
 class _CompatRow extends StatelessWidget {
   const _CompatRow({
     required this.icon,
@@ -192,7 +186,6 @@ class _IconDisc extends StatelessWidget {
   }
 }
 
-/// Large tinted circle at the top of a "Check your device" sheet.
 class _SheetBadge extends StatelessWidget {
   const _SheetBadge({required this.icon, required this.fill});
 
@@ -217,8 +210,6 @@ class _SheetBadge extends StatelessWidget {
   }
 }
 
-/// "Check your device" for a phone with eSIM: it also has to be free of a
-/// carrier lock.
 Future<void> showSupportedSheet(BuildContext context) {
   final l10n = context.l10n;
   final isIos = Theme.of(context).platform == TargetPlatform.iOS;
@@ -323,8 +314,6 @@ Future<void> showSupportedSheet(BuildContext context) {
   );
 }
 
-/// "Check your device": why this phone cannot use Waysim, and what to check
-/// when buying for another one.
 Future<void> showUnsupportedSheet(BuildContext context) {
   final l10n = context.l10n;
   return showAppSheet<void>(

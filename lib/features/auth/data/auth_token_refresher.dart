@@ -5,16 +5,6 @@ import '../../../core/constants/app_environment.dart';
 import '../../../core/network/token_refresher.dart';
 import '../../../core/storage/secure_storage.dart';
 
-/// Renews the session: `POST /v1/auth/refresh { refreshToken }` answers with a
-/// new access token (its lifetime is `accessExpiresIn`, a server setting) and
-/// a **new** refresh token — each one works once. Only one refresh runs at a
-/// time (see AuthInterceptor), or the second would look like token reuse.
-///
-/// Uses its own bare [Dio]: the refresh call must not pass through the
-/// interceptor that is waiting for it.
-///
-/// The path and field names follow the TZ and are provisional until the
-/// backend publishes its OpenAPI (docs/06-roadmap.md T7.1).
 class AuthTokenRefresher implements TokenRefresher {
   AuthTokenRefresher(this._storage, {Dio? dio})
     : _dio =
@@ -48,8 +38,7 @@ class AuthTokenRefresher implements TokenRefresher {
       if (access is! String || refresh is! String) {
         return RefreshOutcome.rejected;
       }
-      // Both tokens are replaced together; keeping an old refresh token
-      // would fail the next refresh.
+
       if (await _storage.readRefreshToken() != current) {
         return RefreshOutcome.rejected;
       }

@@ -2,16 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
 
-/// Swaps the content under a segmented control with a short slide and fade
-/// that follows the tab: moving to a tab on the right brings the new content
-/// in from the right and sends the old one out to the left, and the reverse.
 class TabSwitcher extends StatefulWidget {
   const TabSwitcher({super.key, required this.index, required this.child});
 
-  /// The selected tab; changing it triggers the transition.
   final int index;
 
-  /// The content for [index].
   final Widget child;
 
   @override
@@ -19,7 +14,6 @@ class TabSwitcher extends StatefulWidget {
 }
 
 class _TabSwitcherState extends State<TabSwitcher> {
-  /// +1 when the last change went to a higher tab, -1 to a lower one.
   int _direction = 1;
 
   @override
@@ -39,18 +33,16 @@ class _TabSwitcherState extends State<TabSwitcher> {
       duration: reduce ? Duration.zero : AppConstants.animationBase,
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
-      // The old and new content share the same box while they cross over.
+
       layoutBuilder: (current, previous) => Stack(
         alignment: Alignment.topCenter,
-        // Keep the constraints the parent gave (a list inside Expanded must
-        // still fill it).
+
         fit: StackFit.passthrough,
         children: [...previous, ?current],
       ),
       transitionBuilder: (child, animation) {
         final incoming = child.key == currentKey;
-        // The incoming content starts on the side the tab is heading to; the
-        // outgoing one leaves towards the opposite side.
+
         final side = incoming ? _direction : -_direction;
         return FadeTransition(
           opacity: animation,

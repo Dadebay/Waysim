@@ -4,24 +4,9 @@ import 'package:dio/dio.dart';
 
 import '../../utils/app_logger.dart';
 
-/// Colour-coded request/response logging, in place of `PrettyDioLogger`.
-///
-/// One block per request and one per answer — cyan going out, green coming
-/// back, red when it fails — each fenced off by a rule, with the timing and
-/// the status on the headline where the eye already is and the body indented
-/// under it. The boxed output the app used to print buried the one thing
-/// worth reading (which call, and did it work) inside a dozen lines of
-/// borders; a single-line body hid it in the other direction, by running a
-/// whole JSON payload off the right edge of the console.
-///
-/// Registered only when [AppEnvironment.enableLogging] is on, so nothing
-/// here runs in a release build.
 class ApiLogInterceptor extends Interceptor {
-  /// Bodies longer than this are cut: a product list is thousands of
-  /// characters and scrolls the useful lines off the screen.
   static const _maxBody = 1200;
 
-  /// A cut by characters alone can still be forty lines of indented JSON.
   static const _maxLines = 30;
 
   static const _encoder = JsonEncoder.withIndent('  ');
@@ -44,8 +29,6 @@ class ApiLogInterceptor extends Interceptor {
     handler.next(options);
   }
 
-  /// Sign-in requests: which of the headers the server judges them by were
-  /// actually sent — present or missing, never their values.
   String _authHeaders(Map<String, dynamic> headers) {
     String has(String name) => headers[name] == null ? 'missing' : 'sent';
     return 'headers: Accept-Language=${headers['Accept-Language'] ?? 'missing'} '
@@ -96,8 +79,6 @@ class ApiLogInterceptor extends Interceptor {
     return '${DateTime.now().difference(start).inMilliseconds}ms';
   }
 
-  /// The payload as the lines that sit under the headline — empty for a call
-  /// that carried none, so a GET stays a one-line block.
   List<String> _body(dynamic body) {
     if (body == null) return const [];
 

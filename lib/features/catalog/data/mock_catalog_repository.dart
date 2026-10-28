@@ -6,7 +6,6 @@ import '../domain/repositories/catalog_repository.dart';
 import '../domain/entities/catalog_banner.dart';
 import 'mock/catalog_fixtures.dart';
 
-/// Fixture-backed catalog. [latency] imitates the network so skeletons show.
 class MockCatalogRepository implements CatalogRepository {
   @override
   List<CatalogBanner>? get banners => null;

@@ -1,5 +1,3 @@
-/// Marketing names for legacy model identifiers already stored by the API.
-/// Unknown devices retain their original name instead of guessing a model.
 String deviceModelName(String rawModel) {
   final model = rawModel.trim();
   switch (model.toLowerCase()) {

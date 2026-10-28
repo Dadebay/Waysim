@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Colour family of a [StatusBadge].
 enum StatusTone { neutral, info, warning, success, error }
 
-/// Pill label for an eSIM, order or invitation status. Knows nothing about
-/// what the status means — callers map their enum to a tone and a label.
 class StatusBadge extends StatelessWidget {
   const StatusBadge({super.key, required this.label, required this.tone});
 

@@ -8,11 +8,9 @@ class LegalDocument extends Equatable {
     this.markdown = false,
   });
 
-  /// `terms`, `privacy`, `refund`, `acceptable-use`, `cookies`, `general`.
   final String id;
   final String title;
 
-  /// Plain text with blank lines between paragraphs.
   final String body;
   final bool markdown;
 

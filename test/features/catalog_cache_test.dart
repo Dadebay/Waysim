@@ -12,7 +12,6 @@ import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
 
 import '../helpers/test_dependencies.dart';
 
-/// A catalog that answers from a queue of results.
 class _ScriptedCatalog implements CatalogRepository {
   _ScriptedCatalog(this.results);
   @override
@@ -55,7 +54,7 @@ void main() {
     await cubit.load();
     expect(cubit.state.status, CatalogStatus.loaded);
 
-    await cubit.load(); // the network is gone
+    await cubit.load();
     expect(cubit.state.status, CatalogStatus.loaded);
     expect(cubit.state.destinations, destinations);
     expect(cubit.state.failure, isNull);
@@ -80,14 +79,12 @@ void main() {
     await first.load();
     await first.close();
 
-    // A new process: the cubit hydrates from storage before any request.
     final second = CatalogCubit(
       _ScriptedCatalog([const Error(NetworkFailure())]),
     );
     expect(second.state.status, CatalogStatus.loaded);
     expect(second.state.destinations.length, destinations.length);
 
-    // And search works from that cache, with the network still down.
     await second.load();
     final hits = CatalogSearch.search(
       second.state.destinations,

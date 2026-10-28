@@ -23,8 +23,6 @@ import '../../../../mock/demo_credentials.dart';
 import '../cubit/login_cubit.dart';
 import '../cubit/auth_cubit.dart';
 
-/// Passwordless sign-in. Pops `true` when the customer ends up signed in, so
-/// whatever sent them here carries on.
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
@@ -111,7 +109,7 @@ class _EmailStepState extends State<_EmailStep> {
     super.initState();
     final previousEmail = context.read<LoginCubit>().state.email;
     _email = TextEditingController(text: previousEmail);
-    // Reaching the code step required consent; keep it when editing the email.
+
     _accepted = previousEmail.isNotEmpty;
     _termsTap = TapGestureRecognizer()..onTap = () => _openDocument('terms');
     _privacyTap = TapGestureRecognizer()
@@ -149,10 +147,7 @@ class _EmailStepState extends State<_EmailStep> {
     final c = context.colors;
     final state = context.watch<LoginCubit>().state;
     final showDemo = AppEnvironment.useMockApi && !AppEnvironment.isProd;
-    // The referral switch comes from `/v1/referral`, which needs a session, so
-    // a signed-out visitor never sees it on; the server checks the code
-    // instead. No invite code on a rooted/jailbroken device: it would not earn
-    // a bonus.
+
     final referralOn = !context.watch<DeviceIntegrityCubit>().compromised;
 
     return ListView(

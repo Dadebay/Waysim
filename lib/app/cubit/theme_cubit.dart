@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-/// Persists the user's theme choice across launches (hydrated_bloc).
-///
-/// Light is the default (docs/01-product-spec.md); the settings screen offers
-/// Light and Dark.
 class ThemeCubit extends HydratedCubit<ThemeMode> {
   ThemeCubit() : super(ThemeMode.light);
 

@@ -12,7 +12,6 @@ class Invite extends Equatable {
     this.reward,
   });
 
-  /// `a***@gmail.com` — the server masks it.
   final String maskedEmail;
   final DateTime registeredAt;
   final InviteStatus status;
@@ -41,7 +40,6 @@ class ReferralInfo extends Equatable {
   final String code;
   final Uri link;
 
-  /// What a friend is worth to the customer, fixed server-side.
   final Money reward;
   final int invited;
   final Money credited;

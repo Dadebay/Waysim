@@ -24,10 +24,9 @@ import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
 import '../support_mail.dart';
 
-/// "How can we help?": the AI chat, or an e-mail to the team.
 Future<void> showSupportSheet(BuildContext context) {
   final l10n = context.l10n;
-  // Resolved before the sheet opens: the sheet has its own route context.
+
   final router = GoRouter.of(context);
   final auth = context.read<AuthCubit>();
   final email = context.read<ConfigCubit>().state.supportEmail;
@@ -84,7 +83,6 @@ Future<void> showSupportSheet(BuildContext context) {
   );
 }
 
-/// Lets the customer write without seeing diagnostics, then opens the mail app.
 Future<void> writeToSupport(
   BuildContext context, {
   required String email,
@@ -113,9 +111,8 @@ Future<void> writeToSupport(
   String? deviceId;
   try {
     deviceId = await getIt<SecureStorage>().readDeviceId();
-  } on Object {
-    // Mail remains available if secure storage is locked.
-  }
+    // ignore: empty_catches
+  } on Object {}
   final local = getIt<LocalStorage>();
   final body = buildSupportMailBody(
     message: message,
@@ -133,9 +130,8 @@ Future<void> writeToSupport(
   bool opened = false;
   try {
     opened = await canLaunchUrl(uri) && await launchUrl(uri);
-  } on PlatformException {
-    // Show the existing copy-address fallback below.
-  }
+    // ignore: empty_catches
+  } on PlatformException {}
   if (!opened && context.mounted) await _showMailFallback(context, email);
 }
 

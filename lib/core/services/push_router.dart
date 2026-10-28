@@ -1,16 +1,11 @@
 import '../../app/router/app_routes.dart';
 
-/// Turns a notification's data into the screen it opens, or `null` when it
-/// should just open the app. Everything in a payload is untrusted text: ids
-/// are checked against a strict pattern and only known types navigate.
 abstract final class PushRouter {
   static final _id = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
 
   static const _locales = {'en', 'zh', 'ru', 'es', 'fr'};
 
   static String? routeFor(Map<String, String> data) {
-    // A credited top-up opens that payment (the push carries its uuid), not
-    // just the wallet its deep link names.
     final paymentId = data['paymentId'];
     if (data['type'] == 'payment_credited' &&
         paymentId != null &&
@@ -23,7 +18,6 @@ abstract final class PushRouter {
     final validId = id != null && _id.hasMatch(id);
 
     switch (data['type']) {
-      // eSIM ready; ≤100 MB left; 1 day left; plan used up.
       case 'esim_ready' ||
           'order_done' ||
           'topup_done' ||
@@ -37,19 +31,19 @@ abstract final class PushRouter {
         return validId
             ? AppRoute.esim.withParams({'id': id})
             : AppRoute.myEsim.path;
-      // Order failed and the money came back.
+
       case 'order_failed' || 'topup_failed':
         return AppRoute.orders.path;
-      // Balance topped up.
+
       case 'balance_topped_up' ||
           'payment_credited' ||
           'wallet_adjusted' ||
           'reward':
         return AppRoute.profile.path;
-      // Referral bonus credited.
+
       case 'referral_bonus':
         return AppRoute.referral.path;
-      // A broadcast from the admin: a path inside the app, nothing external.
+
       case 'support_reply':
         return AppRoute.supportChat.path;
       case 'broadcast':
@@ -70,7 +64,7 @@ abstract final class PushRouter {
       if (uri.scheme == 'waysim' && uri.host.isNotEmpty) uri.host,
       ...uri.pathSegments,
     ];
-    // The site localizes its pages: https://waysim.co/ru/r/CODE.
+
     if (uri.scheme == 'https' &&
         parts.length == 3 &&
         _locales.contains(parts.first)) {

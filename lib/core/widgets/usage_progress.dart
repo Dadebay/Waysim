@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Thin rounded bar showing how much of a package is left.
-/// [remainingFraction] is 0–1 (1 = untouched).
 class UsageProgress extends StatelessWidget {
   const UsageProgress({super.key, required this.remainingFraction});
 

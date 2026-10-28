@@ -6,12 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../constants/app_icons.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Looping "no connection" artwork drawn in code (no Lottie file to ship, and
-/// it follows the light/dark theme): an eSIM card that floats while signal
-/// rings keep reaching out from it, and a small "offline" badge that wobbles
-/// on its corner.
-///
-/// Holds still when the system asks to reduce motion.
 class NoConnectionArt extends StatefulWidget {
   const NoConnectionArt({super.key, this.size = 260});
 
@@ -66,7 +60,7 @@ class _NoConnectionArtState extends State<NoConnectionArt>
             builder: (context, _) {
               final t = _controller.value;
               final float = math.sin(t * 2 * math.pi) * size * 0.022;
-              // The badge shakes for a moment, then rests.
+
               final shakePhase = (t * 2) % 1;
               final shake = shakePhase < 0.35
                   ? math.sin(shakePhase / 0.35 * 4 * math.pi) *
@@ -87,7 +81,7 @@ class _NoConnectionArtState extends State<NoConnectionArt>
                       ),
                     ),
                   ),
-                  // Soft shadow on the "floor", breathing opposite to the card.
+
                   Positioned(
                     bottom: size * 0.17,
                     child: Container(
@@ -138,7 +132,6 @@ class _NoConnectionArtState extends State<NoConnectionArt>
   }
 }
 
-/// Concentric rings that grow out of the card and fade, three at a time.
 class _RingsPainter extends CustomPainter {
   _RingsPainter({
     required this.progress,
@@ -182,7 +175,6 @@ class _RingsPainter extends CustomPainter {
       old.coreRadius != coreRadius;
 }
 
-/// A SIM-shaped card: cut corner, brand mark, gold contact chip.
 class _SimCard extends StatelessWidget {
   const _SimCard({
     required this.width,

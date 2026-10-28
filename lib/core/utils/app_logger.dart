@@ -2,22 +2,8 @@ import 'package:logger/logger.dart';
 
 import '../constants/app_environment.dart';
 
-/// So a call site can pick a level for [AppLogger.group] without importing
-/// the logger package itself — which would drag in its own `AnsiColor` and
-/// clash with the one below.
 export 'package:logger/logger.dart' show Level;
 
-/// App-wide logger. Silent in production builds.
-///
-/// A plain log is one line: a coloured level tag, the time, then the message.
-/// `PrettyPrinter`'s boxes are deliberately gone — they turn a three-word log
-/// into six lines of box drawing, which is what made the debug console
-/// unreadable once the network layer started talking.
-///
-/// Anything with a body — a request, a response, a bloc transition — goes
-/// through [group] instead: a rule, a headline, then the body indented under
-/// it. One rule per block is what separates entries in a console that
-/// interleaves them with platform noise; a border around each line is not.
 abstract final class AppLogger {
   static final Logger _logger = Logger(
     filter: _EnvFilter(),
@@ -30,8 +16,6 @@ abstract final class AppLogger {
   static void e(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.e(message, error: error, stackTrace: stackTrace);
 
-  /// A block: [title] on the tag line, [lines] indented beneath it, the whole
-  /// thing fenced off from whatever the console printed before it.
   static void group(
     String title, {
     List<String> lines = const [],
@@ -39,9 +23,6 @@ abstract final class AppLogger {
   }) => _logger.log(level, LogGroup(title, lines: lines));
 }
 
-/// Message type [AppLogger.group] hands the printer. Carried as the message
-/// rather than pre-formatted text so the printer stays the only place that
-/// knows what a block looks like.
 class LogGroup {
   const LogGroup(this.title, {this.lines = const []});
 
@@ -57,9 +38,6 @@ class _EnvFilter extends LogFilter {
   bool shouldLog(LogEvent event) => AppEnvironment.enableLogging;
 }
 
-/// ANSI escapes. Both VS Code's debug console and Android Studio's render
-/// these, so a warning actually looks like a warning instead of blending
-/// into the wall of platform noise around it.
 abstract final class AnsiColor {
   static const reset = '\x1B[0m';
   static const bold = '\x1B[1m';
@@ -73,8 +51,6 @@ abstract final class AnsiColor {
   static const cyan = '\x1B[36m';
   static const grey = '\x1B[90m';
 
-  /// Wraps [text] in [color], and always closes it — an unterminated escape
-  /// bleeds into every line the console prints afterwards.
   static String paint(String text, String color) => '$color$text$reset';
 }
 
@@ -88,11 +64,8 @@ class _ConsolePrinter extends LogPrinter {
     Level.fatal: ('FATAL', AnsiColor.magenta),
   };
 
-  /// Wide enough for a URL with its timing, short enough to survive the
-  /// narrow console pane most of this is read in.
   static final _rule = '─' * 72;
 
-  /// `DEBUG 12:34:56 ` — body lines start where the message does.
   static const _indent = '               ';
 
   @override
@@ -119,8 +92,6 @@ class _ConsolePrinter extends LogPrinter {
 
     final trace = event.stackTrace;
     if (trace != null) {
-      // Deep traces are mostly framework frames; the first few are the ones
-      // that say where this actually went wrong.
       for (final line in trace.toString().split('\n').take(8)) {
         if (line.trim().isEmpty) continue;
         lines.add(AnsiColor.paint('        $line', AnsiColor.dim));

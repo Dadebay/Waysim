@@ -8,24 +8,13 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../core/utils/formatters/money.dart';
+import '../../../../core/utils/safe_url.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/wallet_entities.dart';
 import '../../domain/repositories/wallet_repository.dart';
 import 'wallet_cubit.dart';
 
-enum TopUpPhase {
-  /// Choosing amount and method.
-  form,
-
-  /// Creating the payment on the server.
-  creating,
-
-  /// Paying: PayPal in the browser, or the crypto invoice on screen.
-  paying,
-  credited,
-  expired,
-  failed,
-}
+enum TopUpPhase { form, creating, paying, credited, expired, failed }
 
 class TopUpState extends Equatable {
   const TopUpState({
@@ -102,8 +91,6 @@ class TopUpState extends Equatable {
       'failure: ${failure?.code})';
 }
 
-/// Tops up the balance: form → payment → credited. One screen, one cubit.
-/// Polls the server while a payment is open; the server credits exactly once.
 class TopUpCubit extends Cubit<TopUpState> {
   TopUpCubit({
     required this._repository,
@@ -271,8 +258,6 @@ class TopUpCubit extends Cubit<TopUpState> {
     emit(state.copyWith(crypto: option));
   }
 
-  /// Opens the payment. [openUrl] is called with a PayPal checkout page, if
-  /// the server gave one; the screen opens it in the in-app browser.
   Future<void> submit({Future<void> Function(Uri url)? openUrl}) async {
     if (state.phase != TopUpPhase.form || state.optionsLoading) return;
     if (state.options == null) await initialize();
@@ -330,12 +315,13 @@ class TopUpCubit extends Cubit<TopUpState> {
         _analytics.startedTopUp(method: state.method.name, amount: amount);
         _openSession(data);
         final url = data.checkoutUrl;
-        if (url != null && url.scheme == 'https' && openUrl != null) {
+        if (url != null &&
+            safeHttpsUri(url.toString()) != null &&
+            openUrl != null) {
           try {
             await openUrl(url);
-          } on Object {
-            /* Keep the invoice available for retry. */
-          }
+            // ignore: empty_catches
+          } on Object {}
         }
       case Error(:final failure):
         _logFailure('Payment creation failed', failure);
@@ -343,8 +329,6 @@ class TopUpCubit extends Cubit<TopUpState> {
     }
   }
 
-  /// Asks the server now instead of waiting for the next tick — used when the
-  /// app comes back from the PayPal browser or the customer's wallet app.
   Future<void> checkNow() async {
     final id = state.session?.id;
     if (id != null && state.phase == TopUpPhase.paying) await _check(id);
@@ -395,8 +379,7 @@ class TopUpCubit extends Cubit<TopUpState> {
             );
           }
           emit(state.copyWith(phase: TopUpPhase.credited, progress: data));
-          // The server has the new balance; ask for it rather than adding
-          // locally, so a repeated webhook can never show a double credit.
+
           unawaited(_wallet.refresh());
         case TopUpStatus.failed:
           _poll?.cancel();
@@ -431,8 +414,6 @@ class TopUpCubit extends Cubit<TopUpState> {
     );
   }
 
-  /// Leave an unpaid crypto invoice and choose another amount. The invoice
-  /// remains open on the server until it expires; this only changes the UI.
   void chooseAnotherAmount() {
     if (state.phase != TopUpPhase.paying ||
         state.session?.crypto == null ||
@@ -442,8 +423,6 @@ class TopUpCubit extends Cubit<TopUpState> {
     reset();
   }
 
-  /// A different coin or network needs a new server invoice and payment
-  /// address. The previous unpaid invoice remains valid until its expiry.
   Future<void> changeCryptoInvoice(CryptoOption option) async {
     final session = state.session;
     final invoice = session?.crypto;
@@ -465,7 +444,6 @@ class TopUpCubit extends Cubit<TopUpState> {
     await submit();
   }
 
-  /// Back to the form after an expired or failed payment.
   void reset() {
     _poll?.cancel();
     _key = const Uuid().v4();

@@ -46,8 +46,6 @@ class ChatCubit extends Cubit<ChatState> {
         if (data.isNotEmpty) {
           _after = data.last.id;
         } else {
-          // An empty thread has no message ID, but subsequent reads still
-          // need to poll /support/messages instead of reopening the thread.
           _after ??= '';
         }
         _merge(data);

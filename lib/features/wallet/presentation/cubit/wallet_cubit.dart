@@ -8,7 +8,6 @@ import '../../domain/repositories/wallet_repository.dart';
 class WalletState extends Equatable {
   const WalletState({this.balance, this.loading = false});
 
-  /// Null for a guest, or before the first answer.
   final Money? balance;
   final bool loading;
 
@@ -16,8 +15,6 @@ class WalletState extends Equatable {
   List<Object?> get props => [balance, loading];
 }
 
-/// The signed-in customer's balance, shared by the Home header, Profile,
-/// the purchase confirmation and the top-up screens.
 class WalletCubit extends Cubit<WalletState> {
   WalletCubit(this._repository) : super(const WalletState());
 
@@ -33,12 +30,10 @@ class WalletCubit extends Cubit<WalletState> {
       case Success(:final data):
         emit(WalletState(balance: data));
       case Error():
-        // Keep the last known balance on a failed refresh.
         emit(WalletState(balance: state.balance));
     }
   }
 
-  /// A purchase or top-up already told us the new balance.
   void set(Money balance) => emit(WalletState(balance: balance));
 
   void clear() {

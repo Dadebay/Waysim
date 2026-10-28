@@ -84,16 +84,9 @@ import '../network/network_info.dart';
 import '../storage/local_storage.dart';
 import '../storage/secure_storage.dart';
 
-/// Service locator. One `getIt` for the whole app.
 final getIt = GetIt.instance;
 bool _useMockApi = AppEnvironment.useMockApi;
 
-/// Registration order: external packages -> core services -> global cubits ->
-/// feature layers.
-///
-/// Each feature registers itself in its own `_registerX()` function so the
-/// features stay self-contained. `AuthInterceptor` joins the Dio instance in
-/// docs/06-roadmap.md T4.2, once the auth feature exists to refresh tokens.
 Future<void> configureDependencies({bool? useMockApi}) async {
   _useMockApi = useMockApi ?? AppEnvironment.useMockApi;
   await _registerExternal();
@@ -114,7 +107,6 @@ Future<void> _registerExternal() async {
       ),
     )
     ..registerLazySingleton<Connectivity>(Connectivity.new)
-    // The phone and build, read once for crash reports.
     ..registerSingleton<DeviceContext>(await readDeviceContext());
 }
 
@@ -129,8 +121,6 @@ void _registerCore() {
     ..registerLazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(getIt<Connectivity>()),
     )
-    // Firebase-backed services, or no-ops when Firebase did not start (tests,
-    // builds without the config files).
     ..registerLazySingleton<AppAttestation>(
       () =>
           FirebaseSetup.ready ? FirebaseAppAttestation() : NoopAppAttestation(),
@@ -205,7 +195,7 @@ void _registerCore() {
           AuthInterceptor(
             getIt<SecureStorage>(),
             deviceSession: _useMockApi ? null : getIt<DeviceSession>(),
-            // Looked up lazily: both are registered after Dio.
+
             refresher: () => getIt<TokenRefresher>(),
             onUnauthorized: (failure) => getIt<AuthCubit>().sessionExpired(
               revoked:
@@ -229,8 +219,6 @@ void _registerGlobalCubits() {
     );
 }
 
-/// What a [PurchaseCubit] needs to know: the plan, and the eSIM it extends
-/// when this is a top-up rather than a new purchase.
 class PurchaseArgs {
   const PurchaseArgs(this.package, {this.esimId});
 
@@ -244,7 +232,6 @@ void _registerFeatures() {
   _registerScreenCubits();
 }
 
-/// Live mobile API by default; fixtures remain available through an explicit opt-in.
 void _registerRepositories() {
   if (!_useMockApi) {
     getIt
@@ -318,8 +305,6 @@ void _registerRepositories() {
     ..registerLazySingleton<LegalRepository>(() => const MockLegalRepository());
 }
 
-/// Cubits that outlive any one screen: who is signed in, the balance, the
-/// catalog, the customer's eSIMs, the server switches.
 void _registerSessionCubits() {
   getIt
     ..registerLazySingleton<AuthCubit>(() => AuthCubit(getIt<AuthRepository>()))
@@ -376,7 +361,6 @@ void _registerSessionCubits() {
     );
 }
 
-/// One per screen: they die with the page.
 void _registerScreenCubits() {
   getIt
     ..registerFactory<SearchCubit>(

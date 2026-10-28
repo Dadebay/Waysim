@@ -8,22 +8,11 @@ import '../constants/app_constants.dart';
 
 enum AppScreenTransition { crossfade, revealFromLeft, revealFromRight }
 
-/// Transitions the whole app across a change that rebuilds every screen at
-/// once, such as switching the language or theme.
-///
-/// A new locale replaces every string in one frame, which looks like a flash.
-/// There is no way to animate "all text changed" widget by widget, so this
-/// does what iOS does: photograph the screen, change the language underneath,
-/// and fade or wipe the photograph away over the freshly drawn result.
-///
-/// Sits above the navigator, below `Localizations`:
-/// `AppCrossfade.of(context)?.run(() => cubit.setLocale(...))`.
 class AppCrossfade extends StatefulWidget {
   const AppCrossfade({super.key, required this.child});
 
   final Widget child;
 
-  /// The nearest one, or `null` outside the app (a bare test page).
   static AppCrossfadeState? of(BuildContext context) =>
       context.findAncestorStateOfType<AppCrossfadeState>();
 
@@ -34,8 +23,7 @@ class AppCrossfade extends StatefulWidget {
 class AppCrossfadeState extends State<AppCrossfade>
     with SingleTickerProviderStateMixin {
   final _boundary = GlobalKey();
-  // Created up front: a lazily created controller would first be built inside
-  // dispose() when the fade was never used.
+
   late final AnimationController _fade;
   late final CurvedAnimation _fadeCurve;
   late final Animation<double> _oldScreenOpacity;
@@ -55,11 +43,8 @@ class AppCrossfadeState extends State<AppCrossfade>
   AppScreenTransition _transition = AppScreenTransition.crossfade;
   bool _busy = false;
 
-  /// The tap may still be painting its pressed state. Allow that frame and
-  /// the screenshot to complete before falling back to an immediate change.
   static const _captureTimeout = Duration(milliseconds: 350);
 
-  /// Runs [change] beneath a snapshot, preserving the live screen's state.
   Future<void> run(
     VoidCallback change, {
     AppScreenTransition transition = AppScreenTransition.crossfade,
@@ -100,10 +85,9 @@ class AppCrossfadeState extends State<AppCrossfade>
           (transition != AppScreenTransition.crossfade
               ? AppConstants.animationSlow
               : AppConstants.animationBase);
-      // A completed transition leaves the controller at 1. Reset BEFORE
-      // mounting the next snapshot, or the old screen flashes through.
+
       _fade.value = 0;
-      // The photograph covers the old screen while the new one is drawn.
+
       setState(() {
         _transition = transition;
         _snapshot = image;
@@ -111,23 +95,18 @@ class AppCrossfadeState extends State<AppCrossfade>
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
 
-      // Underneath, the new language or theme is drawn.
       change();
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
 
-      // MaterialApp also animates a theme when a screenshot cannot be taken.
-      // When the screenshot is available, let that fallback finish behind it
-      // before revealing the new screen.
       if (transition != AppScreenTransition.crossfade) {
         await Future<void>.delayed(AppConstants.themeFallbackAnimation);
         if (!mounted) return;
       }
 
-      // The photograph fades or wipes away to reveal the new screen.
       await _fade.forward().orCancel;
+      // ignore: empty_catches
     } on TickerCanceled {
-      // The app or route containing the transition was removed.
     } finally {
       _busy = false;
       final old = _snapshot;
@@ -140,7 +119,6 @@ class AppCrossfadeState extends State<AppCrossfade>
     }
   }
 
-  /// Tests replace the screenshot (the real one needs the real engine).
   @visibleForTesting
   static Future<ui.Image?> Function()? debugCapture;
 

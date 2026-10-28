@@ -6,7 +6,6 @@ import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 import 'app_card.dart';
 
-/// One plan in the package list: `5 GB  30 days ........ $5.99 (o)`.
 class PackageTile extends StatelessWidget {
   const PackageTile({
     super.key,
@@ -21,10 +20,8 @@ class PackageTile extends StatelessWidget {
     this.onDaysChanged,
   });
 
-  /// "5 GB" or "Unlimited".
   final String volume;
 
-  /// "30 days" or "1 GB per day · 7 days".
   final String duration;
   final String price;
   final bool selected;

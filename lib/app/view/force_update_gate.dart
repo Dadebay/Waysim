@@ -13,14 +13,11 @@ import '../../core/widgets/app_button.dart';
 import '../../features/config/domain/entities/app_config.dart';
 import '../../features/config/presentation/cubit/config_cubit.dart';
 
-/// Blocks the whole app behind an "update" screen when the server raises the
-/// minimum supported version (`AppConfig.minSupportedVersion`).
 class ForceUpdateGate extends StatefulWidget {
   const ForceUpdateGate({super.key, required this.child, this.currentVersion});
 
   final Widget child;
 
-  /// For tests; the real app reads it from the platform.
   final String? currentVersion;
 
   @override

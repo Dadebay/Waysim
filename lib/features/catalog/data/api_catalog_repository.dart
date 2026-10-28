@@ -74,57 +74,57 @@ class ApiCatalogRepository implements CatalogRepository {
   });
 
   @override
-  Future<Result<List<EsimPackage>>> packages(
-    String destinationCode,
-  ) => apiResult(() async {
-    final j = asMap(
-      await api.get(
-        '/v1/catalog/locations/${Uri.encodeComponent(destinationCode)}',
-      ),
-    );
-    final location = j.mapOrNull('location') ?? <String, dynamic>{};
-    final limited = j.listOf('limited');
-    final unlimited = j.listOf('unlimited');
-    var coverage = _coverageFrom(location.listOf('countries'));
-    final firstCard = [...limited, ...unlimited].firstOrNull;
-    final isRegion =
-        location.str('kind') == 'region' ||
-        firstCard?.mapOrNull('direction')?.str('kind') == 'region';
-    if (isRegion && coverage.codes.isEmpty && firstCard != null) {
-      final id = firstCard.str('id', firstCard.str('slug'));
-      if (id.isNotEmpty) {
-        try {
-          final detail = asMap(
-            await api.get('/v1/catalog/packages/${Uri.encodeComponent(id)}'),
-          );
-          coverage = _coverageFrom(detail.listOf('coverage'));
-        } on Object {
-          // Plans remain available even if the optional coverage lookup fails.
+  Future<Result<List<EsimPackage>>> packages(String destinationCode) =>
+      apiResult(() async {
+        final j = asMap(
+          await api.get(
+            '/v1/catalog/locations/${Uri.encodeComponent(destinationCode)}',
+          ),
+        );
+        final location = j.mapOrNull('location') ?? <String, dynamic>{};
+        final limited = j.listOf('limited');
+        final unlimited = j.listOf('unlimited');
+        var coverage = _coverageFrom(location.listOf('countries'));
+        final firstCard = [...limited, ...unlimited].firstOrNull;
+        final isRegion =
+            location.str('kind') == 'region' ||
+            firstCard?.mapOrNull('direction')?.str('kind') == 'region';
+        if (isRegion && coverage.codes.isEmpty && firstCard != null) {
+          final id = firstCard.str('id', firstCard.str('slug'));
+          if (id.isNotEmpty) {
+            try {
+              final detail = asMap(
+                await api.get(
+                  '/v1/catalog/packages/${Uri.encodeComponent(id)}',
+                ),
+              );
+              coverage = _coverageFrom(detail.listOf('coverage'));
+              // ignore: empty_catches
+            } on Object {}
+          }
         }
-      }
-    }
-    final limits = j.mapOrNull('perDay') ?? {};
-    final result = [
-      for (final p in limited)
-        packageFromApi(
-          p,
-          kind: PackageKind.limited,
-          perDayOptions: limits,
-          regionCoverage: coverage.codes,
-          regionCoverageNames: coverage.names,
-        ),
-      for (final p in unlimited)
-        packageFromApi(
-          p,
-          kind: PackageKind.unlimited,
-          perDayOptions: limits,
-          regionCoverage: coverage.codes,
-          regionCoverageNames: coverage.names,
-        ),
-    ];
-    result.sort((a, b) => a.price.cents.compareTo(b.price.cents));
-    return result;
-  });
+        final limits = j.mapOrNull('perDay') ?? {};
+        final result = [
+          for (final p in limited)
+            packageFromApi(
+              p,
+              kind: PackageKind.limited,
+              perDayOptions: limits,
+              regionCoverage: coverage.codes,
+              regionCoverageNames: coverage.names,
+            ),
+          for (final p in unlimited)
+            packageFromApi(
+              p,
+              kind: PackageKind.unlimited,
+              perDayOptions: limits,
+              regionCoverage: coverage.codes,
+              regionCoverageNames: coverage.names,
+            ),
+        ];
+        result.sort((a, b) => a.price.cents.compareTo(b.price.cents));
+        return result;
+      });
 
   @override
   Future<Result<EsimPackage>> detail(EsimPackage package) => apiResult(

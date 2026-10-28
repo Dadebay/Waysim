@@ -24,8 +24,6 @@ import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/catalog/presentation/cubit/catalog_cubit.dart';
 import 'features/config/presentation/cubit/config_cubit.dart';
 
-/// Everything that must happen before the first frame, in one place.
-/// `main.dart` stays a two-liner and tests can reuse this setup.
 Future<void> bootstrap(Widget Function() builder) async {
   WidgetsFlutterBinding.ensureInitialized();
   AppEnvironment.ensureSecureApiBaseUrl();
@@ -34,13 +32,10 @@ Future<void> bootstrap(Widget Function() builder) async {
     AppLogger.e(details.exceptionAsString(), details.exception, details.stack);
   };
 
-  // Phones only: portrait.
   await SystemChrome.setPreferredOrientations(const [
     DeviceOrientation.portraitUp,
   ]);
 
-  // Android: hide the navigation bar (keep the status bar); it is hidden
-  // again a few seconds after a swipe from the bottom edge brings it back.
   await SystemUiManager().start();
 
   HydratedBloc.storage = await HydratedStorage.build(
@@ -51,14 +46,10 @@ Future<void> bootstrap(Widget Function() builder) async {
 
   Bloc.observer = const AppBlocObserver();
 
-  // Firebase before the dependency graph: the injector picks the real
-  // push / analytics / crash services only when it came up.
   await FirebaseSetup.init();
 
   await configureDependencies();
 
-  // From here on uncaught errors go to the crash reporter (a logger until
-  // Crashlytics is wired).
   final reporter = getIt<CrashReporter>();
   Bloc.observer = AppBlocObserver(reporter);
   FlutterError.onError = (details) =>
@@ -68,16 +59,13 @@ Future<void> bootstrap(Widget Function() builder) async {
     return true;
   };
 
-  // Session first, so sign-in state reaches the coordinator before the data
-  // loads. None of this blocks the first frame: Home shows skeletons, the
-  // profile shows a loading indicator until the stored session answers.
   getIt<SessionCoordinator>().start();
   getIt<TelemetryCoordinator>().start();
   getIt<SlowFrameReporter>().start();
   unawaited(getIt<AuthCubit>().restore());
   unawaited(getIt<ConfigCubit>().refresh());
   unawaited(getIt<CatalogCubit>().load());
-  // Show the fresh compatibility result on the first frame.
+
   await getIt<EsimSupportCubit>().check();
 
   unawaited(getIt<DeviceIntegrityCubit>().check());

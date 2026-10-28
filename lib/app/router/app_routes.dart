@@ -1,4 +1,3 @@
-/// Every destination. Paths live here so nothing else spells a URL.
 enum AppRoute {
   home('/home'),
   myEsim('/my-esim'),
@@ -29,10 +28,8 @@ enum AppRoute {
 
   final String path;
 
-  /// Name registered with go_router (`context.goNamed(AppRoute.x.name)`).
   String get routeName => name;
 
-  /// The path with `:params` filled in: `AppRoute.esim.withParams({'id': 'e1'})`.
   String withParams(Map<String, String> params) {
     var result = path;
     params.forEach(

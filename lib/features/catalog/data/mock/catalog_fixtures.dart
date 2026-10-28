@@ -2,10 +2,7 @@ import '../../../../core/utils/formatters/money.dart';
 import '../../domain/entities/destination.dart';
 import '../../domain/entities/esim_package.dart';
 
-/// In-memory catalog used until the backend exists (`USE_MOCK_API`).
-/// Names are the five app languages; the real server sends the one asked for.
 abstract final class CatalogFixtures {
-  // code, en, ru, es, fr, zh, aliases, price factor (1.0 ≈ $1.99 for 1 GB)
   static const _countries =
       <(String, String, String, String, String, String, List<String>, double)>[
         (
@@ -246,7 +243,6 @@ abstract final class CatalogFixtures {
         ('VN', 'Vietnam', 'Вьетнам', 'Vietnam', 'Viêt Nam', '越南', ['vnm'], 1.0),
       ];
 
-  // code, en, ru, es, fr, zh, member countries, note, price factor
   static const _regions =
       <
         (
@@ -407,7 +403,6 @@ abstract final class CatalogFixtures {
 
   static const _gb = 1024 * 1024 * 1024;
 
-  /// Fixed-volume tiers: GB, days, base price in dollars.
   static const _limitedTiers = [
     (1, 7, 1.99),
     (3, 30, 3.99),
@@ -417,7 +412,6 @@ abstract final class CatalogFixtures {
     (50, 30, 38.99),
   ];
 
-  /// Unlimited tiers: days, base price (1 GB of full speed a day).
   static const _unlimitedTiers = [(3, 7.99), (7, 14.99), (15, 27.99)];
 
   static List<EsimPackage> packages(String code) {
@@ -451,7 +445,6 @@ abstract final class CatalogFixtures {
     ];
   }
 
-  /// Add-on plans for an installed eSIM: smaller, cheaper, same destination.
   static List<EsimPackage> topUps(String code) {
     final factor = _factorFor(code);
     return [
@@ -478,7 +471,6 @@ abstract final class CatalogFixtures {
     return 1;
   }
 
-  /// Country codes a plan for [code] covers: itself, or a region's members.
   static List<String> _coverageFor(String code) {
     for (final r in _regions) {
       if (r.$1 == code) return r.$7;
@@ -486,7 +478,6 @@ abstract final class CatalogFixtures {
     return [code];
   }
 
-  /// `$x.99`, the shop's price ending, scaled by [factor].
   static Money _price(double factor, double base) {
     final scaled = base * factor;
     final dollars = scaled.floor() + (scaled - scaled.floor() >= 0.5 ? 1 : 0);

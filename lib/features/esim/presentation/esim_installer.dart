@@ -15,12 +15,6 @@ import '../../../core/widgets/app_toast.dart';
 import '../domain/entities/esim.dart';
 import 'cubit/esim_list_cubit.dart';
 
-/// "Install" on an eSIM: ties it to this phone, then installs it.
-///
-/// The customer always lands on the eSIM's page (unless already there,
-/// [fromDetail]) so the QR code and manual details are at hand. On iOS 17.4+
-/// Apple's installer also opens through a universal link; if that fails, or
-/// later hangs, the manual details on the page still install it.
 Future<void> installEsim(
   BuildContext context,
   Esim esim, {

@@ -4,8 +4,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/widgets/app_button.dart';
 
-/// Our own card shown before the system notification dialog, so the customer
-/// knows why we ask. Resolves `true` for "Turn on".
 Future<bool> showNotificationPrompt(BuildContext context) async {
   final result = await showDialog<bool>(
     context: context,

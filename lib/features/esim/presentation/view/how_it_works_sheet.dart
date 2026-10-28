@@ -5,7 +5,6 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../../../../core/widgets/app_button.dart';
 
-/// "How eSIM works": the four steps, as a sheet.
 Future<void> showHowItWorksSheet(BuildContext context) {
   final l10n = context.l10n;
   return showAppSheet<void>(

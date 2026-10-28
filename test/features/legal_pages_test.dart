@@ -168,7 +168,7 @@ We do not sell your personal data.
 
     final dialog = find.byKey(const ValueKey('about-app-dialog'));
     expect(dialog, findsOneWidget);
-    // The same launcher icon as the card, shown larger.
+
     final icon = find.descendant(
       of: dialog,
       matching: find.byKey(const ValueKey('about-app-icon')),

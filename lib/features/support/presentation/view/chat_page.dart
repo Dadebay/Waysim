@@ -13,8 +13,6 @@ import '../../domain/entities/chat_message.dart';
 import '../cubit/chat_cubit.dart';
 import 'support_sheet.dart';
 
-/// The AI assistant: starter questions, the conversation, a way out to a
-/// person. It answers only about Waysim and eSIM and never touches money.
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
 

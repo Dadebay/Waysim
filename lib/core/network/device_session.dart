@@ -7,7 +7,6 @@ import '../storage/storage_keys.dart';
 import 'api_client.dart';
 import 'api_response.dart';
 
-/// Uses a public client so registration never recurses through auth interceptors.
 class DeviceSession {
   DeviceSession(this.api, this.secure, this.local, this.context);
   final ApiClient api;
@@ -51,7 +50,7 @@ class DeviceSession {
     );
     await secure.saveDeviceId(asMap(json['device']).str('id'));
     await secure.saveDeviceToken(json.str('deviceToken'));
-    // Never forward a token left by the in-memory backend to the real API.
+
     if (json['user'] == null ||
         await secure.readAccessToken() == 'mock-session') {
       await secure.clearSession();
@@ -67,8 +66,7 @@ class DeviceSession {
         'locale': language,
         'appVersion': appVersion,
         'osVersion': context.osVersion,
-        // `model` is sent once, at registration: the server answers 422
-        // "property model should not exist" when it is in this update.
+
         'timezone': context.timezone,
       },
     );

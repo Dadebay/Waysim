@@ -3,11 +3,6 @@ import 'package:dio/dio.dart';
 import '../../storage/local_storage.dart';
 import '../../storage/storage_keys.dart';
 
-/// Sends `Accept-Language` on every request.
-///
-/// The header picks the language of country names, package descriptions, push
-/// text and e-mails the server produces. The app supports five languages;
-/// anything else falls back to English.
 class LanguageInterceptor extends Interceptor {
   LanguageInterceptor(this._storage);
 
@@ -16,7 +11,6 @@ class LanguageInterceptor extends Interceptor {
 
   final LocalStorage _storage;
 
-  /// Maps an app locale to a language the API understands.
   static String resolve(String? languageCode) =>
       supported.contains(languageCode) ? languageCode! : fallback;
 

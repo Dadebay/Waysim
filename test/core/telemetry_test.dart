@@ -304,7 +304,7 @@ void main() {
       now = now.add(const Duration(seconds: 5));
       tracker.enter('destination', routeKey: 2);
       expect(AnalyticsScreenTracker.currentScreen, 'destination');
-      tracker.pause(); // App moved to the background.
+      tracker.pause();
       now = now.add(const Duration(minutes: 1));
       tracker.resume();
       now = now.add(const Duration(seconds: 3));
@@ -381,7 +381,7 @@ void main() {
         expect(crashes.userId, 'A0123');
         expect(analytics.properties['account'], 'signed_in');
         expect(push.synced, 1);
-        // The e-mail address never reaches analytics.
+
         expect(analytics.properties.values, isNot(contains('a@b.co')));
       },
     );

@@ -18,7 +18,6 @@ import '../../../../app/router/app_routes.dart';
 import '../../domain/entities/wallet_entities.dart';
 import '../../domain/repositories/wallet_repository.dart';
 
-/// Order history: purchases and balance top-ups.
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
 

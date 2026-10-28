@@ -21,7 +21,6 @@ import '../esim_installer.dart';
 import '../widgets/esim_card.dart';
 import 'how_it_works_sheet.dart';
 
-/// Second tab: the customer's eSIMs, Current and Archive.
 class MyEsimPage extends StatefulWidget {
   const MyEsimPage({super.key});
 
@@ -30,7 +29,6 @@ class MyEsimPage extends StatefulWidget {
 }
 
 class _MyEsimPageState extends State<MyEsimPage> {
-  /// 0 = Current, 1 = Archive.
   int _tab = 0;
 
   @override

@@ -12,11 +12,6 @@ import '../features/catalog/presentation/cubit/catalog_cubit.dart';
 import '../features/config/presentation/cubit/config_cubit.dart';
 import 'cubit/theme_cubit.dart';
 
-/// Connects the app's state to the services that report on it:
-/// * who is using the app (public id) → analytics and crash reports;
-/// * language and theme → user properties, plus an event when they change;
-/// * the "News & offers" switch → the push topic;
-/// * a fresh sign-in → the push token goes to the backend.
 class TelemetryCoordinator {
   TelemetryCoordinator({
     required this._auth,
@@ -106,15 +101,10 @@ class TelemetryCoordinator {
     _crashes.setUserId(id);
     slowFrames?.setUserId(id);
 
-    // The first moment a customer is signed in: the backend learns which
-    // device token reaches them.
     if (state.status == AuthStatus.signedIn && _lastStatus != state.status) {
       final user = state.user;
       if (user != null &&
           (user.notifyEsim != null || user.notifyMarketing != null)) {
-        // News and offers stay on unless the customer turned them off in this
-        // app: a new account that the server starts with `marketing: false`
-        // must not silently switch the topic off. The server is told instead.
         final news = _notifications.state.news;
         _hydratedPrefs = NotificationPrefs(
           esim: user.notifyEsim ?? true,

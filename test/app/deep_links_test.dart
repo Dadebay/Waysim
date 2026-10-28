@@ -13,8 +13,6 @@ import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import '../helpers/load_fonts.dart';
 import '../helpers/test_dependencies.dart';
 
-/// `https://waysim.co/...` and `waysim://...` links. A link never acts on its
-/// own: it can remember an invite code and open the app, nothing more.
 void main() {
   setUpAll(loadAppFonts);
 

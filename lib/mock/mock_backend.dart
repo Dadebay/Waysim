@@ -12,19 +12,6 @@ import '../features/referral/domain/entities/referral.dart';
 import '../features/wallet/domain/entities/wallet_entities.dart';
 import 'demo_credentials.dart';
 
-/// A tiny in-memory stand-in for the Waysim API, so every screen works before
-/// the backend exists. It keeps state across the app's lifetime: buying a
-/// package really lowers the balance and adds an eSIM.
-///
-/// Demo rules (dev builds only — `USE_MOCK_API`):
-/// * any e-mail signs in; the code `000000` is rejected as invalid, anything
-///   else with six digits is accepted;
-/// * `anna@example.com` is an existing customer with eSIMs and order history;
-///   any other address is new and starts with an empty account;
-///   everyone starts with the design's $24.50 balance;
-/// * ordering package `TH_3_30` fails at the "supplier" and is refunded;
-/// * a PayPal top-up credits after ~3 s; a crypto invoice goes
-///   waiting → confirming → credited over ~12 s.
 class MockBackend {
   MockBackend({
     DateTime Function()? now,
@@ -52,7 +39,6 @@ class MockBackend {
 
   late AppConfig config;
 
-  // ------------------------------------------------------------ session --
   static const guestPublicId = 'A0000';
 
   User? _user;
@@ -68,14 +54,12 @@ class MockBackend {
   User? get user => _user;
   bool get signedIn => _user != null;
 
-  /// No delays at all when [latency] is zero, so tests need no clock tricks.
   Future<void> _wait([Duration? d]) => latency == Duration.zero
       ? Future<void>.value()
       : Future<void>.delayed(d ?? latency);
 
   Failure get _unauthorized => const UnauthorizedFailure();
 
-  // -------------------------------------------------------------- auth --
   Future<Result<void>> requestCode(String email) async {
     await _wait();
     final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email.trim());
@@ -129,7 +113,6 @@ class MockBackend {
     return const Success(null);
   }
 
-  // ------------------------------------------------------------ wallet --
   Future<Result<Money>> balance() async {
     await _wait(const Duration(milliseconds: 150));
     return signedIn ? Success(_balance) : Error(_unauthorized);
@@ -207,7 +190,6 @@ class MockBackend {
       }(),
     };
     if (progress.status == TopUpStatus.credited && !t.credited) {
-      // Credited exactly once, however often the app polls.
       t.credited = true;
       _balance += t.session.amount;
       _orders.insert(
@@ -293,7 +275,6 @@ class MockBackend {
     ]);
   }
 
-  // --------------------------------------------------------------- esim --
   Future<Result<List<Esim>>> esims() async {
     await _wait();
     if (!signedIn) return Error(_unauthorized);
@@ -330,7 +311,6 @@ class MockBackend {
     return null;
   }
 
-  // ---------------------------------------------------------- purchase --
   Future<Result<PurchaseReceipt>> buy(
     String packageId,
     String key,
@@ -358,7 +338,6 @@ class MockBackend {
     final destination = _destination(package.destinationCode);
 
     if (packageId == 'TH_3_30') {
-      // Supplier failure demo: nothing was charged (or it was refunded).
       _orders.insert(
         0,
         _order(package, destination, OrderOutcome.failedRefunded),
@@ -516,7 +495,6 @@ class MockBackend {
     return 'K$n-${block(3)}-${block(5)}-${block(9)}';
   }
 
-  // ---------------------------------------------------------- referral --
   Future<Result<ReferralInfo>> referral() async {
     await _wait();
     if (!signedIn) return Error(_unauthorized);
@@ -559,7 +537,6 @@ class MockBackend {
     );
   }
 
-  // ---------------------------------------------------------- seed data --
   void _seedHistory() {
     final now = _now();
     final names = {for (final d in CatalogFixtures.destinations()) d.code: d};

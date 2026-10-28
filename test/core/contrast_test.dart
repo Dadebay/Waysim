@@ -4,7 +4,6 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waysim/core/theme/app_color_tokens.dart';
 
-/// WCAG 2.x contrast ratio between two opaque colours.
 double contrast(Color a, Color b) {
   double lum(Color c) {
     double channel(double v) => v <= 0.03928
@@ -22,9 +21,7 @@ double contrast(Color a, Color b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-/// docs/02-design-system.md: text must reach 4.5:1 (WCAG AA) in both themes.
 void main() {
-  // (label, text colour, background colour)
   List<(String, Color, Color)> pairs(AppColorTokens t) => [
     ('textPrimary on background', t.textPrimary, t.background),
     ('textPrimary on surface', t.textPrimary, t.surface),

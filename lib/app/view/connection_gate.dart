@@ -10,19 +10,11 @@ import '../../core/utils/extensions/context_extensions.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/no_connection_art.dart';
 
-/// Checks the connection when the app opens. Online: the app appears. Offline:
-/// a "no connection" screen waits for the network (it moves on by itself the
-/// moment the phone is back online) and offers a retry — and a way in anyway,
-/// because eSIM details cached on the phone are still worth opening abroad.
-///
-/// Only the launch is gated. Once the app is through, a later drop is the
-/// job of the slim `OfflineBanner`.
 class ConnectionGate extends StatefulWidget {
   const ConnectionGate({super.key, required this.child, this.networkInfo});
 
   final Widget child;
 
-  /// For tests; the real app resolves it from the injector.
   final NetworkInfo? networkInfo;
 
   @override
@@ -53,7 +45,6 @@ class _ConnectionGateState extends State<ConnectionGate> {
     try {
       return await _info.isConnected;
     } catch (_) {
-      // A broken plugin must never lock the customer out.
       return true;
     }
   }
@@ -81,8 +72,7 @@ class _ConnectionGateState extends State<ConnectionGate> {
   Future<void> _retry() async {
     if (_retrying) return;
     setState(() => _retrying = true);
-    // Long enough to be seen: an instant "still offline" feels like a dead
-    // button.
+
     final results = await Future.wait([
       _isOnline(),
       Future<void>.delayed(const Duration(milliseconds: 900)),
@@ -201,7 +191,6 @@ class _OfflineScreen extends StatelessWidget {
   }
 }
 
-/// "Waiting for a connection…" with a softly pulsing dot.
 class _WaitingPill extends StatefulWidget {
   const _WaitingPill({required this.label});
 

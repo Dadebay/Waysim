@@ -11,21 +11,6 @@ import '../utils/app_logger.dart';
 import 'local_notifications_service.dart';
 import 'push_service.dart';
 
-/// Push notifications over Firebase Cloud Messaging (APNs on iOS), open,
-/// backgrounded or closed.
-///
-/// Three deliveries, three paths — the same recipe the other apps use:
-/// * **closed or backgrounded**: the system draws the banner itself from the
-///   `notification` block of the message; [_backgroundHandler] runs in its own
-///   isolate for data-only pushes;
-/// * **open, Android**: [_onForeground] draws it with a local notification;
-/// * **open, iOS**: Firebase draws it, once
-///   `setForegroundNotificationPresentationOptions` is set.
-///
-/// Two audiences: everyone (and, when the customer allows news) receives the
-/// broadcasts sent to the [topic]; personal events — "your eSIM is ready",
-/// "100 MB left" — go to the device token the backend stores through
-/// [tokenSink].
 class FcmPushService implements PushService {
   FcmPushService(
     this._local, {
@@ -34,7 +19,6 @@ class FcmPushService implements PushService {
     this.onSupportReply,
   });
 
-  /// Broadcasts from the admin panel are sent to this topic.
   static const topic = 'waysim';
 
   final LocalNotificationsService _local;
@@ -42,8 +26,6 @@ class FcmPushService implements PushService {
   final Future<void> Function()? onSignedOut;
   final Future<void> Function()? onSupportReply;
 
-  /// Single-subscription on purpose: a tap that launched the app arrives
-  /// before the UI listens, and a broadcast stream would drop it.
   final _taps = StreamController<PushTap>();
 
   String? _token;
@@ -53,16 +35,12 @@ class FcmPushService implements PushService {
   @override
   Stream<PushTap> get taps => _taps.stream;
 
-  /// Never throws: a phone without Play services, or an iOS simulator with no
-  /// APNs, must still open the app.
   @override
   Future<void> init() async {
     try {
       await _local.init(onTap: _onLocalTap);
       final messaging = FirebaseMessaging.instance;
 
-      // iOS hides banners while the app is open unless this is set —
-      // independent of the notification permission.
       if (Platform.isIOS) {
         await messaging.setForegroundNotificationPresentationOptions(
           alert: true,
@@ -71,37 +49,24 @@ class FcmPushService implements PushService {
         );
       }
 
-      // Debug builds ask straight away so a test push can be received without
-      // buying anything first. Release builds follow the product rule: ask
-      // once, after the first purchase (PushPermissionGate).
       if (kDebugMode) await messaging.requestPermission();
       await _logPermission(messaging);
 
-      // Registered before the streams: a terminated-app delivery reaches the
-      // isolate below, which has no Firebase of its own.
       FirebaseMessaging.onBackgroundMessage(_backgroundHandler);
       FirebaseMessaging.onMessage.listen(_onForeground);
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
         unawaited(_onOpened(message));
       });
 
-      // A rotated token is useless to the backend until it is sent again.
-      // Registered before the first request too: on iOS the FCM token can
-      // appear only after APNs answered late, and arrives through here.
       messaging.onTokenRefresh.listen((token) {
         _token = token;
         _logTokens(source: 'refreshed');
         unawaited(syncToken());
       });
 
-      // The notification that launched the app from a cold start; it never
-      // reaches `onMessageOpenedApp`.
       final initial = await messaging.getInitialMessage();
       if (initial != null) await _onOpened(initial);
 
-      // On iOS the FCM token is derived from the APNs one: asking for the
-      // token or subscribing to a topic before APNs answered throws
-      // `apns-token-not-set`, so APNs goes first.
       _apnsToken = await _awaitApns();
       _logApns();
       try {
@@ -141,7 +106,6 @@ class FcmPushService implements PushService {
     }
   }
 
-  /// "News & offers" in Settings: the topic is the news channel.
   @override
   Future<void> setNewsEnabled({required bool enabled}) async {
     _newsEnabled = enabled;
@@ -162,8 +126,6 @@ class FcmPushService implements PushService {
     }
   }
 
-  /// Sends the current token to the backend. Only meaningful with a session,
-  /// so sign-in calls it again; the sink decides (and never throws).
   @override
   Future<void> syncToken() async {
     try {
@@ -175,10 +137,6 @@ class FcmPushService implements PushService {
     }
   }
 
-  /// Waits for APNs to hand iOS its device token. Returns `null` on Android
-  /// and on the simulator, which never gets one, and when APNs stays silent —
-  /// the app carries on without push, and a late token arrives through
-  /// `onTokenRefresh`.
   Future<String?> _awaitApns() async {
     if (!Platform.isIOS) return null;
     final deadline = DateTime.now().add(const Duration(seconds: 20));
@@ -190,7 +148,6 @@ class FcmPushService implements PushService {
     return null;
   }
 
-  /// What the phone allows, in colour: green is fine, red says where to go.
   Future<void> _logPermission(FirebaseMessaging messaging) async {
     final settings = await messaging.getNotificationSettings();
     final status = settings.authorizationStatus;
@@ -241,8 +198,6 @@ class FcmPushService implements PushService {
     );
   }
 
-  /// Full tokens, in debug builds only (AppLogger is silent in release), so a
-  /// test push can be addressed to this exact phone from the Firebase console.
   void _logTokens({String source = 'received'}) {
     final token = _token;
     AppLogger.group(
@@ -259,8 +214,6 @@ class FcmPushService implements PushService {
     );
   }
 
-  /// Every delivery, in colour, so "the push never arrived" and "it arrived
-  /// but nothing was drawn" can be told apart from the console.
   static void _logMessage(String where, RemoteMessage message) {
     final n = message.notification;
     AppLogger.group(
@@ -287,8 +240,7 @@ class FcmPushService implements PushService {
     _logMessage('received while the app is open', message);
     unawaited(_handleAccountEvent(_strings(message.data)));
     final notification = message.notification;
-    // iOS presents the remote message itself; a local one on top of it would
-    // be a duplicate banner. A data-only message has nothing to draw.
+
     if (notification == null || Platform.isIOS) return;
     unawaited(
       _local.show(
@@ -308,7 +260,6 @@ class FcmPushService implements PushService {
     _taps.add(PushTap(data));
   }
 
-  /// A banner drawn by [LocalNotificationsService] was tapped.
   Future<void> _onLocalTap(String? payload) async {
     if (payload == null) return;
     try {
@@ -318,9 +269,8 @@ class FcmPushService implements PushService {
         await _handleAccountEvent(data);
         _taps.add(PushTap(data));
       }
-    } on FormatException {
-      // Not ours: ignore.
-    }
+      // ignore: empty_catches
+    } on FormatException {}
   }
 
   Future<void> _handleAccountEvent(Map<String, String> data) async {
@@ -341,8 +291,6 @@ class FcmPushService implements PushService {
   };
 }
 
-/// Runs in its own isolate with the app backgrounded or killed, so it shares
-/// nothing with [FcmPushService] and has to bring Firebase up itself.
 @pragma('vm:entry-point')
 Future<void> _backgroundHandler(RemoteMessage message) async {
   FcmPushService._logMessage('received in the background', message);

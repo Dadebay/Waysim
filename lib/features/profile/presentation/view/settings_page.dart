@@ -21,8 +21,6 @@ import '../../../notification/presentation/cubit/notification_prefs_cubit.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
 import '../widgets/theme_picker.dart';
 
-/// Language (five, with flags) and theme (light / dark). Notification
-/// switches arrive with push in docs/06-roadmap.md T5.4.
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -73,8 +71,7 @@ class SettingsPage extends StatelessWidget {
                 if (lang == current) return;
                 HapticFeedback.selectionClick();
                 final cubit = context.read<LocaleCubit>();
-                // The whole app redraws in the new language: fade it in rather
-                // than flashing.
+
                 void change() => cubit.setLocale(lang.locale);
                 final fade = AppCrossfade.of(context);
                 fade == null ? change() : fade.run(change);
@@ -154,8 +151,6 @@ class _SectionLabel extends StatelessWidget {
   );
 }
 
-// ── Language: 2-col flag cards, selected glows ────────────────────────────
-
 class _LanguageGrid extends StatelessWidget {
   const _LanguageGrid({
     required this.current,
@@ -180,7 +175,6 @@ class _LanguageGrid extends StatelessWidget {
       ),
       itemCount: languages.length + (languages.length.isOdd ? 1 : 0),
       itemBuilder: (context, i) {
-        // Last cell keeps an odd number of languages balanced.
         if (i >= languages.length) {
           return const SizedBox.shrink();
         }

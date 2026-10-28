@@ -4,8 +4,6 @@ import 'package:flutter/services.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Text input with a label above the box, a primary border on focus and an
-/// `errorSubtle` fill with red helper text on error.
 class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,

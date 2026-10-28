@@ -3,8 +3,6 @@ import 'package:bloc/bloc.dart';
 import '../utils/app_logger.dart';
 import '../services/crash_reporter.dart';
 
-/// Logs every bloc transition and error in one place — replaces scattered
-/// prints and gives a single hook for Crashlytics/Sentry later.
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver([this._reporter]);
 
@@ -13,8 +11,7 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {
     super.onChange(bloc, change);
-    // Before and after on their own lines: a state with half a dozen fields
-    // makes one line far too long to read the change out of.
+
     AppLogger.group(
       '${bloc.runtimeType}',
       lines: ['${change.currentState}', '-> ${change.nextState}'],

@@ -20,8 +20,6 @@ import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
 import '../../../wallet/presentation/cubit/wallet_cubit.dart';
 
-/// Third tab. A guest is invited to sign up; a signed-in customer sees the
-/// account, the balance and the way to everything else.
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 

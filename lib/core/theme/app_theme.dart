@@ -5,7 +5,6 @@ import 'app_color_tokens.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
-/// The two [ThemeData]s. Everything visual derives from [AppColorTokens].
 abstract final class AppTheme {
   static ThemeData get light => _build(AppColorTokens.light, Brightness.light);
   static ThemeData get dark => _build(AppColorTokens.dark, Brightness.dark);

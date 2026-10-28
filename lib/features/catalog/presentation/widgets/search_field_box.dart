@@ -4,16 +4,11 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 
-/// The rounded search box, shared by the Home tab (resting) and the search
-/// page (focused, in the app bar). [focus] runs 0 → 1 between the two looks —
-/// border colour and weight, fill — so a flying copy can sit anywhere in
-/// between and the box never "jumps" between two different designs.
 class SearchFieldBox extends StatelessWidget {
   const SearchFieldBox({super.key, required this.child, this.focus = 0});
 
   final Widget child;
 
-  /// 0 = Home look, 1 = search-page look.
   final double focus;
 
   @override
@@ -44,8 +39,6 @@ class SearchFieldBox extends StatelessWidget {
   }
 }
 
-/// Magnifier + placeholder: what both ends of the flight show, so the flying
-/// copy needs no live text field (and no keyboard, no focus).
 class SearchFieldHint extends StatelessWidget {
   const SearchFieldHint({super.key, required this.hint});
 
@@ -71,11 +64,8 @@ class SearchFieldHint extends StatelessWidget {
   }
 }
 
-/// The tag both ends of the search flight share.
 const searchFieldHeroTag = 'search-field';
 
-/// An ease-out that starts fast and settles gently — close to the curve iOS
-/// uses for navigation — applied to the flying rectangle.
 class SearchFlightRectTween extends RectTween {
   SearchFlightRectTween({super.begin, super.end});
 
@@ -85,7 +75,6 @@ class SearchFlightRectTween extends RectTween {
   Rect? lerp(double t) => super.lerp(_curve.transform(t));
 }
 
-/// What flies between the Home field and the search page's field.
 Widget searchFlightShuttle(
   BuildContext flightContext,
   Animation<double> animation,
@@ -98,7 +87,7 @@ Widget searchFlightShuttle(
     type: MaterialType.transparency,
     child: AnimatedBuilder(
       animation: animation,
-      // 0 at the Home end, 1 at the search page end, in either direction.
+
       builder: (context, _) => SearchFieldBox(
         focus: animation.value.clamp(0.0, 1.0),
         child: SearchFieldHint(hint: hint),

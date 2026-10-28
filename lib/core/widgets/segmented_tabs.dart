@@ -5,13 +5,6 @@ import '../constants/app_constants.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Two-or-more option switch: Local / Regional, Unlimited / Data,
-/// Current / Archive, Purchases / Top-ups.
-///
-/// Behaves like an iOS segmented control: one raised thumb slides to the new
-/// segment on an ease-out curve instead of each segment lighting up on its
-/// own, the labels fade between weights, a light haptic tick confirms the
-/// change, and the thumb can be dragged across the segments.
 class SegmentedTabs extends StatelessWidget {
   const SegmentedTabs({
     super.key,
@@ -54,7 +47,6 @@ class SegmentedTabs extends StatelessWidget {
           builder: (context, box) {
             final segmentWidth = box.maxWidth / count;
 
-            // Which segment a horizontal position falls in.
             int indexAt(double dx) => (dx / segmentWidth).floor();
 
             return GestureDetector(
@@ -65,8 +57,6 @@ class SegmentedTabs extends StatelessWidget {
                 height: _height,
                 child: Stack(
                   children: [
-                    // The thumb. Alignment runs -1..1 across the free space, so
-                    // segment i of n sits at -1 + 2i/(n-1).
                     AnimatedAlign(
                       duration: duration,
                       curve: Curves.easeOutCubic,

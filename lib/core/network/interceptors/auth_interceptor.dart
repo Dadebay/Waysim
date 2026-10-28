@@ -5,12 +5,6 @@ import '../../storage/secure_storage.dart';
 import '../token_refresher.dart';
 import '../device_session.dart';
 
-/// Attaches the bearer token, renews it on a 401 and clears the session when
-/// renewing fails.
-///
-/// A [QueuedInterceptor]: while one request is refreshing the token, errors
-/// from other in-flight requests wait their turn instead of firing a second
-/// refresh with the already-rotated refresh token.
 class AuthInterceptor extends QueuedInterceptor {
   AuthInterceptor(
     this._storage, {
@@ -25,14 +19,10 @@ class AuthInterceptor extends QueuedInterceptor {
   final SecureStorage _storage;
   final DeviceSession? deviceSession;
 
-  /// Replays the failed request. Deliberately a bare [Dio]: the retry must not
-  /// re-enter this interceptor's error queue, which is still busy with the
-  /// request that is waiting on it.
   final Dio _retryDio;
 
   final TokenRefresher Function() _refresher;
 
-  /// Called after the session is cleared, so the app can show the sign-in.
   final void Function(Failure failure)? onUnauthorized;
 
   @override
@@ -58,8 +48,7 @@ class AuthInterceptor extends QueuedInterceptor {
       final id = await _storage.readDeviceId();
       if (id != null) options.headers['X-Device-Id'] = id;
     }
-    // The token belongs to our API only: a request to any other host (an
-    // absolute URL slipped into a data source) must never carry it.
+
     final ownHost = options.uri.host == Uri.tryParse(options.baseUrl)?.host;
     if (ownHost && token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -136,7 +125,6 @@ class AuthInterceptor extends QueuedInterceptor {
         );
         return handler.next(err);
       case RefreshOutcome.unavailable:
-        // Offline mid-refresh is not a reason to sign the customer out.
         return handler.next(err);
     }
 

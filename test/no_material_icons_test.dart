@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Hugeicons is the only icon set (project decision). A stray `Icons.foo`
-/// would put a Material glyph beside the design's stroke icons.
 void main() {
   test('lib/ never uses Material Icons', () {
     final offenders = <String>[];

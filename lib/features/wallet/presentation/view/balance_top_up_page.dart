@@ -24,14 +24,9 @@ import '../../domain/entities/wallet_entities.dart';
 import '../cubit/top_up_cubit.dart';
 import '../cubit/wallet_cubit.dart';
 
-/// Top up the balance: amount → PayPal or crypto → credited.
-///
-/// Pops `true` once the money has arrived, so a purchase that sent the
-/// customer here can go straight back to its confirmation.
 class BalanceTopUpPage extends StatelessWidget {
   const BalanceTopUpPage({super.key, this.initialCents, this.paymentId});
 
-  /// Pre-filled amount when a purchase was short of balance.
   final int? initialCents;
   final String? paymentId;
 
@@ -57,7 +52,7 @@ class _ViewState extends State<_View> {
   @override
   void initState() {
     super.initState();
-    // Back from the PayPal browser or a wallet app: check the payment now.
+
     _lifecycle = AppLifecycleListener(
       onResume: () => context.read<TopUpCubit>().setVisible(true),
       onPause: () => context.read<TopUpCubit>().setVisible(false),
@@ -114,7 +109,6 @@ class _ViewState extends State<_View> {
   }
 }
 
-/// `20`, `20.5`, `20.50` → cents. Null for anything else.
 int? parseDollars(String input) {
   final text = input.trim().replaceAll(',', '.');
   final match = RegExp(r'^(\d{1,6})(?:\.(\d{1,2}))?$').firstMatch(text);
@@ -138,8 +132,7 @@ class _FormState extends State<_Form> {
   void initState() {
     super.initState();
     final initial = context.read<TopUpCubit>().state.amount;
-    // A short-by amount from a purchase is rarely a round preset: show it in
-    // the custom field.
+
     final custom = initial != null && !_presets.contains(initial.cents);
     _custom = TextEditingController(
       text: custom ? (initial.cents / 100).toStringAsFixed(2) : '',
@@ -683,7 +676,6 @@ class _TopUpSelector<T> extends StatelessWidget {
   }
 }
 
-/// The coins' own brand colours, so the list reads at a glance.
 Color _coinColor(String coin) => switch (coin) {
   'USDT' => const Color(0xFF26A17B),
   'USDC' => const Color(0xFF2775CA),
@@ -783,7 +775,6 @@ class _CryptoChoice extends StatelessWidget {
   }
 }
 
-/// The payment is open: PayPal waiting screen or the crypto invoice.
 class _Paying extends StatelessWidget {
   const _Paying({super.key});
 
@@ -972,7 +963,7 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
   @override
   void initState() {
     super.initState();
-    // Redraws the countdown once a second.
+
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
@@ -1139,8 +1130,6 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
         ],
         const SizedBox(height: AppSpacing.md),
         Text(
-          // Stablecoins carry the fee on top ("$3.00 + $0.04 fee = $3.04");
-          // for the other coins it is inside the frozen rate.
           invoice.feeCents != null && invoice.totalCents != null
               ? l10n.cryptoFeeOnTop(
                   widget.session.amount.format(),
@@ -1318,7 +1307,6 @@ class _Credited extends StatelessWidget {
   }
 }
 
-/// Plays once when the backend reports that the top-up was credited.
 class _SuccessCheck extends StatefulWidget {
   const _SuccessCheck({super.key});
 

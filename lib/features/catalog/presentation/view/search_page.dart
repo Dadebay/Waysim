@@ -14,7 +14,6 @@ import '../cubit/catalog_cubit.dart';
 import '../cubit/search_cubit.dart';
 import '../widgets/search_field_box.dart';
 
-/// Instant search over the cached catalog, with recent searches on top.
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 
@@ -38,8 +37,6 @@ class _SearchViewState extends State<_SearchView> {
   Animation<double>? _routeAnimation;
   bool _armed = false;
 
-  /// The route's own 0 → 1 animation: drives the box flying in from Home and
-  /// the content fading in behind it.
   Animation<double>? get _enter => _routeAnimation;
 
   @override
@@ -47,17 +44,13 @@ class _SearchViewState extends State<_SearchView> {
     super.didChangeDependencies();
     if (_armed) return;
     _armed = true;
-    // The route's animation is a proxy that is re-pointed at the real one
-    // right after this first build, so holding it now is safe — it drives the
-    // fade-in below from the very first frame.
+
     _routeAnimation = ModalRoute.of(context)?.animation;
-    // The route wires its real animation in just after this first build; until
-    // then it reports "complete". Look again once the frame is done.
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final animation = _routeAnimation;
-      // The keyboard waits for the box to land: raising it at the start of the
-      // flight makes the whole screen lurch while it is still moving.
+
       if (animation == null || animation.isCompleted) {
         _focusWhenReady();
       } else {
@@ -73,9 +66,6 @@ class _SearchViewState extends State<_SearchView> {
     }
   }
 
-  /// Focuses the field once it is really on screen. The route finishes a
-  /// moment before the flying box hands the field back, and a field that is
-  /// not built yet cannot take focus — so wait for it, a few frames at most.
   Future<void> _focusWhenReady() async {
     for (var i = 0; i < 8 && mounted; i++) {
       await WidgetsBinding.instance.endOfFrame;
@@ -87,7 +77,6 @@ class _SearchViewState extends State<_SearchView> {
     }
   }
 
-  /// Dismisses the keyboard first so the box flies home on a calm screen.
   void _leave() {
     _focus.unfocus();
     context.pop();
@@ -101,7 +90,6 @@ class _SearchViewState extends State<_SearchView> {
     super.dispose();
   }
 
-  /// [child] fades (and rises a little) in the second half of the transition.
   Widget _staggered(Widget child, {double from = 0.45}) {
     final animation = _enter;
     if (animation == null) return child;
@@ -186,7 +174,6 @@ class _SearchViewState extends State<_SearchView> {
                     ),
                   ),
                   Expanded(
-                    // The same box that sat on Home, now in the app bar.
                     child: Hero(
                       tag: searchFieldHeroTag,
                       createRectTween: (begin, end) =>

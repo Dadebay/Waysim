@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// Semantic color tokens, one set per brightness. Widgets read these through
-/// `context.colors`; they never touch [AppColors] or a `Color(0x…)` literal.
 @immutable
 class AppColorTokens extends ThemeExtension<AppColorTokens> {
   const AppColorTokens({
@@ -40,18 +38,15 @@ class AppColorTokens extends ThemeExtension<AppColorTokens> {
   final Color border;
   final Color success;
 
-  /// [success] darkened for small text on [successSubtle].
   final Color successText;
   final Color successSubtle;
   final Color warning;
   final Color warningSubtle;
   final Color error;
 
-  /// [error] darkened for small text on [errorSubtle].
   final Color errorText;
   final Color errorSubtle;
 
-  /// Base color of card and accent shadows.
   final Color shadow;
 
   static const light = AppColorTokens(

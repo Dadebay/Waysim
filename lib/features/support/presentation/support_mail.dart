@@ -1,6 +1,5 @@
 import '../../../core/services/crash_report.dart';
 
-/// Keeps the customer's message first and diagnostic data at the very end.
 String buildSupportMailBody({
   required String message,
   required String localizedTemplate,

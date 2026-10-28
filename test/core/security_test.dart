@@ -186,8 +186,6 @@ void main() {
   });
 
   test('the debug build keeps the mock switch and the gallery route', () {
-    // Release behaviour (mock off, logging off, https only) hangs on
-    // kReleaseMode, which is false under `flutter test`.
     expect(AppEnvironment.apiBaseUrl, startsWith('https://'));
     expect(AppEnvironment.ensureSecureApiBaseUrl, returnsNormally);
     expect(AppRouter.create, returnsNormally);

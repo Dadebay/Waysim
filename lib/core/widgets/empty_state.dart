@@ -4,7 +4,6 @@ import '../constants/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Centered illustration-less empty state: icon, title, body, optional actions.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,

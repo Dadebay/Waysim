@@ -23,7 +23,6 @@ class CatalogState extends Equatable {
   final List<Destination> destinations;
   final Failure? failure;
 
-  /// A fetch is running behind data already on screen.
   final bool refreshing;
 
   List<Destination> get countries =>
@@ -48,8 +47,6 @@ class CatalogState extends Equatable {
   ];
 }
 
-/// The catalog of countries and regions. Persisted, so Home and search work
-/// from the last answer while offline and the next launch opens instantly.
 class CatalogCubit extends HydratedCubit<CatalogState> {
   CatalogCubit(this._repository, {this.cacheKey = 'catalog'})
     : super(const CatalogState());
@@ -108,7 +105,6 @@ class CatalogCubit extends HydratedCubit<CatalogState> {
         emit(
           cached.isEmpty
               ? CatalogState(status: CatalogStatus.failure, failure: failure)
-              // Offline with a cache: keep showing it.
               : CatalogState(
                   status: CatalogStatus.loaded,
                   destinations: cached,

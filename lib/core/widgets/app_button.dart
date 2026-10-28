@@ -13,14 +13,10 @@ enum AppButtonSize {
 
   const AppButtonSize(this.height, this.fontSize);
 
-  /// Never below the 44 pt tap target.
   final double height;
   final double fontSize;
 }
 
-/// The design system's button: primary / secondary / ghost / danger in
-/// sm · md · lg, with disabled and loading states. [onPressed] `null`
-/// disables; [loading] swaps the label for a spinner and ignores taps.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -40,7 +36,6 @@ class AppButton extends StatelessWidget {
   final AppButtonSize size;
   final bool loading;
 
-  /// Fill the available width (the default for lg/md call-to-action buttons).
   final bool expand;
   final AppIconData? icon;
   final AppIconData? trailingIcon;
@@ -141,7 +136,6 @@ class AppButton extends StatelessWidget {
     );
 
     final button = FilledButton(
-      // While loading the button stays "enabled" visually but ignores taps.
       onPressed: loading ? () {} : onPressed,
       style: style,
       child: content,

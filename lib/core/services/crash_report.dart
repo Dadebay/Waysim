@@ -1,8 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Everything needed to find and fix a crash: who, on which phone, doing what.
-/// Deliberately free of personal data — the public id (`A0123`) identifies the
-/// customer to support; there is no e-mail, name, token or payment detail.
 class CrashReport extends Equatable {
   const CrashReport({
     required this.error,
@@ -13,20 +10,15 @@ class CrashReport extends Equatable {
     this.publicId,
   });
 
-  /// `error.toString()`, trimmed.
   final String error;
 
-  /// First lines of the stack trace.
   final String stack;
   final bool fatal;
 
-  /// The route the customer was on.
   final String screen;
   final String? publicId;
   final DeviceContext device;
 
-  /// What the same crash looks like twice: used to avoid writing it ten
-  /// thousand times from a build loop.
   String get signature => '$error|${stack.split('\n').take(3).join('|')}';
 
   Map<String, Object?> toMap() => {
@@ -42,7 +34,6 @@ class CrashReport extends Equatable {
   List<Object?> get props => [error, stack, fatal, screen, publicId, device];
 }
 
-/// The phone and the build.
 class DeviceContext extends Equatable {
   const DeviceContext({
     required this.platform,
@@ -103,7 +94,6 @@ class DeviceContext extends Equatable {
   ];
 }
 
-/// Where reports are kept.
 abstract interface class CrashReportStore {
   Future<void> save(CrashReport report);
 }

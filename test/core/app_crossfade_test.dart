@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:waysim/core/constants/app_constants.dart';
 import 'package:waysim/core/widgets/app_crossfade.dart';
 
-/// A screen whose text can be swapped from a button, standing in for a
-/// language change.
 class _Host extends StatefulWidget {
   const _Host({this.transition = AppScreenTransition.crossfade});
 
@@ -86,16 +84,15 @@ void main() {
     expect(find.text('Hello'), findsOneWidget);
 
     await tester.tap(find.text('Hello'));
-    await tester.pump(); // photograph goes on
-    await tester.pump(); // language changes underneath
-    await tester.pump(); // the fade's ticker starts
-    await tester.pump(); // first frame after the new screen paints
-    await tester.pump(const Duration(milliseconds: 150)); // mid-fade
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
 
-    // The new language is already drawn under the old picture.
     expect(find.text('Привет'), findsOneWidget);
     expect(find.byType(RawImage), findsOneWidget);
-    // The nearest fade above the picture is the one that dissolves it.
+
     final midOpacity =
         (find
                     .ancestor(
@@ -120,7 +117,6 @@ void main() {
   ) async {
     await tester.pumpWidget(const _Host());
 
-    // Under the fake clock toImage never completes; the timeout takes over.
     await tester.tap(find.text('Hello'));
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();

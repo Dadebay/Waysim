@@ -7,13 +7,9 @@ import '../../../../core/theme/app_color_tokens.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 
-/// Light and Dark as two large cards, each with a miniature of the app drawn
-/// in that theme's own colours — you see what you are choosing. The chosen
-/// card gets the brand border, a soft glow and a check badge.
 class ThemePicker extends StatelessWidget {
   const ThemePicker({super.key, required this.mode, required this.onChanged});
 
-  /// [ThemeMode.light] or [ThemeMode.dark].
   final ThemeMode mode;
   final ValueChanged<ThemeMode> onChanged;
 
@@ -66,7 +62,6 @@ class _ThemeCard extends StatefulWidget {
   final String label;
   final AppIconData icon;
 
-  /// The colours this card previews — not the current theme's.
   final AppColorTokens tokens;
   final bool selected;
   final VoidCallback onTap;
@@ -104,7 +99,7 @@ class _ThemeCardState extends State<_ThemeCard> {
             borderRadius: radius,
             border: Border.all(
               color: widget.selected ? c.primary : c.border,
-              // Keep the content inset fixed when selection changes.
+
               width: 1.5,
             ),
             boxShadow: widget.selected
@@ -196,8 +191,6 @@ class _ThemeCardState extends State<_ThemeCard> {
   }
 }
 
-/// A tiny phone screen: a header line, a banner, two list rows and a tab bar,
-/// all in [tokens]. Decorative, so hidden from screen readers.
 class _Preview extends StatelessWidget {
   const _Preview({required this.tokens});
 

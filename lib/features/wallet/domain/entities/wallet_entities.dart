@@ -6,8 +6,6 @@ enum OrderType { purchase, topUp }
 
 enum OrderOutcome { completed, failedRefunded, pending, review, failed }
 
-/// One line of order history: a package purchase, a package top-up or a
-/// balance top-up.
 class WalletOrder extends Equatable {
   const WalletOrder({
     required this.number,
@@ -38,7 +36,6 @@ class WalletOrder extends Equatable {
   final OrderType type;
   final OrderOutcome outcome;
 
-  /// Always positive; the sign is drawn from [type].
   final Money amount;
   final DateTime createdAt;
   final Map<String, String> destinationNames;
@@ -46,10 +43,8 @@ class WalletOrder extends Equatable {
   final int? days;
   final bool unlimited;
 
-  /// A package added to an existing eSIM rather than a new one.
   final bool addOn;
 
-  /// Balance top-ups: how it was paid.
   final TopUpMethod? method;
   final String? serverTitle;
 
@@ -82,7 +77,6 @@ enum TopUpMethod { paypal, crypto }
 
 enum TopUpStatus { waiting, confirming, credited, review, expired, failed }
 
-/// A balance top-up in flight.
 class TopUpSession extends Equatable {
   const TopUpSession({
     required this.id,
@@ -106,10 +100,8 @@ class TopUpSession extends Equatable {
   final DateTime? createdAt;
   final DateTime? creditedAt;
 
-  /// PayPal: the page to open in the in-app browser.
   final Uri? checkoutUrl;
 
-  /// Crypto: the invoice to pay.
   final CryptoInvoice? crypto;
   final TopUpStatus status;
   final Money? creditedAmount;
@@ -156,7 +148,6 @@ class CryptoInvoice extends Equatable {
   final String network;
   final String address;
 
-  /// Exact amount to send, as a string ("20.00") — never a double.
   final String amountText;
   final String? paidAmountText;
   final String? providerStatus;
@@ -164,7 +155,6 @@ class CryptoInvoice extends Equatable {
   final int? totalCents;
   final String? txid;
 
-  /// "1 USDT = $1.00".
   final String rateText;
   final DateTime expiresAt;
   final int requiredConfirmations;
@@ -194,7 +184,6 @@ class CryptoInvoice extends Equatable {
       'CryptoInvoice(coin: $coin, network: $network, amount: $amountText, paid: $paidAmountText)';
 }
 
-/// Where a top-up stands.
 class TopUpProgress extends Equatable {
   const TopUpProgress(
     this.status, {
@@ -210,7 +199,6 @@ class TopUpProgress extends Equatable {
   List<Object?> get props => [status, confirmations, creditedAmount];
 }
 
-/// A coin + network the customer can pay in.
 class CryptoOption extends Equatable {
   const CryptoOption(
     this.coin,
@@ -227,8 +215,6 @@ class CryptoOption extends Equatable {
   final int? minCents;
   final String? logoUrl;
 
-  /// Stablecoins: the processing and network fee is added on top of the
-  /// amount (`crypto.feeCents`). Otherwise it is inside the frozen rate.
   final bool feeOnTop;
 
   static const usdtTrc20 = CryptoOption('USDT', 'TRC-20');

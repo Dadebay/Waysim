@@ -18,7 +18,6 @@ class SearchState extends Equatable {
   final String query;
   final List<SearchHit> hits;
 
-  /// Submitted search phrases, newest first.
   final List<String> recent;
 
   bool get isSearching => query.trim().isNotEmpty;
@@ -27,7 +26,6 @@ class SearchState extends Equatable {
   List<Object?> get props => [query, hits, recent];
 }
 
-/// Type-ahead over the cached catalog, and the "recent searches" chips.
 class SearchCubit extends Cubit<SearchState> {
   SearchCubit(this._storage, {this.remoteSearch, this.onResults})
     : super(
@@ -82,7 +80,6 @@ class SearchCubit extends Cubit<SearchState> {
     return super.close();
   }
 
-  /// Remembers a completed search without filling history with each keystroke.
   Future<void> rememberQuery(String text) async {
     final phrase = text.trim();
     if (phrase.isEmpty) return;

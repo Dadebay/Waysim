@@ -33,14 +33,12 @@ extension EsimStatusPresentation on EsimStatus {
 }
 
 extension EsimLabels on AppLocalizations {
-  /// "Türkiye", or "Europe (35 countries)" for a region.
   String esimTitle(Esim e) {
     final name = e.nameFor(localeName);
     final count = e.countryCount;
     return count == null ? name : esimRegionTitle(name, count);
   }
 
-  /// "5 GB · 30 days"; "Unlimited · 1 GB a day · 7 days".
   String esimPlan(Esim e) {
     if (e.kind == PackageKind.unlimited) {
       final daily = e.dailyBytes;

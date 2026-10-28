@@ -6,8 +6,6 @@ import 'package:waysim/l10n/app_localizations.dart';
 
 import '../helpers/load_fonts.dart';
 
-/// Builds the whole gallery (every component, light and dark) at phone width
-/// in each language. Layout overflows surface as test failures.
 void main() {
   setUpAll(loadAppFonts);
 
@@ -34,7 +32,6 @@ void main() {
       expect(find.text('LIGHT'), findsWidgets);
       expect(find.text('DARK'), findsWidgets);
 
-      // Unmount so the carousel timer is cancelled before the test ends.
       await tester.pumpWidget(const SizedBox());
     });
   }

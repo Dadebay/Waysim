@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 
-/// A small SIM card that replaces the default pull-to-refresh spinner.
 class SimRefreshIndicator extends StatefulWidget {
   const SimRefreshIndicator({super.key, required this.active});
 

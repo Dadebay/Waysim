@@ -11,7 +11,6 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../wallet/presentation/cubit/wallet_cubit.dart';
 
-/// "Hi, Anna!" and the balance pill; a guest gets "Sign in" instead.
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
 
@@ -49,7 +48,6 @@ class HomeHeader extends StatelessWidget {
   }
 }
 
-/// `$24.50 (+)`: the balance, and a way to top it up.
 class BalancePill extends StatelessWidget {
   const BalancePill({super.key});
 

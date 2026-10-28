@@ -28,13 +28,10 @@ class LoginState extends Equatable {
   final String email;
   final bool loading;
 
-  /// A mistake the person can fix; shown next to the field.
   final LoginProblem? problem;
 
-  /// A technical failure (network, server); shown as a banner.
   final Failure? failure;
 
-  /// Seconds until "Send again" works.
   final int resendIn;
   final bool isNewUser;
 
@@ -68,7 +65,6 @@ class LoginState extends Equatable {
   ];
 }
 
-/// Passwordless sign-in: e-mail → 6-digit code → (new users) a name.
 class LoginCubit extends Cubit<LoginState> {
   LoginCubit(this._repository, this._auth, this._analytics)
     : super(const LoginState());
@@ -81,7 +77,6 @@ class LoginCubit extends Cubit<LoginState> {
   Timer? _ticker;
   String? _invite;
 
-  /// Prefill only; the user can edit this before saving their profile name.
   String get suggestedName {
     final savedName = _auth.state.user?.name?.trim();
     if (savedName != null && savedName.isNotEmpty) return savedName;
@@ -89,7 +84,6 @@ class LoginCubit extends Cubit<LoginState> {
     return email.trim().split('@').first;
   }
 
-  /// Step 1. [accepted] is the 18+ / terms checkbox.
   Future<void> submitEmail({
     required String email,
     required bool accepted,
@@ -130,7 +124,6 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 
-  /// Step 2. Called when the sixth digit arrives.
   Future<void> submitCode(String code) async {
     if (code.length != 6 || state.loading) return;
     emit(
@@ -190,18 +183,15 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 
-  /// The person started typing again: a stale "wrong code" no longer applies.
   void clearProblem() {
     if (state.problem != null) emit(state.copyWith(problem: () => null));
   }
 
-  /// Back from the code step to change the address.
   void changeEmail() {
     _ticker?.cancel();
     emit(LoginState(email: state.email));
   }
 
-  /// Step 3 (optional).
   Future<void> saveName(String name) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
@@ -212,7 +202,7 @@ class LoginCubit extends Cubit<LoginState> {
     final result = await _repository.updateName(trimmed);
     if (isClosed) return;
     if (result case Success(:final data)) _auth.userUpdated(data);
-    // A failed name save must not block the sign-in that already happened.
+
     emit(state.copyWith(loading: false, step: LoginStep.done));
   }
 

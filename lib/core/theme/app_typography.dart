@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Type scale from the design system (sizes and line heights are the
-/// design's), set in **Gilroy** throughout — chosen by the project owner over
-/// the design file's Unbounded + Onest. Weights ship as static files
-/// (400/500/600/700), so there is no variable-font plumbing.
-///
-/// Gilroy has no Chinese glyphs; [_cjkFallback] hands those characters to the
-/// platform's CJK face.
 abstract final class AppTypography {
   static const family = 'Gilroy';
 
@@ -26,8 +19,7 @@ abstract final class AppTypography {
     fontFamily: family,
     fontFamilyFallback: _cjkFallback,
     fontSize: size,
-    // Flutter's `height` is a multiple of the font size; the spec gives
-    // pixel line heights.
+
     height: height / size,
     fontWeight: weight,
     letterSpacing: letterSpacing,
@@ -58,13 +50,10 @@ abstract final class AppTypography {
   static TextStyle get caption =>
       _style(size: 12, height: 16, weight: FontWeight.w400);
 
-  /// Buttons and tabs.
   static TextStyle get label =>
       _style(size: 16, height: 24, weight: FontWeight.w600);
 }
 
-/// The design system's names on top of Material's [TextTheme] slots, so a
-/// widget writes `context.text.h2` rather than `textTheme.headlineMedium`.
 extension AppTextStyles on TextTheme {
   TextStyle get display => displayLarge!;
   TextStyle get h1 => headlineLarge!;

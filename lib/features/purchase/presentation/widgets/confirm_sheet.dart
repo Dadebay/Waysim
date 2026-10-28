@@ -12,7 +12,6 @@ import '../../../../core/widgets/flag_icon.dart';
 import '../../../wallet/presentation/cubit/wallet_cubit.dart';
 import '../purchase_subject.dart';
 
-/// How the confirmation sheet ended.
 sealed class ConfirmResult {
   const ConfirmResult();
 }
@@ -21,15 +20,12 @@ class ConfirmPay extends ConfirmResult {
   const ConfirmPay();
 }
 
-/// The balance is short; the customer chose to top up [missing] first.
 class ConfirmTopUp extends ConfirmResult {
   const ConfirmTopUp(this.missing);
 
   final Money missing;
 }
 
-/// "Confirm purchase": price, balance before and after, the consent text and
-/// the pay button. With too little balance it offers the exact top-up instead.
 Future<ConfirmResult?> showConfirmSheet(
   BuildContext context,
   PurchaseSubject subject,
@@ -162,7 +158,7 @@ class _Confirm extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: l10n.confirmPay(price.format()),
-              // Disabled until the balance is known: paying blind could fail.
+
               onPressed: balance == null
                   ? null
                   : () => Navigator.of(context).pop(const ConfirmPay()),

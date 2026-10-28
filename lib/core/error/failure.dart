@@ -2,12 +2,6 @@ import 'package:equatable/equatable.dart';
 
 import 'exceptions.dart';
 
-/// Domain-level error. Everything above the data layer speaks in [Failure]s.
-///
-/// [code] is a stable key the presentation layer maps to a localized string,
-/// so error text never has to be hard-coded in a bloc. For failures that came
-/// off the wire it is the backend's own `code` when there was one
-/// (`otp_invalid`, `price_mismatch`, …).
 sealed class Failure extends Equatable {
   const Failure({
     required this.code,
@@ -20,7 +14,6 @@ sealed class Failure extends Equatable {
   final String? message;
   final int? statusCode;
 
-  /// Structured extra data — on `price_mismatch` this carries the new price.
   final Map<String, dynamic>? details;
 
   @override
@@ -57,8 +50,6 @@ class UnknownFailure extends Failure {
   const UnknownFailure({super.message}) : super(code: 'unknown_error');
 }
 
-/// A documented backend error: [code] is the API's own code, so a bloc can
-/// switch on [ApiCodes] and the widget can map it to its own copy.
 class ApiFailure extends Failure {
   const ApiFailure({
     required super.code,
@@ -68,16 +59,12 @@ class ApiFailure extends Failure {
     this.errors = const [],
   });
 
-  /// Only on 400 validation failures: one entry per invalid field.
   final List<String> errors;
 
   @override
   List<Object?> get props => [...super.props, errors];
 }
 
-/// Error codes the app branches on.
-///
-/// Codes from docs/api/client-api.md; retain them through the data layer.
 abstract final class ApiCodes {
   static const otpInvalid = 'otp_invalid';
   static const otpExpired = 'otp_expired';
@@ -92,10 +79,6 @@ abstract final class ApiCodes {
 }
 
 extension AppExceptionToFailure on AppException {
-  /// Single place where data-layer exceptions become domain failures.
-  ///
-  /// A response that carried a backend `code` keeps it, so the presentation
-  /// layer never has to read `message` to know what happened.
   Failure toFailure() {
     final backendCode = code;
     if (backendCode != null) {

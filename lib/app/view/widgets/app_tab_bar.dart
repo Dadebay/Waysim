@@ -8,11 +8,6 @@ import '../../../core/constants/app_icons.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 
-/// Bottom tab bar: Home · My eSIM · Profile.
-///
-/// The selected tab has a soft pill behind its icon and uses the brand colour
-/// for its icon and bold label.
-/// A light haptic tick confirms the change, as on iOS.
 class AppTabBar extends StatelessWidget {
   const AppTabBar({
     super.key,
@@ -35,7 +30,6 @@ class AppTabBar extends StatelessWidget {
       (AppIcons.profile, l10n.tabProfile),
     ];
 
-    // Reduce Motion: the state still changes, only the movement is dropped.
     final duration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
         : AppConstants.animationBase;
@@ -120,13 +114,10 @@ class _TabItemState extends State<_TabItem>
   }
 
   void _handleTap() {
-    // Reduce Motion: no movement, the tab still switches.
     if (widget.duration != Duration.zero) _tap.forward(from: 0);
     widget.onTap();
   }
 
-  /// Per-tab motion played once on tap: Home hops, My eSIM wiggles,
-  /// Profile pops.
   Widget _animated(Widget child) {
     return AnimatedBuilder(
       animation: _tap,
@@ -183,8 +174,6 @@ class _TabItemState extends State<_TabItem>
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // The pill grows from nothing behind the icon; the icon gives a
-              // small bounce as it becomes selected.
               AnimatedContainer(
                 duration: duration,
                 curve: Curves.easeOutCubic,

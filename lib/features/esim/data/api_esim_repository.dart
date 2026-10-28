@@ -31,10 +31,9 @@ class ApiEsimRepository implements EsimRepository {
         if (failed != null) {
           try {
             await failed;
-          } on Object {
-            /* Already handled above. */
-          }
-        } // An archived/unpublished package can be absent.
+            // ignore: empty_catches
+          } on Object {}
+        }
       }
     }
     final usage = j.mapOrNull('usage') ?? {};
@@ -65,8 +64,7 @@ class ApiEsimRepository implements EsimRepository {
         'failed' => EsimStatus.failed,
         _ => EsimStatus.provisioning,
       },
-      // Trimmed: stray whitespace would break the QR code and push the
-      // one-tap link off Apple's plain `carddata` form.
+
       smdpAddress: install.str('smdpAddress').trim(),
       activationCode: install.str('activationCode').trim(),
       iccid: install.str('iccid'),
@@ -109,6 +107,4 @@ class ApiEsimRepository implements EsimRepository {
   @override
   Future<Result<Esim>> bindToDevice(String id, {required String deviceName}) =>
       get(id);
-  // Installation and device binding are confirmed by supplier webhooks. The
-  // mobile API has no bind endpoint; a tap must not fabricate an installed state.
 }

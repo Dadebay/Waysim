@@ -6,7 +6,6 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 
 enum PromoTone { primary, subtle }
 
-/// Local fallback banner when the server has not supplied a picture.
 class PromoBanner extends StatelessWidget {
   const PromoBanner({
     super.key,
@@ -60,7 +59,6 @@ class PromoBanner extends StatelessWidget {
           onTap: onTap,
           child: Stack(
             children: [
-              // A large soft circle, the design's only decoration.
               Positioned(
                 right: -48,
                 top: -48,

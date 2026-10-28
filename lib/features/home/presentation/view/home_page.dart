@@ -30,7 +30,6 @@ import '../widgets/home_header.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/sim_refresh_indicator.dart';
 
-/// The first tab: balance, search, banners, then every country and region.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -41,7 +40,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   static const _minimumRefreshDisplay = Duration(milliseconds: 700);
 
-  /// 0 = Local (countries), 1 = Regional.
   int _tab = 0;
   bool _guideShown = false;
   bool _refreshing = false;
@@ -144,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                // Room for the support button and the last row.
+
                 const SliverToBoxAdapter(child: SizedBox(height: 104)),
               ],
             ),
@@ -202,8 +200,6 @@ class _HomePageState extends State<HomePage> {
         }
         final sorted = [...list];
         if (_tab == 0) {
-          // Countries alphabetically in the app language; regions keep the
-          // server's order (Europe first).
           sorted.sort(
             (a, b) => a
                 .nameFor(language)
@@ -280,7 +276,7 @@ class _SearchField extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => context.push(AppRoute.search.path),
-        // The box itself flies up into the search page's app bar.
+
         child: Hero(
           tag: searchFieldHeroTag,
           createRectTween: (begin, end) =>
@@ -301,9 +297,6 @@ class _SearchField extends StatelessWidget {
   }
 }
 
-/// The three banners: what eSIM is, invite a friend (only while the referral
-/// programme is on) and the Local list. Content comes from the server in the
-/// real app; here the copy is local.
 class _Banners extends StatelessWidget {
   const _Banners();
 

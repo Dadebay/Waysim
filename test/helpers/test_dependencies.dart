@@ -69,7 +69,6 @@ class MemorySecureStorage implements SecureStorage {
   }
 }
 
-/// Remembers every event, so a test can say what was reported.
 class RecordingAnalytics implements AnalyticsService {
   final events = <(String, Map<String, Object>)>[];
   final screens = <String>[];
@@ -97,7 +96,6 @@ class RecordingAnalytics implements AnalyticsService {
   void setUserProperty(String name, String? value) => properties[name] = value;
 }
 
-/// Reports whatever it is told; no platform channels.
 class FakeCompatibility implements EsimCompatibility {
   FakeCompatibility({this.support = EsimSupport.yes, this.oneTap = false});
 
@@ -114,7 +112,6 @@ class FakeCompatibility implements EsimCompatibility {
   Future<String> deviceName() async => 'Test phone';
 }
 
-/// A connection the test controls; online unless told otherwise.
 class FakeNetworkInfo implements NetworkInfo {
   FakeNetworkInfo({this.connected = true});
 
@@ -133,8 +130,6 @@ class FakeNetworkInfo implements NetworkInfo {
   Stream<bool> get onConnectivityChanged => _changes.stream;
 }
 
-/// The real dependency graph, on the mock backend with no latency and no
-/// platform plugins.
 Future<MockBackend> setUpTestDependencies({
   MockBackend? backend,
   FakeCompatibility? compatibility,
@@ -147,7 +142,6 @@ Future<MockBackend> setUpTestDependencies({
   await getIt.reset();
   await configureDependencies(useMockApi: true);
 
-  // Registered lazily, so none of these has been resolved yet.
   getIt
     ..unregister<SecureStorage>()
     ..registerSingleton<SecureStorage>(MemorySecureStorage())

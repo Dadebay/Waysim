@@ -21,8 +21,6 @@ import '../../../../core/services/device_integrity.dart';
 import '../../../config/presentation/cubit/config_cubit.dart';
 import '../../domain/entities/referral.dart';
 
-/// "Invite friends": the code, the numbers and the rules.
-/// Not reachable while the programme is switched off on the server.
 class ReferralPage extends StatelessWidget {
   const ReferralPage({super.key});
 
@@ -84,8 +82,6 @@ class _Content extends StatelessWidget {
   final ReferralInfo info;
 
   Future<void> _share(BuildContext context) async {
-    // Build the invite URL on our own domain. A malformed server-provided
-    // link must never become a link that customers send to their friends.
     final link = Uri(
       scheme: 'https',
       host: 'waysim.co',

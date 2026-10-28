@@ -17,8 +17,6 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<Result<User?>> restore() async {
-    // The mock server forgets everything on restart, so a stored token has
-    // nothing to restore; clear it so the guest state is consistent.
     if (await _secure.readAccessToken() != null && _backend.user == null) {
       await _secure.clearSession();
     }

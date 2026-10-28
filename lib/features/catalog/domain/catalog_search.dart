@@ -1,10 +1,5 @@
 import 'entities/destination.dart';
 
-/// Instant, offline search over the cached catalog.
-///
-/// Matches from the first letter, in every language the catalog carries, plus
-/// aliases and country codes ("USA", "US", "США"). Prefix matches rank above
-/// substring matches; countries rank above regions on a tie.
 abstract final class CatalogSearch {
   static List<SearchHit> search(
     List<Destination> destinations,
@@ -34,7 +29,7 @@ abstract final class CatalogSearch {
 
   static SearchHit? _match(Destination d, String needle, String language) {
     final shown = normalize(d.nameFor(language));
-    // Lower score = better. Name in the app language first.
+
     if (shown.startsWith(needle)) {
       return SearchHit(d, 0, highlight: needle.length);
     }
@@ -47,7 +42,7 @@ abstract final class CatalogSearch {
     }
     for (final name in [d.nameFor(language), ...d.names.values]) {
       final n = normalize(name);
-      // A word inside the name: "Emirates" finds "United Arab Emirates".
+
       if (n.split(' ').any((w) => w.startsWith(needle))) {
         return SearchHit(d, 3);
       }
@@ -55,7 +50,6 @@ abstract final class CatalogSearch {
     return null;
   }
 
-  /// Lowercase, no diacritics, `ё` as `е`, single spaces.
   static String normalize(String input) {
     final lower = input.toLowerCase().trim();
     final buffer = StringBuffer();
@@ -104,10 +98,7 @@ class SearchHit {
 
   final Destination destination;
 
-  /// 0 best … 3 weakest.
   final int score;
 
-  /// Length of the typed prefix to emphasise in the displayed name, when the
-  /// match was on that name.
   final int? highlight;
 }

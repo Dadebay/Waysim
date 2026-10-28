@@ -110,8 +110,6 @@ void main() {
 
   testWidgets('sign-up offers the invite field before the referral flag is '
       'known', (tester) async {
-    // Signed out, the real API reports the programme as off: `/v1/referral`
-    // needs a session.
     getIt<MockBackend>().config = const AppConfig(referralEnabled: false);
     await getIt<ConfigCubit>().refresh();
     final auth = getIt<AuthCubit>();
@@ -224,8 +222,6 @@ void main() {
   });
 
   testWidgets('tab pages get the screen above the tab bar', (tester) async {
-    // Regression: a max-sized Column in the tab bar once took the whole
-    // height and left every tab page 0 px tall.
     await tester.pumpWidget(const App());
     await tester.pumpAndSettle();
 
@@ -251,7 +247,6 @@ void main() {
         await tester.pumpAndSettle();
         expect(auth.state.isSignedIn, isTrue);
 
-        // Simulate the server revoking this phone while its cached UI is open.
         backend.signOut();
         expect(auth.state.isSignedIn, isTrue);
         if (resume) {
@@ -364,13 +359,12 @@ void main() {
     expect(find.text('Настройки'), findsOneWidget);
     expect(getIt<LocaleCubit>().state, const Locale('ru'));
 
-    // The language cards push the theme section below the fold.
     await tester.scrollUntilVisible(
       find.text('Тёмная'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    // Built is not the same as on screen: bring it inside the viewport.
+
     await tester.ensureVisible(find.text('Тёмная'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Тёмная'));
@@ -381,7 +375,6 @@ void main() {
       Brightness.dark,
     );
 
-    // The choice reaches plain preferences, where the Dio interceptor reads it.
     expect(getIt<LocalStorage>().getString('content_language'), 'ru');
   });
 
@@ -463,7 +456,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       await tester.pumpAndSettle();
       expect(find.byType(RawImage), findsNothing);
-      // Allow subpixel rounding as the scroll simulation settles.
+
       expect(scrollState.position.pixels, closeTo(scrollOffset, 0.1));
       expect(
         (tester.getTopLeft(find.text('Dark')) - cardPosition).distance,

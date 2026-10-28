@@ -23,9 +23,6 @@ import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/usage_progress.dart';
 
-/// Every design-system component, drawn twice — once in the light theme and
-/// once in the dark theme — so both can be reviewed on one screen. Reached
-/// from Settings in debug builds only (docs/06-roadmap.md T1.7).
 class GalleryPage extends StatelessWidget {
   const GalleryPage({super.key});
 
@@ -63,7 +60,6 @@ class GalleryPage extends StatelessWidget {
   }
 }
 
-/// A titled section rendered in both themes, light first.
 class _Section extends StatelessWidget {
   const _Section(this.title, this.builder);
 
@@ -553,7 +549,6 @@ class _Banners extends StatelessWidget {
       ),
     );
     return SizedBox(
-      // Panels are inset; the carousel wants full width, so give it room.
       height: 220,
       child: PromoCarousel(
         height: 190,

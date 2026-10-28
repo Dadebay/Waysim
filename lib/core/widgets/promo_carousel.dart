@@ -6,8 +6,6 @@ import '../constants/app_constants.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Swipeable banners with dots. Advances every [interval] (5 s), loops, and
-/// pauses while a finger is down. Slides peek the next one, as in the design.
 class PromoCarousel extends StatefulWidget {
   const PromoCarousel({
     super.key,
@@ -21,7 +19,6 @@ class PromoCarousel extends StatefulWidget {
   final Duration interval;
   final double height;
 
-  /// Fixed card width / height. When absent, [height] is used.
   final double? aspectRatio;
 
   @override
@@ -31,24 +28,18 @@ class PromoCarousel extends StatefulWidget {
 class _PromoCarouselState extends State<PromoCarousel> {
   static const _viewportFraction = 0.93;
 
-  /// The pager is endless: page N shows banner `N % count`. Starting in the
-  /// middle of a huge range means "next" always slides the same way — from the
-  /// last banner straight on to the first — instead of rewinding.
   static const _loopSpan = 10000;
 
   late PageController _controller = _newController();
   Timer? _timer;
 
-  /// The raw page index, not the banner's.
   late int _page = _startPage;
   bool _touching = false;
 
   int get _count => widget.children.length;
 
-  /// A multiple of the banner count, so it lands on the first banner.
   int get _startPage => _count > 1 ? _count * _loopSpan : 0;
 
-  /// The banner on screen.
   int get _visible => _count == 0 ? 0 : _page % _count;
 
   PageController _newController({int? initialPage}) => PageController(
@@ -67,8 +58,6 @@ class _PromoCarouselState extends State<PromoCarousel> {
   void didUpdateWidget(PromoCarousel old) {
     super.didUpdateWidget(old);
     if (widget.children.length != old.children.length) {
-      // A banner was added or removed (the referral one, when the programme
-      // is switched): keep the current banner instead of jumping to the first.
       final visible = _indexAfterChildrenChange(old.children);
       _controller.dispose();
       _page = _startPage + visible;
@@ -80,7 +69,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
   int _indexAfterChildrenChange(List<Widget> previous) {
     if (_count == 0 || previous.isEmpty) return 0;
     final oldIndex = _page % previous.length;
-    // If the current item disappeared, show the next surviving item.
+
     for (var offset = 0; offset < previous.length; offset++) {
       final key = previous[(oldIndex + offset) % previous.length].key;
       if (key == null) continue;

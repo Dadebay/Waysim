@@ -6,8 +6,6 @@ import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 import 'app_toast.dart';
 
-/// A labelled value with a copy button: SM-DP+ address, activation code,
-/// ICCID, referral code.
 class CopyField extends StatelessWidget {
   const CopyField({
     super.key,
@@ -20,8 +18,6 @@ class CopyField extends StatelessWidget {
   final String label;
   final String value;
 
-  /// What lands on the clipboard when it differs from what is shown
-  /// (an ICCID displayed in groups of four, copied as digits).
   final String? copyValue;
   final bool monospace;
 
@@ -85,7 +81,6 @@ class CopyField extends StatelessWidget {
                   width: 56,
                   height: 48,
                   child: Center(
-                    // A white button on the grey field, as in the design.
                     child: Container(
                       width: 40,
                       height: 40,

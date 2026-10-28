@@ -37,8 +37,6 @@ void main() {
 
     await SystemUiManager().apply();
 
-    // Manual mode is sent as "enable only these overlays": just the top one
-    // (the status bar), so the navigation bar is the one that goes.
     final call = calls.singleWhere(
       (c) => c.method == 'SystemChrome.setEnabledSystemUIOverlays',
     );
@@ -78,7 +76,7 @@ void main() {
   ) async {
     final manager = _Counting();
 
-    manager.handleBottomPadding(48); // the bar is on screen again
+    manager.handleBottomPadding(48);
     await tester.pump(const Duration(seconds: 2));
     expect(manager.applied, 0);
 
@@ -105,7 +103,7 @@ void main() {
 
     manager.handleBottomPadding(48);
     await tester.pump(const Duration(seconds: 2));
-    manager.handleBottomPadding(48); // another tick mid-countdown
+    manager.handleBottomPadding(48);
     await tester.pump(const Duration(seconds: 1, milliseconds: 100));
 
     expect(manager.applied, 1);

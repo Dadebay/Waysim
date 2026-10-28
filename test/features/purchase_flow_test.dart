@@ -16,8 +16,6 @@ import 'package:waysim/mock/demo_credentials.dart';
 import '../helpers/load_fonts.dart';
 import '../helpers/test_dependencies.dart';
 
-/// The whole happy path on the mock backend, through the real screens:
-/// find a country → buy as a guest (sign in on the way) → eSIM ready.
 void main() {
   setUpAll(loadAppFonts);
 
@@ -50,7 +48,6 @@ void main() {
       const Duration(seconds: 5),
     );
 
-    // Search for Türkiye with a prefix, in any case.
     await tester.tap(find.text('Where do you need an eSIM?'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
@@ -70,7 +67,6 @@ void main() {
       const Duration(seconds: 5),
     );
 
-    // The 5 GB plan is pre-selected.
     expect(find.text(r'Buy for $5.99'), findsOneWidget);
     await tester.tap(find.text(r'Buy for $5.99'));
     await tester.pumpAndSettle(
@@ -79,7 +75,6 @@ void main() {
       const Duration(seconds: 5),
     );
 
-    // Guests are sent to sign in first.
     expect(find.text('Sign in or sign up'), findsOneWidget);
     await tester.enterText(
       find.byType(TextField).first,
@@ -126,7 +121,6 @@ void main() {
       const Duration(seconds: 5),
     );
 
-    // The code step. Six digits, no password.
     expect(find.text('Enter the code'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     await tester.tap(find.text('Change e-mail'));
@@ -145,7 +139,6 @@ void main() {
       const Duration(seconds: 5),
     );
 
-    // New customers are asked for a name, which they can skip.
     expect(find.text('What should we call you?'), findsOneWidget);
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle(
@@ -154,7 +147,6 @@ void main() {
       const Duration(seconds: 5),
     );
 
-    // Back where they were: the confirmation, with the demo balance.
     expect(find.text('Confirm purchase'), findsOneWidget);
     expect(find.text(r'$24.50'), findsOneWidget);
     expect(find.text(r'$18.51'), findsOneWidget);
@@ -167,10 +159,9 @@ void main() {
 
     expect(find.text('eSIM is ready!'), findsOneWidget);
     expect(find.text('Install eSIM'), findsOneWidget);
-    // The server's balance, as the app now shows it.
+
     expect(getIt<WalletCubit>().state.balance?.cents, 1851);
 
-    // What the dashboards will see: the funnel, with the price in dollars.
     expect(analytics.named('search').single['search_term'], 'tur');
     expect(analytics.named('sign_up'), hasLength(1));
     final checkout = analytics.named('begin_checkout').single;

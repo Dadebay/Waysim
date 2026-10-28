@@ -2,8 +2,6 @@ import '../../../core/utils/result.dart';
 import '../domain/entities/legal_document.dart';
 import '../domain/repositories/legal_repository.dart';
 
-/// Six documents with placeholder text. The real ones are authored by the
-/// customer and served from waysim.co (docs/07-open-questions.md).
 class MockLegalRepository implements LegalRepository {
   const MockLegalRepository();
 

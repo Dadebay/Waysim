@@ -184,7 +184,7 @@ void main() {
       expect(config.contacts.website?.url, 'https://waysim.co');
       expect(config.contacts.telegram?.label, '@waysim_support');
       expect(config.contacts.instagram, isNull);
-      // `supportEmail` follows contacts.email, which is what the admin edits.
+
       expect(config.supportEmail, 'support@waysim.co');
       expect(config.minTopUpCents, 100);
     },
@@ -655,8 +655,7 @@ void main() {
                   'code': 'AL',
                   'name': 'Albania',
                 },
-                // The source array determines the group, even when this flag
-                // describes a daily allowance rather than unlimited bytes.
+
                 'unlimited': false,
                 'perDay': true,
                 'days': null,
@@ -1200,7 +1199,7 @@ void main() {
       expect(body(adapter.requests.last)['payCurrency'], 'usdttrc20');
 
       await cubit.changeCryptoInvoice(options[2]);
-      expect(created, 2); // This network requires more than the chosen $25.
+      expect(created, 2);
 
       await cubit.changeCryptoInvoice(options[3]);
       expect(created, 3);

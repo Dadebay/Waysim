@@ -50,8 +50,6 @@ abstract interface class SlowFrameReportStore {
   Future<void> save(SlowFrameReport report);
 }
 
-/// Reports severe UI/GPU stalls. One report per screen per minute and at most
-/// twenty per app run keeps Firestore writes bounded even on a slow phone.
 class FirestoreSlowFrameReporter implements SlowFrameReporter {
   FirestoreSlowFrameReporter({
     required this._store,
@@ -104,7 +102,6 @@ class FirestoreSlowFrameReporter implements SlowFrameReporter {
       timing.buildDuration.inMicroseconds +
       timing.rasterDuration.inMicroseconds;
 
-  /// Exposed for deterministic tests; the scheduler callback uses this path.
   void recordFrame(Duration build, Duration raster) {
     if (build + raster < threshold || _saved >= maxPerRun) return;
     final screen = _currentScreen();

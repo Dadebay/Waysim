@@ -17,13 +17,11 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/esim.dart';
 import '../esim_labels.dart';
 
-/// One eSIM in the My eSIM list.
 class EsimCard extends StatelessWidget {
   const EsimCard({super.key, required this.esim, required this.onInstall});
 
   final Esim esim;
 
-  /// Tapped on the "Install" button of a not-yet-installed eSIM.
   final VoidCallback onInstall;
 
   @override

@@ -20,7 +20,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/wallet_entities.dart';
 import '../../domain/repositories/wallet_repository.dart';
 
-/// Opens a payment from its order number or UUID and reads its current state.
 class PaymentDetailPage extends StatefulWidget {
   const PaymentDetailPage({super.key, required this.id});
 

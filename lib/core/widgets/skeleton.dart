@@ -4,8 +4,6 @@ import 'package:shimmer/shimmer.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Shimmering placeholder block. Wrap a group of [SkeletonBox]es in one
-/// [Skeleton] so they animate together.
 class Skeleton extends StatelessWidget {
   const Skeleton({super.key, required this.child});
 
@@ -42,7 +40,6 @@ class SkeletonBox extends StatelessWidget {
     width: circle ? height : width,
     height: height,
     decoration: BoxDecoration(
-      // Opaque: Shimmer paints through this colour.
       color: Colors.white,
       shape: circle ? BoxShape.circle : BoxShape.rectangle,
       borderRadius: circle ? null : BorderRadius.circular(radius),
@@ -50,7 +47,6 @@ class SkeletonBox extends StatelessWidget {
   );
 }
 
-/// A list of destination-row skeletons (flag + two lines + price).
 class SkeletonList extends StatelessWidget {
   const SkeletonList({super.key, this.count = 6});
 

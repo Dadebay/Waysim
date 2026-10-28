@@ -10,7 +10,6 @@ import '../../../../core/widgets/app_hero.dart';
 import '../../../../core/widgets/flag_icon.dart';
 import '../../../catalog/domain/entities/destination.dart';
 
-/// Row for a country or a region, shared by Home and search.
 class DestinationRow extends StatelessWidget {
   const DestinationRow({
     super.key,
@@ -23,7 +22,6 @@ class DestinationRow extends StatelessWidget {
   final Destination destination;
   final int? highlight;
 
-  /// Called just before navigating (search uses it to remember the choice).
   final VoidCallback? onOpen;
   final bool searchStyle;
 
@@ -58,7 +56,6 @@ class DestinationRow extends StatelessWidget {
   }
 }
 
-/// A divided list of destinations, alphabetical in the app language.
 class DestinationList extends StatelessWidget {
   const DestinationList({super.key, required this.destinations});
 

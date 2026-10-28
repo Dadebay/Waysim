@@ -1,14 +1,5 @@
 import '../error/failure.dart';
 
-/// Lightweight `Either`-style return type — no extra dependency needed.
-///
-/// ```dart
-/// final result = await repository.fetchProducts();
-/// switch (result) {
-///   case Success(:final data): emit(Loaded(data));
-///   case Error(:final failure): emit(Failed(failure));
-/// }
-/// ```
 sealed class Result<T> {
   const Result();
 

@@ -10,7 +10,6 @@ class User extends Equatable {
     this.supportUnread = 0,
   });
 
-  /// `A0123` — shown in the profile and sent to support.
   final String publicId;
   final String email;
   final String? name;
@@ -43,7 +42,6 @@ class SignInResult extends Equatable {
 
   final User user;
 
-  /// Drives the optional "What should we call you?" step.
   final bool isNewUser;
 
   @override

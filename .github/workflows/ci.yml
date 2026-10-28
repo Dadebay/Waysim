@@ -23,11 +23,9 @@ jobs:
       - run: flutter pub get
       - run: flutter gen-l10n
       # Formatting, lints and the whole test suite (unit, widget, golden-free).
-      - run: dart format --output=none --set-exit-if-changed lib test tool integration_test
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test
       - run: flutter analyze
       - run: flutter test
-      - name: Roadmap progress
-        run: dart run tool/roadmap_status.dart
 
   android:
     name: Build Android
@@ -62,4 +60,4 @@ jobs:
       - run: flutter build ios --debug --no-codesign --dart-define=USE_MOCK_API=true
 
   # Releases (TestFlight, Google Play internal testing) are a manual, signed
-  # step once the Apple and Google accounts exist — see docs/05.
+  # step once the Apple and Google accounts exist.

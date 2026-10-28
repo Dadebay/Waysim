@@ -18,7 +18,6 @@ import '../../../../core/utils/result.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-/// The phones that have used this account.
 class DevicesPage extends StatelessWidget {
   const DevicesPage({super.key});
 

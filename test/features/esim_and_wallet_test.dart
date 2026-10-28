@@ -29,11 +29,8 @@ void main() {
     addTearDown(tester.view.reset);
   }
 
-  /// Signs the demo customer in without going through the screens.
   Future<void> signInAnna(WidgetTester tester) async {
     await tester.runAsync(() async {
-      // The mock server reads the test's fake clock, so "PayPal confirms
-      // after 3 s" is a matter of pumping time.
       await setUpTestDependencies(
         backend: MockBackend(
           now: () => tester.binding.clock.now(),
@@ -68,13 +65,12 @@ void main() {
     expect(find.text('3.2 GB of 5 GB left'), findsOneWidget);
     expect(find.textContaining('iPhone 15'), findsNothing);
     expect(find.textContaining('Updated'), findsOneWidget);
-    // Not installed: offers the install button.
+
     expect(find.text('Install'), findsOneWidget);
     expect(find.text('Installed'), findsOneWidget);
-    // Spent and expired ones are not in the current list…
+
     expect(find.text('Thailand'), findsNothing);
 
-    // …but in the archive.
     await tester.tap(find.text('Archive'));
     await tester.pumpAndSettle();
     expect(find.text('Thailand'), findsOneWidget);
@@ -209,7 +205,6 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Waiting for PayPal'), findsOneWidget);
 
-    // PayPal confirms after ~3 s; the screen polls every 2 s.
     for (var i = 0; i < 4; i++) {
       await tester.pump(const Duration(seconds: 2));
     }

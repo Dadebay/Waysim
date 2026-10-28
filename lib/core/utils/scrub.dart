@@ -1,9 +1,3 @@
-/// Removes what must never leave the phone from free text that is about to be
-/// stored remotely (crash reports): e-mail addresses, bearer/JWT tokens,
-/// eSIM install strings and credential-looking query values.
-///
-/// Exception messages are the usual leak — a failed request prints its URL and
-/// sometimes its body — so this runs on every error before it is written.
 String scrubSensitive(String text) {
   var out = text;
   for (final rule in _rules) {

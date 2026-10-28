@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Shared route identities for elements that visibly continue onto a page.
 abstract final class AppHeroTags {
   static String destinationFlag(String code) => 'destination:$code:flag';
   static String esimHeader(String id) => 'esim:$id:header';
@@ -9,7 +8,6 @@ abstract final class AppHeroTags {
   static const moreTitle = 'profile:more:title';
 }
 
-/// Hero flights are skipped when the system requests reduced motion.
 class AppHero extends StatelessWidget {
   const AppHero({super.key, required this.tag, required this.child});
 

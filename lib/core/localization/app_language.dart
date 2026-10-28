@@ -1,10 +1,5 @@
 import 'dart:ui';
 
-/// The five app languages, in the order the language picker lists them.
-///
-/// [nativeName] is shown in its own script and is never translated, so a
-/// person who landed in the wrong language can still find theirs.
-/// [flagCode] names a file in `assets/flags/`.
 enum AppLanguage {
   en('English', 'gb'),
   zh('中文', 'cn'),

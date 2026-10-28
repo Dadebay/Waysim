@@ -2,10 +2,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'storage_keys.dart';
 
-/// Keychain / Keystore — tokens and the device id, nothing else.
-///
-/// The access token lives ~15 minutes; the refresh token is rotated on every
-/// refresh and the session ends after 180 days without opening the app.
 abstract interface class SecureStorage {
   Future<String?> readAccessToken();
   Future<String?> readRefreshToken();
@@ -14,14 +10,12 @@ abstract interface class SecureStorage {
     required String refreshToken,
   });
 
-  /// Identifies this install to the server across sessions; survives sign-out.
   Future<String?> readDeviceToken();
   Future<void> saveDeviceToken(String token);
 
   Future<String?> readDeviceId();
   Future<void> saveDeviceId(String id);
 
-  /// Drops the session tokens but keeps the device id.
   Future<void> clearSession();
 }
 

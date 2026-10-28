@@ -33,7 +33,6 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/localization/failure_localizer.dart';
 import '../widgets/package_details_sheet.dart';
 
-/// A country or region: compatibility, the plans, details and the buy button.
 class DestinationPage extends StatefulWidget {
   const DestinationPage({super.key, required this.code, this.packageId});
 
@@ -163,8 +162,6 @@ class _DestinationView extends StatefulWidget {
 typedef _PlanChoice = ({String? key, int? days});
 
 class _DestinationViewState extends State<_DestinationView> {
-  /// The tab chosen by the customer; null until they choose, so the default
-  /// can follow what the server returned.
   PackageKind? _kind;
   late final ValueNotifier<_PlanChoice> _selection;
   final _daySelections = <String, int>{};
@@ -183,9 +180,6 @@ class _DestinationViewState extends State<_DestinationView> {
   }
 
   bool _onPlansScroll(ScrollUpdateNotification notification) {
-    // Only a real finger drag can collapse the bar. Its own size animation
-    // changes the scroll extent too, so listening to every offset change made
-    // the bar repeatedly open and close.
     if (!_buyBarCompact &&
         notification.dragDetails != null &&
         (notification.scrollDelta ?? 0) > 0 &&
@@ -208,8 +202,7 @@ class _DestinationViewState extends State<_DestinationView> {
         return _withChosenDays(p, choice.days);
       }
     }
-    // Nothing chosen yet: pre-select the middle of the list, a sensible
-    // default for most trips.
+
     return shown.isEmpty
         ? null
         : _withChosenDays(shown[(shown.length - 1).clamp(0, 2)], null);
@@ -262,7 +255,6 @@ class _DestinationViewState extends State<_DestinationView> {
     final unlimited = all.where((p) => p.isUnlimited).toList();
     final limited = all.where((p) => !p.isUnlimited).toList();
 
-    // An empty category has no tab.
     final kinds = [
       if (unlimited.isNotEmpty) PackageKind.unlimited,
       if (limited.isNotEmpty) PackageKind.limited,
@@ -467,7 +459,6 @@ class _DestinationViewState extends State<_DestinationView> {
   }
 }
 
-/// The bottom area: details link, the buy button and the legal lines.
 class _BuyBar extends StatefulWidget {
   const _BuyBar({
     required this.compact,
@@ -679,8 +670,6 @@ class _BuyBarState extends State<_BuyBar> with SingleTickerProviderStateMixin {
   }
 }
 
-/// Some networks only activate the eSIM in the destination, so iOS shows
-/// "Activating…" until then; said before buying so nobody deletes it.
 class _ActivationNote extends StatelessWidget {
   const _ActivationNote();
 
@@ -703,7 +692,6 @@ class _ActivationNote extends StatelessWidget {
   }
 }
 
-/// A region's countries as an expandable list of flag + name.
 class _Coverage extends StatefulWidget {
   const _Coverage({
     required this.codes,

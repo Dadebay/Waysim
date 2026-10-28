@@ -8,8 +8,6 @@ abstract interface class WalletRepository {
   Future<Result<WalletOptions>> options();
   Future<Result<TopUpSession>> payment(String id);
 
-  /// [idempotencyKey]: a repeated call with the same key returns the same
-  /// session instead of creating a second payment.
   Future<Result<TopUpSession>> createTopUp({
     required Money amount,
     required TopUpMethod method,

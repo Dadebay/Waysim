@@ -7,10 +7,8 @@ class NotificationPrefs extends Equatable {
   const NotificationPrefs({this.esim = true, this.news = true, this.failure});
   final Failure? failure;
 
-  /// eSIM status, balance and data-usage notifications.
   final bool esim;
 
-  /// News and offers.
   final bool news;
 
   NotificationPrefs copyWith({bool? esim, bool? news}) =>
@@ -20,9 +18,6 @@ class NotificationPrefs extends Equatable {
   List<Object?> get props => [esim, news, failure];
 }
 
-/// The two switches in Settings. Persisted here; once push is wired
-/// (docs/06-roadmap.md T5.4) a change is also sent to the server and turns
-/// the FCM topics on or off.
 class NotificationPrefsCubit extends HydratedCubit<NotificationPrefs> {
   NotificationPrefsCubit({this.save}) : super(const NotificationPrefs());
   final Future<Result<void>> Function(bool esim, bool marketing)? save;

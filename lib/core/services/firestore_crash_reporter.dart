@@ -4,13 +4,6 @@ import 'analytics_service.dart';
 import 'crash_report.dart';
 import 'crash_reporter.dart';
 
-/// Writes each crash to Firestore (`crash_reports`): the customer's public
-/// id, the phone, the app version, the screen and the error — so a report can
-/// be opened, understood and fixed without any other tool.
-///
-/// Guards against flooding: the same crash is written once per run, and a run
-/// writes at most [maxPerRun] reports. Firestore queues writes made offline
-/// and sends them when the network returns.
 class FirestoreCrashReporter implements CrashReporter {
   FirestoreCrashReporter({
     required this._store,
@@ -44,7 +37,6 @@ class FirestoreCrashReporter implements CrashReporter {
     );
     if (!_seen.add(report.signature)) return;
 
-    // Fire and forget: reporting a crash must never cause another one.
     _store.save(report).catchError((Object e) {
       AppLogger.w('Crash report not saved: $e');
     });
@@ -54,7 +46,6 @@ class FirestoreCrashReporter implements CrashReporter {
       text.length <= max ? text : '${text.substring(0, max)}…';
 }
 
-/// Sends every crash to all of [reporters].
 class CompositeCrashReporter implements CrashReporter {
   CompositeCrashReporter(this._reporters);
 
@@ -65,9 +56,8 @@ class CompositeCrashReporter implements CrashReporter {
     for (final r in _reporters) {
       try {
         r.recordError(error, stack, fatal: fatal);
-      } on Object {
-        // One reporter failing must not stop the others.
-      }
+        // ignore: empty_catches
+      } on Object {}
     }
   }
 
@@ -76,9 +66,8 @@ class CompositeCrashReporter implements CrashReporter {
     for (final r in _reporters) {
       try {
         r.setUserId(publicId);
-      } on Object {
-        // Same rule as recordError.
-      }
+        // ignore: empty_catches
+      } on Object {}
     }
   }
 }

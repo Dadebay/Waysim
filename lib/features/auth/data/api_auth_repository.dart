@@ -153,8 +153,6 @@ class ApiAuthRepository implements AuthRepository {
     bool? esim,
     bool? marketing,
   }) => apiResult(() async {
-    // Housekeeping: a rejected device update must not undo the customer's
-    // choice, so the preferences below are saved either way.
     try {
       await device.update(api);
     } on Object catch (_) {}
@@ -177,8 +175,6 @@ class ApiAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    // Keep local identity if logout fails: do not present a successful logout
-    // while the backend still associates this device with the account.
     final refresh = await secure.readRefreshToken();
     final j = asMap(
       await api.post('/v1/auth/logout', data: {'refreshToken': ?refresh}),
@@ -191,8 +187,7 @@ class ApiAuthRepository implements AuthRepository {
   @override
   Future<Result<List<DeviceInfo>>> devices() => apiResult(() async {
     final response = await api.get('/v1/me/devices');
-    // Some responses omit isCurrent; registration still gives us the exact
-    // device id. Never infer identity from model names (two phones can match).
+
     final currentId = await secure.readDeviceId();
     return parseList(
       response,
@@ -230,31 +225,26 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<Result<void>> deleteAccount({
-    required String code,
-  }) => apiResult(() async {
-    if (_email == null) throw const UnauthorizedException();
-    // Preserve the existing confirmation-code screen with the supported OTP
-    // endpoint, then perform deletion only after successful re-authentication.
-    final verification = await verifyCode(email: _email!, code: code);
-    if (verification case Error(:final failure)) {
-      throw ServerException(
-        failure.message ?? 'Verification failed',
-        code: failure.code,
-        statusCode: failure.statusCode,
-      );
-    }
-    // Detach push delivery while the verified session is still valid;
-    // deleting the account revokes its credentials.
-    await api.delete('/v1/devices/me/push-token');
-    await api.post('/v1/me/delete', data: {'confirm': true});
-    await secure.clearSession();
-    device.invalidate();
-    _email = null;
-  });
+  Future<Result<void>> deleteAccount({required String code}) =>
+      apiResult(() async {
+        if (_email == null) throw const UnauthorizedException();
 
-  /// `an***@gmail.com` — enough to tell two addresses apart in a log, not
-  /// enough to read one off a shared screenshot.
+        final verification = await verifyCode(email: _email!, code: code);
+        if (verification case Error(:final failure)) {
+          throw ServerException(
+            failure.message ?? 'Verification failed',
+            code: failure.code,
+            statusCode: failure.statusCode,
+          );
+        }
+
+        await api.delete('/v1/devices/me/push-token');
+        await api.post('/v1/me/delete', data: {'confirm': true});
+        await secure.clearSession();
+        device.invalidate();
+        _email = null;
+      });
+
   static String _maskEmail(String email) {
     final at = email.indexOf('@');
     if (at < 1) return '***';

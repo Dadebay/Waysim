@@ -36,17 +36,11 @@ import '../../features/wallet/presentation/view/payment_detail_page.dart';
 import '../view/home_shell.dart';
 import 'app_routes.dart';
 
-/// App-wide navigation. Three tab roots live in a [StatefulShellRoute] so each
-/// keeps its own stack and scroll position; every other page is a sibling
-/// route that opens above the tab bar.
 abstract final class AppRouter {
-  /// A fresh router per app instance, so tests and hot restarts never share
-  /// navigation state.
   static GoRouter create() => GoRouter(
     navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'root'),
     initialLocation: AppEnvironment.initialRoute,
     redirect: (_, state) {
-      // Android hands over only the path of https://waysim.co/ru/r/CODE.
       final localizedInvite = RegExp(
         r'^/(?:en|zh|ru|es|fr)/r/([^/?#]+)$',
       ).firstMatch(state.uri.path);
@@ -109,8 +103,7 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoute.search.path,
         name: AppRoute.search.routeName,
-        // No slide: the page fades in under the search box, which flies up
-        // from Home into the app bar (a Hero), then the content settles in.
+
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
           name: state.name,
@@ -139,8 +132,7 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoute.purchase.path,
         name: AppRoute.purchase.routeName,
-        // The subject travels as `extra`; a rebuilt route without one (a
-        // restored session) has nothing to buy, so it goes home.
+
         redirect: (_, state) =>
             state.extra is PurchaseSubject ? null : AppRoute.home.path,
         builder: (_, state) =>
@@ -236,9 +228,7 @@ abstract final class AppRouter {
         name: AppRoute.supportChat.routeName,
         builder: (_, _) => const ChatPage(),
       ),
-      // https://waysim.co/r/CODE, waysim://invite/CODE and waysim://r/CODE: remember the code for
-      // the sign-up form, then open the app normally. Nothing is applied
-      // here — a link never acts without the customer confirming.
+
       GoRoute(
         path: AppRoute.invite.path,
         name: AppRoute.invite.routeName,
@@ -250,8 +240,7 @@ abstract final class AppRouter {
               StorageKeys.pendingInvite,
               code.toUpperCase(),
             );
-            // "Where do they come from": the install source is automatic; an
-            // invitation link is ours to record.
+
             getIt<AnalyticsService>()
               ..inviteLinkOpened(code.toUpperCase())
               ..setUserProperty('acquisition', 'invite');
@@ -259,9 +248,7 @@ abstract final class AppRouter {
           return AppRoute.home.path;
         },
       ),
-      // https://waysim.co/pay/return: PayPal sent the customer back through
-      // the browser. The payment is confirmed by the server, never by this
-      // link, so all it does is refresh the balance and show the app.
+
       GoRoute(
         path: AppRoute.payReturn.path,
         name: AppRoute.payReturn.routeName,
@@ -270,8 +257,7 @@ abstract final class AppRouter {
           return AppRoute.home.path;
         },
       ),
-      // Design gallery: a developer tool, not reachable from a deep link in a
-      // store build.
+
       if (!kReleaseMode)
         GoRoute(
           path: AppRoute.gallery.path,

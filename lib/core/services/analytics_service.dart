@@ -1,26 +1,12 @@
 import '../utils/formatters/money.dart';
 
-/// Product analytics. Firebase implements it whenever initialization succeeds;
-/// [NoopAnalytics] is used in tests and builds without Firebase.
-///
-/// What the dashboards answer, and how:
-/// * **Where users come from** — Firebase collects the install source on its
-///   own (Google Play referrer, campaign links); an invitation link adds the
-///   `invite_link_opened` event and the `acquisition` user property.
-/// * **Who buys what** — the standard `view_item`, `begin_checkout` and
-///   `purchase` events, with the package as the item and the price as value.
-/// * **How long they stay** — `session_start` and `user_engagement`
-///   (engagement time) are automatic; `screen_view` shows the path taken.
 abstract interface class AnalyticsService {
   void logEvent(String name, [Map<String, Object> parameters]);
 
-  /// Uses Firebase's typed ecommerce API, which sends [AnalyticsPurchase]'s
-  /// item as an `items` array rather than a regular event parameter.
   void logPurchase(AnalyticsPurchase purchase);
 
   void logScreen(String name);
 
-  /// The public id (`A0123`) only — never an e-mail address.
   void setUserId(String? publicId);
 
   void setUserProperty(String name, String? value);
@@ -60,7 +46,6 @@ class AnalyticsPurchase {
 
   double get value => price.cents / 100;
 
-  /// Mirrors the Firebase event for recorders and contract tests.
   Map<String, Object> get eventParameters => {
     'transaction_id': transactionId,
     'currency': AnalyticsEvents.currency,
@@ -78,9 +63,6 @@ class AnalyticsPurchase {
   };
 }
 
-/// Event names and parameters in one place, so the dashboards and the code
-/// cannot drift apart. Money is sent in dollars (a number) as Firebase
-/// expects; everywhere else in the app it stays in cents.
 extension AnalyticsEvents on AnalyticsService {
   static const currency = 'USD';
 
@@ -126,7 +108,6 @@ extension AnalyticsEvents on AnalyticsService {
     'add_on': addOn ? 1 : 0,
   });
 
-  /// A paid order that finished. [transactionId] is the server order's id.
   void purchased({
     required String transactionId,
     required String packageId,
@@ -174,14 +155,10 @@ extension AnalyticsEvents on AnalyticsService {
   void changedSetting(String setting, String value) =>
       logEvent('setting_changed', {'setting': setting, 'value': value});
 
-  /// Someone opened an invitation link (`waysim.co/r/CODE`).
   void inviteLinkOpened(String code) =>
       logEvent('invite_link_opened', {'code': code});
 }
 
-/// Tracks the visible route once, across the root navigator and tab branches.
-/// Only active foreground time is counted; route IDs and query strings are
-/// never sent to Analytics.
 class AnalyticsScreenTracker {
   AnalyticsScreenTracker(this._analytics, {DateTime Function()? now})
     : _now = now ?? DateTime.now;

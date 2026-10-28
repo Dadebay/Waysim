@@ -29,15 +29,11 @@ class PurchaseState extends Equatable {
 
   final PurchasePhase phase;
 
-  /// The new (or topped-up) eSIM on success.
   final Esim? esim;
   final Failure? failure;
 
-  /// The order has taken longer than the 30 s we promised; the customer is
-  /// told a notification will follow.
   final bool slow;
 
-  /// New price from a `price-changed` conflict.
   Money? get newPrice {
     final cents = failure?.details?['newPriceCents'];
     return cents is int ? Money(cents) : null;
@@ -47,9 +43,6 @@ class PurchaseState extends Equatable {
   List<Object?> get props => [phase, esim, failure, slow];
 }
 
-/// Places one order (a new eSIM, or a package added to [esimId]) and tracks
-/// it to the end. Sends only the package id and an idempotency key: a retry
-/// after a dropped connection reuses the key, so it can never double-charge.
 class PurchaseCubit extends Cubit<PurchaseState> {
   PurchaseCubit({
     required this._repository,
@@ -73,7 +66,6 @@ class PurchaseCubit extends Cubit<PurchaseState> {
   Timer? _slowTimer;
   bool _running = false;
 
-  /// Starts (or retries, with the same key) the order.
   Future<void> run() async {
     if (_running || state.phase == PurchasePhase.success) return;
     _running = true;
@@ -133,8 +125,7 @@ class PurchaseCubit extends Cubit<PurchaseState> {
           addOn: esimId != null,
         );
         emit(PurchaseState(phase: PurchasePhase.success, esim: data.esim));
-        // The first purchase is the moment notifications become useful
-        // ("your eSIM is ready"); ask once, here.
+
         unawaited(_pushGate.afterPurchase());
       case Error(:final failure):
         AppLogger.group(
@@ -149,7 +140,7 @@ class PurchaseCubit extends Cubit<PurchaseState> {
           ],
           level: Level.warning,
         );
-        // A failed order may have been refunded; make the balance honest.
+
         unawaited(_wallet.refresh());
         _analytics.purchaseFailed(packageId: package.id, reason: failure.code);
         emit(PurchaseState(phase: PurchasePhase.failed, failure: failure));

@@ -4,8 +4,6 @@ import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 
 import '../utils/app_logger.dart';
 
-/// iOS "Allow Waysim to track your activity" system prompt (ATT). Other
-/// platforms have no such dialog.
 abstract interface class TrackingPermission {
   Future<void> request();
 }

@@ -21,7 +21,6 @@ import '../../../config/presentation/cubit/config_cubit.dart';
 import '../../domain/entities/legal_document.dart';
 import '../widgets/mobile_legal_table_syntax.dart';
 
-/// "More": the six legal documents, then the app's own details.
 class LegalListPage extends StatelessWidget {
   const LegalListPage({super.key});
 
@@ -165,9 +164,6 @@ class _DocumentLinks extends StatelessWidget {
   }
 }
 
-/// `meta.contacts`: website, e-mail, Telegram, Instagram. The server's labels
-/// and links are used when available; the support e-mail remains accessible
-/// while public config is unavailable.
 class _ContactLinks extends StatelessWidget {
   const _ContactLinks();
 
@@ -271,7 +267,6 @@ class _ContactLinks extends StatelessWidget {
     );
   }
 
-  /// The link is server text: only `mailto:` and plain `https` open.
   static Future<void> _open(String raw) async {
     final uri = raw.trim().toLowerCase().startsWith('mailto:')
         ? Uri.tryParse(raw.trim())
@@ -395,8 +390,6 @@ class _AboutBlock extends StatelessWidget {
   }
 }
 
-/// The launcher icon (`assets/brand/app_icon.png`, 512 × 512), clipped to the
-/// same rounded square the home screen uses.
 class _AppIcon extends StatelessWidget {
   const _AppIcon({required this.size});
 
@@ -531,13 +524,11 @@ class _AboutAppDialog extends StatelessWidget {
   }
 }
 
-/// One document, read as plain paragraphs.
 class LegalDocumentPage extends StatelessWidget {
   const LegalDocumentPage({super.key, required this.id, this.document});
 
   final String id;
 
-  /// Passed from the list; when absent (a deep link) the page loads it.
   final LegalDocument? document;
 
   @override

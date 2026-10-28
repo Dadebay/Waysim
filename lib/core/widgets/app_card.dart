@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Rounded (22) bordered surface; tappable when [onTap] is given.
-/// [selected] draws the primary border and subtle fill used by a chosen
-/// package. [elevated] adds the soft card shadow.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,

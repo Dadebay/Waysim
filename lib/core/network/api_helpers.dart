@@ -14,7 +14,6 @@ Future<Result<T>> apiResult<T>(Future<T> Function() request) async {
   }
 }
 
-/// Exhaust the cursor API for existing list screens, guarding repeated cursors.
 Future<List<Map<String, dynamic>>> apiPages(
   ApiClient api,
   String path, {

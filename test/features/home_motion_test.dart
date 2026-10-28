@@ -80,8 +80,6 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: Scaffold(
         body: PromoCarousel(
-          // Long enough that a timer tick never lands on the boundary of a
-          // test pump, which would fire it twice.
           interval: const Duration(seconds: 10),
           height: 120,
           children: [
@@ -117,7 +115,6 @@ void main() {
         );
       }
 
-      // 1 → 2 → 3 → 1 → 2, always forward: the page index only ever grows.
       expect(visited, ['Banner 2', 'Banner 3', 'Banner 1', 'Banner 2']);
       expect(page(tester), start + 4);
     });
@@ -308,11 +305,9 @@ void main() {
       final homeTop = tester.getTopLeft(find.byType(SearchFieldBox)).dy;
 
       await tester.tap(find.text('Where do you need an eSIM?'));
-      await tester.pump(); // push starts
-      await tester.pump(const Duration(milliseconds: 120)); // mid-flight
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 120));
 
-      // While it flies, a copy of the box sits somewhere between the two
-      // ends: the Hero's overlay copy.
       final tops = [
         for (final e in find.byType(SearchFieldBox).evaluate())
           tester.getTopLeft(find.byWidget(e.widget)).dy,
@@ -342,10 +337,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      // Mid-flight the keyboard is still down…
       expect(tester.testTextInput.isVisible, isFalse);
 
-      // …and it comes up once the box has landed.
       await tester.pumpAndSettle();
       expect(tester.testTextInput.isVisible, isTrue);
       await tester.pumpWidget(const SizedBox());

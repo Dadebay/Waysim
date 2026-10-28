@@ -4,7 +4,6 @@ import '../constants/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Short confirmation ("Copied") as a dark floating pill with a check.
 abstract final class AppToast {
   static void show(
     BuildContext context,
@@ -32,7 +31,6 @@ abstract final class AppToast {
             alignment: Alignment.bottomCenter,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                // Inverse of the page: dark on light, light on dark.
                 color: c.textPrimary,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),

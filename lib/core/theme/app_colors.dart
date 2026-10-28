@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Raw palette, straight from the design system (docs/02-design-system.md).
-/// Never reference these from widgets — go through [AppColorTokens]
-/// (`context.colors`) so light and dark stay in step.
 abstract final class AppColors {
-  // Brand mark accent (the map pin in the logo). Not a UI token.
   static const brandAccent = Color(0xFFF2B84B);
 
-  // ------------------------------------------------------------- light --
   static const primaryLight = Color(0xFF2F4E8F);
   static const primaryPressedLight = Color(0xFF26406F);
   static const primarySubtleLight = Color(0xFFEAEFF8);
@@ -22,17 +17,12 @@ abstract final class AppColors {
   static const errorLight = Color(0xFFD92D20);
   static const errorSubtleLight = Color(0xFFFEF3F2);
 
-  // Not in the spec's token table: the tinted fills behind the green and
-  // orange status badges, read off the design renders.
   static const successSubtleLight = Color(0xFFE7F5EE);
 
-  // Darker shades of success / error for small text on their tinted fills:
-  // the spec colours reach only 4.1–4.4:1 there (WCAG AA wants 4.5:1).
   static const successTextLight = Color(0xFF0E6B49);
   static const errorTextLight = Color(0xFFB42318);
   static const warningSubtleLight = Color(0xFFFDF0E1);
 
-  // -------------------------------------------------------------- dark --
   static const primaryDark = Color(0xFF4A6CB8);
   static const primaryPressedDark = Color(0xFF3D5A9C);
   static const primarySubtleDark = Color(0xFF1C2740);

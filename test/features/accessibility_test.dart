@@ -12,8 +12,6 @@ import 'package:waysim/mock/mock_backend.dart';
 import '../helpers/load_fonts.dart';
 import '../helpers/test_dependencies.dart';
 
-/// Tap targets of at least 44 pt (iOS) / 48 dp (Android) and a spoken label
-/// on everything tappable, on the screens a customer uses most.
 void main() {
   setUpAll(loadAppFonts);
 

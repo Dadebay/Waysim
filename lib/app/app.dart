@@ -35,7 +35,6 @@ import 'view/force_update_gate.dart';
 import 'cubit/theme_cubit.dart';
 import 'router/app_router.dart';
 
-/// Root widget: global blocs, theme, localization and the router.
 class App extends StatefulWidget {
   const App({super.key});
 
@@ -63,8 +62,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         _showRemoteSignOut();
       }
     });
-    // A tapped notification opens the screen it is about (never anything the
-    // router does not know — see PushRouter).
+
     _pushTaps = getIt<PushService>().taps.listen((tap) {
       unawaited(_handlePushTap(tap));
     });
@@ -216,9 +214,6 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   }
 }
 
-/// Status-bar icons follow the theme: dark icons on the light theme, light
-/// icons on the dark one, over a transparent bar. (iOS names the same thing
-/// from the other side, hence the inverse `statusBarBrightness`.)
 class _SystemBars extends StatelessWidget {
   const _SystemBars({required this.child});
 

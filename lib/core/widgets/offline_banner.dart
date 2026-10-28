@@ -6,8 +6,6 @@ import '../network/network_info.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// "No connection" strip that slides in when the device goes offline.
-/// Catalog and eSIM lists keep showing cached data underneath.
 class OfflineBanner extends StatelessWidget {
   const OfflineBanner({super.key, this._networkInfo});
 

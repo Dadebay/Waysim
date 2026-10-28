@@ -3,19 +3,13 @@ import 'package:equatable/equatable.dart';
 import '../../../../core/utils/safe_url.dart';
 import '../../../catalog/domain/entities/esim_package.dart';
 
-/// Where an eSIM stands, in the customer's terms. The backend maps the
-/// supplier's statuses onto this (docs/01-product-spec.md §5).
 enum EsimStatus {
-  /// The order is placed; the profile is not ready yet.
   provisioning,
 
-  /// Ready but not on a phone yet.
   notInstalled,
 
-  /// On the phone, no data used yet.
   installed,
 
-  /// Using data.
   active,
   usedUp,
   expired,
@@ -26,7 +20,6 @@ enum EsimStatus {
 }
 
 extension EsimStatusX on EsimStatus {
-  /// Spent or expired eSIMs live under "Archive".
   bool get isArchived =>
       this == EsimStatus.usedUp ||
       this == EsimStatus.expired ||
@@ -63,7 +56,6 @@ class Esim extends Equatable {
   final String destinationCode;
   final Map<String, String> destinationNames;
 
-  /// Regions: number of countries ("Europe (35 countries)").
   final int? countryCount;
   final PackageKind kind;
   final int days;
@@ -72,13 +64,10 @@ class Esim extends Equatable {
   final int usedBytes;
   final EsimStatus status;
 
-  /// When the package runs out; null until the first connection starts it.
   final DateTime? expiresAt;
 
-  /// Last day the eSIM can still be installed.
   final DateTime? installBy;
 
-  /// The phone it is bound to once installation was started.
   final String? deviceName;
   final DateTime? updatedAt;
 
@@ -99,25 +88,15 @@ class Esim extends Equatable {
       ? null
       : (volumeBytes! - usedBytes).clamp(0, volumeBytes!);
 
-  /// 0–1 of the data left; 1 for an unlimited plan.
   double get remainingFraction => volumeBytes == null || volumeBytes == 0
       ? 1
       : (remainingBytes! / volumeBytes!).clamp(0.0, 1.0);
 
-  /// Whole days until [expiresAt], never negative; null if not started.
   int? daysLeft(DateTime now) =>
       expiresAt?.difference(now).inDays.clamp(0, 100000);
 
-  /// The string a phone's eSIM installer reads (QR code content).
   String get lpa => lpaString ?? 'LPA:1\$$smdpAddress\$$activationCode';
 
-  /// iOS 17.4+: opens Apple's installer straight from a link.
-  ///
-  /// Built from the SM-DP+ address and activation code (the pair that installs
-  /// when typed by hand) in Apple's documented form, `carddata=LPA:1$host$code`
-  /// with `:` and `$` left as they are. On a real iPhone the server's link and
-  /// the percent-encoded form left Apple's installer spinning on
-  /// "Connecting". A server link is the fallback, and only on Apple's host.
   Uri get appleInstallUri {
     final plain = RegExp(r'^[A-Za-z0-9.-]+$');
     if (plain.hasMatch(smdpAddress) && plain.hasMatch(activationCode)) {
@@ -184,8 +163,6 @@ class Esim extends Equatable {
     topUpSupported,
   ];
 
-  // Bloc transitions stringify eSIMs in debug logs. Installation credentials
-  // remain in props for equality, but must never appear in those logs.
   @override
   String toString() => 'Esim($id, $destinationCode, $kind, $days, $status)';
 }

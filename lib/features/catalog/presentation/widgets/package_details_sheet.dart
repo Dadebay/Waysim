@@ -7,8 +7,6 @@ import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../domain/entities/esim_package.dart';
 
-/// "Package details": what the plan gives, row by row. Resolves `true` when
-/// the customer taps the buy button inside it.
 Future<bool> showPackageDetailsSheet(
   BuildContext context, {
   required EsimPackage package,
@@ -236,7 +234,6 @@ class _Row extends StatelessWidget {
   final String value;
   final String? note;
 
-  /// Green when true (availability rows); plain when null.
   final bool? good;
 
   @override

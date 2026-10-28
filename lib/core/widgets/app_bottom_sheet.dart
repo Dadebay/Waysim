@@ -4,9 +4,6 @@ import '../constants/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../utils/extensions/context_extensions.dart';
 
-/// Shows a modal bottom sheet in the app's style: 28 radius, grabber, optional
-/// title/subtitle with a close button, scrollable content that respects the
-/// keyboard and the safe area.
 Future<T?> showAppSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
@@ -33,8 +30,6 @@ Future<T?> showAppSheet<T>(
   );
 }
 
-/// The chrome inside a sheet; exposed so a sheet can also be built inline
-/// (golden tests, previews).
 class AppSheetFrame extends StatelessWidget {
   const AppSheetFrame({
     super.key,

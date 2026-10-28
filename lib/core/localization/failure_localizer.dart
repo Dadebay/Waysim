@@ -2,8 +2,6 @@ import '../../l10n/app_localizations.dart';
 import '../error/failure.dart';
 import '../utils/formatters/money.dart';
 
-/// Turns a [Failure] into copy the customer can read, in the app language.
-/// Blocs carry the [Failure]; only widgets call this.
 extension FailureLocalizer on Failure {
   String localize(AppLocalizations l10n) => switch (this) {
     NetworkFailure() => l10n.errorNetwork,

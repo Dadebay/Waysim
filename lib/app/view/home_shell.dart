@@ -14,8 +14,6 @@ import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import 'widgets/app_tab_bar.dart';
 import 'widgets/notification_prompt_dialog.dart';
 
-/// The frame around the three tab roots: the tab bar and the floating
-/// support button that follows the customer across every screen.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.navigationShell});
 
@@ -31,7 +29,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
-    // First launch only: notifications card, system dialog, then tracking.
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(
@@ -74,7 +72,7 @@ class _HomeShellState extends State<HomeShell> {
           unawaited(context.read<AuthCubit>().revalidate());
           navigationShell.goBranch(
             index,
-            // Tapping the active tab pops it back to its root.
+
             initialLocation: index == navigationShell.currentIndex,
           );
         },

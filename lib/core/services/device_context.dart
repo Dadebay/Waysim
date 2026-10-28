@@ -10,7 +10,6 @@ import '../constants/app_environment.dart';
 import 'crash_report.dart';
 import '../utils/formatters/device_model.dart';
 
-/// Reads the phone and build once, for crash reports.
 Future<DeviceContext> readDeviceContext() async {
   try {
     final app = await PackageInfo.fromPlatform();
@@ -63,8 +62,7 @@ Future<String> _localTimezone() async {
   try {
     final identifier = (await FlutterTimezone.getLocalTimezone()).identifier;
     if (identifier.isNotEmpty) return identifier;
-  } on Object {
-    // Registration still uses the system timezone name if the plugin fails.
-  }
+    // ignore: empty_catches
+  } on Object {}
   return DateTime.now().timeZoneName;
 }

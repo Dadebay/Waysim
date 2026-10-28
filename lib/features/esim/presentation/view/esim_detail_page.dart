@@ -25,7 +25,6 @@ import '../cubit/esim_list_cubit.dart';
 import '../esim_installer.dart';
 import '../esim_labels.dart';
 
-/// One eSIM: install it (one tap or QR or by hand), watch its usage, top it up.
 class EsimDetailPage extends StatefulWidget {
   const EsimDetailPage({super.key, required this.id});
 
@@ -51,7 +50,6 @@ class _EsimDetailPageState extends State<EsimDetailPage> {
     final c = context.colors;
 
     return Scaffold(
-      // Grey page, white section cards — the design's layout.
       backgroundColor: c.surface,
       appBar: AppBar(
         backgroundColor: c.surface,
@@ -153,7 +151,6 @@ class _DetailState extends State<_Detail> {
                   child: Container(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
-                      // Always white: a QR code needs the contrast to scan.
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(AppRadius.card),
                       border: Border.all(color: c.border),
@@ -275,7 +272,6 @@ class _DetailState extends State<_Detail> {
     );
   }
 
-  /// `8999 0000 0000 1234 567` — easier to read and to type.
   static String _grouped(String digits) => [
     for (var i = 0; i < digits.length; i += 4)
       digits.substring(i, (i + 4).clamp(0, digits.length)),
@@ -354,16 +350,13 @@ class _OneTap extends StatelessWidget {
           style: context.text.caption.copyWith(color: c.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
-        // A hang on "Connecting" means nothing was installed (typing the same
-        // details by hand works); "Activating…" afterwards is the normal wait
-        // for the destination network.
+
         _Notice(text: l10n.installStuckNote, info: true),
       ],
     );
   }
 }
 
-/// A white section on the grey page.
 class _SectionCard extends StatelessWidget {
   const _SectionCard({super.key, required this.child});
 
@@ -397,7 +390,6 @@ class _Notice extends StatelessWidget {
 
   final String text;
 
-  /// Blue "good to know" instead of the orange warning.
   final bool info;
 
   @override

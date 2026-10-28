@@ -7,7 +7,6 @@ import '../utils/extensions/context_extensions.dart';
 import 'app_button.dart';
 import 'empty_state.dart';
 
-/// A failed load: the failure in the customer's language and a Retry button.
 class ErrorView extends StatelessWidget {
   const ErrorView({super.key, required this.failure, required this.onRetry});
 

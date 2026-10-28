@@ -5,9 +5,6 @@ import '../../core/storage/local_storage.dart';
 import '../../core/storage/storage_keys.dart';
 import '../../l10n/app_localizations.dart';
 
-/// The app language: English unless the user picks another, and the choice is
-/// kept across launches. It deliberately does **not** follow the device
-/// language on first launch — English is the default by decision.
 class LocaleCubit extends HydratedCubit<Locale> {
   LocaleCubit(this._storage) : super(defaultLocale);
 
@@ -26,7 +23,7 @@ class LocaleCubit extends HydratedCubit<Locale> {
   @override
   void onChange(Change<Locale> change) {
     super.onChange(change);
-    // Read by the Dio interceptor, which has no access to blocs.
+
     _storage.setString(
       StorageKeys.contentLanguage,
       change.nextState.languageCode,
