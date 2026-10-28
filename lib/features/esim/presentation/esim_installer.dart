@@ -17,10 +17,10 @@ import 'cubit/esim_list_cubit.dart';
 
 /// "Install" on an eSIM: ties it to this phone, then installs it.
 ///
-/// iOS 17.4+ jumps straight into Apple's installer through a universal link;
-/// everywhere else the customer lands on the eSIM's page to scan the QR code
-/// or type the details. When called from that page ([fromDetail]) there is
-/// nothing further to open.
+/// The customer always lands on the eSIM's page (unless already there,
+/// [fromDetail]) so the QR code and manual details are at hand. On iOS 17.4+
+/// Apple's installer also opens through a universal link; if that fails, or
+/// later hangs, the manual details on the page still install it.
 Future<void> installEsim(
   BuildContext context,
   Esim esim, {
@@ -42,13 +42,21 @@ Future<void> installEsim(
       getIt<AnalyticsService>().startedEsimInstall(
         method: oneTap ? 'one_tap' : 'qr',
       );
-      if (oneTap) {
-        await launchUrl(
-          data.appleInstallUri,
-          mode: LaunchMode.externalApplication,
-        );
-      } else if (!fromDetail) {
+      if (!fromDetail) {
         unawaited(router.push(AppRoute.esim.withParams({'id': data.id})));
       }
+      if (oneTap && !await _openAppleInstaller(data.appleInstallUri)) {
+        if (context.mounted) {
+          AppToast.show(context, l10n.installLinkFailed, isError: true);
+        }
+      }
+  }
+}
+
+Future<bool> _openAppleInstaller(Uri link) async {
+  try {
+    return await launchUrl(link, mode: LaunchMode.externalApplication);
+  } on Object {
+    return false;
   }
 }

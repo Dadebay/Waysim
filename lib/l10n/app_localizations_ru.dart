@@ -262,34 +262,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get searchBack => 'Назад';
 
   @override
-  String get compatLabel => 'Устройство поддерживает eSIM:';
-
-  @override
-  String get compatYes => 'Да';
-
-  @override
-  String get compatLikely =>
-      'Эта модель iPhone может поддерживать eSIM. В Настройки → Основные → Об этом устройстве есть EID? SEID — это другое.';
-
-  @override
-  String get compatEidFound => 'Вижу EID';
-
-  @override
-  String get compatEidMissing => 'EID нет';
-
-  @override
-  String get compatChangeEid => 'Изменить';
-
-  @override
-  String get compatNo => 'Нет';
-
-  @override
-  String get compatUnknown => 'Проверьте';
-
-  @override
-  String get compatHowToCheck => 'Как проверить';
-
-  @override
   String get compatSheetTitle => 'Поддерживает ли мой телефон eSIM?';
 
   @override
@@ -318,6 +290,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get packagesChoose => 'Выберите пакет';
+
+  @override
+  String get esimActivatingNote =>
+      'В некоторых странах eSIM активируется только после прилёта, когда телефон найдёт местную сеть. До этого в Настройках может быть написано «Активация…». Это нормально: не удаляйте eSIM.';
 
   @override
   String get packagesEmpty => 'В этой категории нет пакетов';
@@ -668,7 +644,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      'Зависло на «Подключение» или в Настройках написано «Активация…»? До поездки это нормально: закройте экран и не удаляйте eSIM. Она подключится, когда вы прилетите.';
+      'Установка зависла на «Подключение»? Закройте её и проверьте Настройки → Сотовая связь. Если eSIM там нет, установите её вручную по данным ниже. Если она есть и написано «Активация…», до прилёта это нормально: не удаляйте её.';
+
+  @override
+  String get installLinkFailed =>
+      'Не удалось открыть установку. Используйте QR-код или ручную установку ниже.';
 
   @override
   String get installManual => 'Ручная установка';
@@ -688,6 +668,10 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get esimFullActivationCodeHint =>
       'На Samsung/Android выберите «Добавить eSIM» → «Сканировать QR-код» → «Ввести код активации вручную», затем вставьте полный код выше, начиная с LPA:1\$. Названия пунктов могут отличаться.';
+
+  @override
+  String get installManualIosHint =>
+      'На iPhone откройте Настройки → Сотовая связь → Добавить eSIM → Использовать QR-код → Ввести данные вручную. Вставьте адрес SM-DP+ и код активации выше, а поле «Код подтверждения» оставьте пустым.';
 
   @override
   String get esimKeepWarning =>
@@ -1564,6 +1548,33 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get compatNoOtherBold =>
       'убедитесь, что оно поддерживает eSIM и не привязано к оператору или сети.';
+
+  @override
+  String get compatYesRow => 'Ваше устройство поддерживает eSIM';
+
+  @override
+  String get compatYesLead =>
+      'Отлично! Если вы получили устройство через мобильного оператора, ';
+
+  @override
+  String get compatYesBold =>
+      'убедитесь, что оно не привязано к оператору или сети.';
+
+  @override
+  String get compatLockTitle =>
+      'Как проверить, привязано ли устройство к оператору или сети';
+
+  @override
+  String get compatLockIos =>
+      'Откройте Настройки → Основные → Об этом устройстве. Если в строке «Блокировка оператором» указано «SIM без ограничений» и есть номер EID, всё готово. Некоторые iPhone, проданные в материковом Китае, Гонконге и Макао, не поддерживают eSIM.';
+
+  @override
+  String get compatLockAndroid =>
+      'Откройте настройки устройства и найдите раздел SIM, оператора или блокировки сети (например, Настройки → Подключения → Диспетчер SIM). Если блокировок и ограничений нет, всё готово!';
+
+  @override
+  String get compatLockTip =>
+      'Если есть блокировка или ограничения, возможно, нужно обратиться к своему мобильному оператору.';
 
   @override
   String get compatNoCheckDevices => 'Проверить поддерживаемые устройства';

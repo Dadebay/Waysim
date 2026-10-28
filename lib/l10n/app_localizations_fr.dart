@@ -259,34 +259,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get searchBack => 'Retour';
 
   @override
-  String get compatLabel => 'L’appareil est compatible eSIM :';
-
-  @override
-  String get compatYes => 'Oui';
-
-  @override
-  String get compatLikely =>
-      'Ce modèle d’iPhone peut prendre en charge l’eSIM. Dans Réglages → Général → Informations, voyez-vous l’EID ? Le SEID est différent.';
-
-  @override
-  String get compatEidFound => 'Je vois l’EID';
-
-  @override
-  String get compatEidMissing => 'Pas d’EID';
-
-  @override
-  String get compatChangeEid => 'Modifier';
-
-  @override
-  String get compatNo => 'Non';
-
-  @override
-  String get compatUnknown => 'À vérifier';
-
-  @override
-  String get compatHowToCheck => 'Comment vérifier';
-
-  @override
   String get compatSheetTitle => 'Mon téléphone est-il compatible eSIM ?';
 
   @override
@@ -316,6 +288,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get packagesChoose => 'Choisissez un forfait';
+
+  @override
+  String get esimActivatingNote =>
+      'Dans certains pays, l’eSIM ne s’active qu’à votre arrivée, quand votre téléphone trouve un réseau local. D’ici là, Réglages peut afficher « Activation… ». C’est normal : ne supprimez pas l’eSIM.';
 
   @override
   String get packagesEmpty => 'Aucun forfait dans cette catégorie';
@@ -659,7 +635,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      'Bloqué sur « Connexion » ou Réglages affiche « Activation… » ? C’est normal avant le voyage : fermez l’écran et ne supprimez pas l’eSIM. Elle se connectera à votre arrivée.';
+      'L’installation reste bloquée sur « Connexion » ? Fermez-la et vérifiez Réglages → Données mobiles. Si l’eSIM n’y figure pas, installez-la manuellement avec les informations ci-dessous. Si elle y figure et affiche « Activation… », c’est normal jusqu’à votre arrivée : ne la supprimez pas.';
+
+  @override
+  String get installLinkFailed =>
+      'Impossible d’ouvrir l’installation. Utilisez le code QR ou l’installation manuelle ci-dessous.';
 
   @override
   String get installManual => 'Installation manuelle';
@@ -679,6 +659,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get esimFullActivationCodeHint =>
       'Sur Samsung/Android, choisissez Ajouter une eSIM → Scanner un code QR → Saisir le code d’activation manuellement, puis collez le code complet ci-dessus, en commençant par LPA:1\$. Les intitulés peuvent varier selon le téléphone.';
+
+  @override
+  String get installManualIosHint =>
+      'Sur iPhone, ouvrez Réglages → Données mobiles → Ajouter une eSIM → Utiliser un code QR → Saisir les informations manuellement. Collez l’adresse SM-DP+ et le code d’activation ci-dessus, et laissez le code de confirmation vide.';
 
   @override
   String get esimKeepWarning =>
@@ -1564,6 +1548,33 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get compatNoOtherBold =>
       'assurez-vous qu\'il prend en charge l\'eSIM et n\'est pas verrouillé sur un opérateur ou un réseau.';
+
+  @override
+  String get compatYesRow => 'Votre appareil est compatible eSIM';
+
+  @override
+  String get compatYesLead =>
+      'Parfait ! Si vous avez obtenu votre appareil via un opérateur mobile, ';
+
+  @override
+  String get compatYesBold =>
+      'assurez-vous qu’il n’est pas verrouillé sur un opérateur ou un réseau.';
+
+  @override
+  String get compatLockTitle =>
+      'Comment vérifier si votre appareil est verrouillé sur un opérateur ou un réseau';
+
+  @override
+  String get compatLockIos =>
+      'Ouvrez Réglages → Général → Informations. Si « Verrouillage de l’opérateur » indique « Aucune restriction de SIM » et qu’un numéro EID s’affiche, tout est prêt. Certains iPhone vendus en Chine continentale, à Hong Kong et à Macao ne prennent pas en charge l’eSIM.';
+
+  @override
+  String get compatLockAndroid =>
+      'Ouvrez les paramètres de l’appareil et cherchez SIM, opérateur ou verrouillage réseau (par exemple Paramètres → Connexions → Gestionnaire de SIM). S’il n’y a ni verrouillage ni restriction, tout est prêt !';
+
+  @override
+  String get compatLockTip =>
+      'En cas de verrouillage ou de restrictions, vous devrez peut-être contacter votre opérateur mobile.';
 
   @override
   String get compatNoCheckDevices => 'Voir les appareils compatibles';

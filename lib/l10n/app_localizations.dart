@@ -524,60 +524,6 @@ abstract class AppLocalizations {
   /// **'Back'**
   String get searchBack;
 
-  /// No description provided for @compatLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Device supports eSIM:'**
-  String get compatLabel;
-
-  /// No description provided for @compatYes.
-  ///
-  /// In en, this message translates to:
-  /// **'Yes'**
-  String get compatYes;
-
-  /// No description provided for @compatLikely.
-  ///
-  /// In en, this message translates to:
-  /// **'This iPhone model may support eSIM. In Settings → General → About, do you see EID? SEID is different.'**
-  String get compatLikely;
-
-  /// No description provided for @compatEidFound.
-  ///
-  /// In en, this message translates to:
-  /// **'I see EID'**
-  String get compatEidFound;
-
-  /// No description provided for @compatEidMissing.
-  ///
-  /// In en, this message translates to:
-  /// **'No EID'**
-  String get compatEidMissing;
-
-  /// No description provided for @compatChangeEid.
-  ///
-  /// In en, this message translates to:
-  /// **'Change'**
-  String get compatChangeEid;
-
-  /// No description provided for @compatNo.
-  ///
-  /// In en, this message translates to:
-  /// **'No'**
-  String get compatNo;
-
-  /// No description provided for @compatUnknown.
-  ///
-  /// In en, this message translates to:
-  /// **'Check first'**
-  String get compatUnknown;
-
-  /// No description provided for @compatHowToCheck.
-  ///
-  /// In en, this message translates to:
-  /// **'How to check'**
-  String get compatHowToCheck;
-
   /// No description provided for @compatSheetTitle.
   ///
   /// In en, this message translates to:
@@ -631,6 +577,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a plan'**
   String get packagesChoose;
+
+  /// No description provided for @esimActivatingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'In some countries the eSIM activates only after you arrive and your phone finds a local network. Until then, Settings may show “Activating…”. That’s normal: don’t delete the eSIM.'**
+  String get esimActivatingNote;
 
   /// No description provided for @packagesEmpty.
   ///
@@ -1151,8 +1103,14 @@ abstract class AppLocalizations {
   /// No description provided for @installStuckNote.
   ///
   /// In en, this message translates to:
-  /// **'Stuck on “Connecting”, or Settings shows “Activating…”? That’s normal before the trip: close the screen and don’t delete the eSIM. It connects when you arrive.'**
+  /// **'Installer stuck on “Connecting”? Close it and check Settings → Cellular. If the eSIM isn’t there, install it manually with the details below. If it’s there and shows “Activating…”, that’s normal until you arrive: don’t delete it.'**
   String get installStuckNote;
+
+  /// No description provided for @installLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t open the installer. Use the QR code or manual installation below.'**
+  String get installLinkFailed;
 
   /// No description provided for @installManual.
   ///
@@ -1189,6 +1147,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On Samsung/Android, choose Add eSIM → Scan QR code → Enter activation code manually, then paste the full code above, starting with LPA:1\$. Menu names may vary by phone.'**
   String get esimFullActivationCodeHint;
+
+  /// No description provided for @installManualIosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On iPhone, open Settings → Cellular → Add eSIM → Use QR Code → Enter Details Manually. Paste the SM-DP+ address and activation code above, and leave Confirmation Code empty.'**
+  String get installManualIosHint;
 
   /// No description provided for @esimKeepWarning.
   ///
@@ -2743,6 +2707,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'make sure it supports eSIMs and is not locked to a carrier or network.'**
   String get compatNoOtherBold;
+
+  /// Supported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Your device supports eSIMs'**
+  String get compatYesRow;
+
+  /// Supported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Great! If you got your device through a mobile provider, '**
+  String get compatYesLead;
+
+  /// Supported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'make sure it’s not locked to a carrier or network.'**
+  String get compatYesBold;
+
+  /// Supported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'How to check if your device is locked to a carrier or network'**
+  String get compatLockTitle;
+
+  /// Supported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings → General → About. If Carrier Lock says “No SIM restrictions” and you see an EID number, you’re good to go. Some iPhones sold in mainland China, Hong Kong and Macau don’t support eSIM.'**
+  String get compatLockIos;
+
+  /// Supported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Open your device settings and look for SIM, carrier, or network lock (for example Settings → Connections → SIM manager). If it shows no lock or restrictions, you’re good to go!'**
+  String get compatLockAndroid;
+
+  /// Supported-device card and sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'If it shows a lock or restrictions, you may need to contact your mobile provider.'**
+  String get compatLockTip;
 
   /// Unsupported-device card and sheet text
   ///

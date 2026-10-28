@@ -131,6 +131,10 @@ void main() {
       find.textContaining('Enter activation code manually'),
       findsOneWidget,
     );
+    expect(
+      find.textContaining('leave Confirmation Code empty'),
+      findsOneWidget,
+    );
     expect(find.textContaining('connects when you arrive'), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
@@ -158,7 +162,10 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.textContaining('Stuck on “Connecting”'), findsOneWidget);
+    expect(
+      find.textContaining('Installer stuck on “Connecting”'),
+      findsOneWidget,
+    );
 
     await tester.pumpWidget(const SizedBox());
   });

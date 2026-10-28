@@ -1279,6 +1279,34 @@ void main() {
     },
   );
 
+  test('padded install details still give the plain one-tap link', () async {
+    final padded = esim(detail: true)
+      ..['install'] = {
+        'iccid': '890000001',
+        'smdpAddress': ' smdp.test\n',
+        'activationCode': 'activation ',
+      };
+    final adapter = ContractAdapter(
+      (o) => switch (o.path) {
+        '/v1/catalog/packages/pkg-1' => package,
+        '/v1/esims/esim-1' => padded,
+        _ => throw StateError('Unexpected ${o.path}'),
+      },
+    );
+    final repo = ApiEsimRepository(ApiClient(transport(adapter)), local);
+    final installed = (await repo.bindToDevice(
+      'esim-1',
+      deviceName: 'phone',
+    )).dataOrNull!;
+
+    expect(installed.lpa, 'LPA:1\$smdp.test\$activation');
+    expect(
+      installed.appleInstallUri.toString(),
+      'https://esimsetup.apple.com/esim_qrcode_provisioning'
+      '?carddata=LPA:1\$smdp.test\$activation',
+    );
+  });
+
   test(
     'legal and referral use server content including enabled flag and masked invitations',
     () async {

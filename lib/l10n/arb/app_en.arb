@@ -163,15 +163,6 @@
   },
   "searchNoResultsHint": "Try a country name or code, like “Turkey” or “US”.",
   "searchBack": "Back",
-  "compatLabel": "Device supports eSIM:",
-  "compatYes": "Yes",
-  "compatLikely": "This iPhone model may support eSIM. In Settings → General → About, do you see EID? SEID is different.",
-  "compatEidFound": "I see EID",
-  "compatEidMissing": "No EID",
-  "compatChangeEid": "Change",
-  "compatNo": "No",
-  "compatUnknown": "Check first",
-  "compatHowToCheck": "How to check",
   "compatSheetTitle": "Does my phone support eSIM?",
   "compatSheetIos": "Some regional iPhone models do not support eSIM, even when the model name is the same. On this phone, open Settings → General → About and look for an EID number. If there is no EID, do not buy an eSIM for this phone. Also check that Carrier Lock says “No SIM restrictions”.",
   "compatSheetAndroid": "Open the dialer and enter *#06#. If you see an EID number, your phone supports eSIM. You can also check Settings → Connections → SIM manager. The phone must be unlocked from the carrier.",
@@ -181,6 +172,7 @@
   "packagesUnlimited": "Unlimited",
   "packagesLimited": "Limited",
   "packagesChoose": "Choose a plan",
+  "esimActivatingNote": "In some countries the eSIM activates only after you arrive and your phone finds a local network. Until then, Settings may show “Activating…”. That’s normal: don’t delete the eSIM.",
   "packagesEmpty": "No plans in this category",
   "packageDetailsLink": "Package details",
   "buyFor": "Buy for {price}",
@@ -412,13 +404,15 @@
   "installQrNote": "Scan the QR code with the camera of the phone you’ll travel with: open this screen on another device or print the code.",
   "installQrRetryNote": "Didn't install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.",
   "installArrivalNote": "The eSIM connects when you arrive in the destination and your phone finds a local network.",
-  "installStuckNote": "Stuck on “Connecting”, or Settings shows “Activating…”? That’s normal before the trip: close the screen and don’t delete the eSIM. It connects when you arrive.",
+  "installStuckNote": "Installer stuck on “Connecting”? Close it and check Settings → Cellular. If the eSIM isn’t there, install it manually with the details below. If it’s there and shows “Activating…”, that’s normal until you arrive: don’t delete it.",
+  "installLinkFailed": "Couldn’t open the installer. Use the QR code or manual installation below.",
   "installManual": "Manual installation",
   "esimSmdp": "SM-DP+ address",
   "esimActivationCode": "Activation code",
   "esimIccid": "ICCID",
   "esimFullActivationCode": "Full activation code",
   "esimFullActivationCodeHint": "On Samsung/Android, choose Add eSIM → Scan QR code → Enter activation code manually, then paste the full code above, starting with LPA:1$. Menu names may vary by phone.",
+  "installManualIosHint": "On iPhone, open Settings → Cellular → Add eSIM → Use QR Code → Enter Details Manually. Paste the SM-DP+ address and activation code above, and leave Confirmation Code empty.",
   "esimKeepWarning": "Don’t delete the eSIM from your phone while the plan is active. You can only reinstall it on this same phone.",
   "esimRoamingWarning": "To avoid roaming charges from your home carrier, turn off data roaming for your main SIM.",
   "instructionsTitle": "Instructions",
@@ -922,6 +916,34 @@
   "compatNoOtherBold": "make sure it supports eSIMs and is not locked to a carrier or network.",
   "@compatNoOtherBold": {
     "description": "Unsupported-device card and sheet text"
+  },
+  "compatYesRow": "Your device supports eSIMs",
+  "@compatYesRow": {
+    "description": "Supported-device card and sheet text"
+  },
+  "compatYesLead": "Great! If you got your device through a mobile provider, ",
+  "@compatYesLead": {
+    "description": "Supported-device card and sheet text"
+  },
+  "compatYesBold": "make sure it’s not locked to a carrier or network.",
+  "@compatYesBold": {
+    "description": "Supported-device card and sheet text"
+  },
+  "compatLockTitle": "How to check if your device is locked to a carrier or network",
+  "@compatLockTitle": {
+    "description": "Supported-device card and sheet text"
+  },
+  "compatLockIos": "Open Settings → General → About. If Carrier Lock says “No SIM restrictions” and you see an EID number, you’re good to go. Some iPhones sold in mainland China, Hong Kong and Macau don’t support eSIM.",
+  "@compatLockIos": {
+    "description": "Supported-device card and sheet text"
+  },
+  "compatLockAndroid": "Open your device settings and look for SIM, carrier, or network lock (for example Settings → Connections → SIM manager). If it shows no lock or restrictions, you’re good to go!",
+  "@compatLockAndroid": {
+    "description": "Supported-device card and sheet text"
+  },
+  "compatLockTip": "If it shows a lock or restrictions, you may need to contact your mobile provider.",
+  "@compatLockTip": {
+    "description": "Supported-device card and sheet text"
   },
   "compatNoCheckDevices": "Check supported devices",
   "@compatNoCheckDevices": {

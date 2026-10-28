@@ -260,34 +260,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get searchBack => 'Atrás';
 
   @override
-  String get compatLabel => 'El dispositivo admite eSIM:';
-
-  @override
-  String get compatYes => 'Sí';
-
-  @override
-  String get compatLikely =>
-      'Este modelo de iPhone podría admitir eSIM. En Ajustes → General → Información, ¿ves EID? SEID es distinto.';
-
-  @override
-  String get compatEidFound => 'Veo EID';
-
-  @override
-  String get compatEidMissing => 'No hay EID';
-
-  @override
-  String get compatChangeEid => 'Cambiar';
-
-  @override
-  String get compatNo => 'No';
-
-  @override
-  String get compatUnknown => 'Verificar';
-
-  @override
-  String get compatHowToCheck => 'Cómo comprobar';
-
-  @override
   String get compatSheetTitle => '¿Mi teléfono admite eSIM?';
 
   @override
@@ -316,6 +288,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get packagesChoose => 'Elige un plan';
+
+  @override
+  String get esimActivatingNote =>
+      'En algunos países la eSIM solo se activa cuando llegas y tu teléfono encuentra una red local. Hasta entonces, Ajustes puede mostrar “Activando…”. Es normal: no borres la eSIM.';
 
   @override
   String get packagesEmpty => 'No hay planes en esta categoría';
@@ -659,7 +635,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      '¿Se queda en “Conectando” o en Ajustes aparece “Activando…”? Es normal antes del viaje: cierra la pantalla y no borres la eSIM. Se conectará cuando llegues.';
+      '¿El instalador se queda en “Conectando”? Ciérralo y revisa Ajustes → Datos móviles. Si la eSIM no aparece, instálala manualmente con los datos de abajo. Si aparece y muestra “Activando…”, es normal hasta que llegues: no la borres.';
+
+  @override
+  String get installLinkFailed =>
+      'No se pudo abrir el instalador. Usa el código QR o la instalación manual de abajo.';
 
   @override
   String get installManual => 'Instalación manual';
@@ -679,6 +659,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get esimFullActivationCodeHint =>
       'En Samsung/Android, elige Añadir eSIM → Escanear código QR → Introducir código de activación manualmente y pega el código completo de arriba, empezando por LPA:1\$. Los nombres pueden variar según el teléfono.';
+
+  @override
+  String get installManualIosHint =>
+      'En iPhone, abre Ajustes → Datos móviles → Añadir eSIM → Usar código QR → Introducir datos manualmente. Pega la dirección SM-DP+ y el código de activación de arriba, y deja vacío el código de confirmación.';
 
   @override
   String get esimKeepWarning =>
@@ -1557,6 +1541,33 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get compatNoOtherBold =>
       'asegúrate de que admita eSIM y no esté bloqueado a un operador o red.';
+
+  @override
+  String get compatYesRow => 'Tu dispositivo admite eSIM';
+
+  @override
+  String get compatYesLead =>
+      '¡Genial! Si conseguiste tu dispositivo a través de un operador móvil, ';
+
+  @override
+  String get compatYesBold =>
+      'asegúrate de que no esté bloqueado a un operador o red.';
+
+  @override
+  String get compatLockTitle =>
+      'Cómo comprobar si tu dispositivo está bloqueado a un operador o red';
+
+  @override
+  String get compatLockIos =>
+      'Abre Ajustes → General → Información. Si en «Bloqueo de operador» figura «Sin restricciones de SIM» y ves un número EID, todo está listo. Algunos iPhone vendidos en China continental, Hong Kong y Macao no admiten eSIM.';
+
+  @override
+  String get compatLockAndroid =>
+      'Abre los ajustes del dispositivo y busca SIM, operador o bloqueo de red (por ejemplo, Ajustes → Conexiones → Administrador de SIM). Si no hay bloqueo ni restricciones, ¡todo está listo!';
+
+  @override
+  String get compatLockTip =>
+      'Si aparece un bloqueo o restricciones, quizá tengas que contactar con tu operador móvil.';
 
   @override
   String get compatNoCheckDevices => 'Ver dispositivos compatibles';

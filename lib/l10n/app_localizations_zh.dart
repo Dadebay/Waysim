@@ -249,34 +249,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get searchBack => '返回';
 
   @override
-  String get compatLabel => '设备支持 eSIM：';
-
-  @override
-  String get compatYes => '是';
-
-  @override
-  String get compatLikely =>
-      '此 iPhone 机型可能支持 eSIM。请在 设置 → 通用 → 关于本机 中查找 EID；SEID 不是 EID。';
-
-  @override
-  String get compatEidFound => '有 EID';
-
-  @override
-  String get compatEidMissing => '没有 EID';
-
-  @override
-  String get compatChangeEid => '更改';
-
-  @override
-  String get compatNo => '否';
-
-  @override
-  String get compatUnknown => '请先确认';
-
-  @override
-  String get compatHowToCheck => '如何检查';
-
-  @override
   String get compatSheetTitle => '我的手机支持 eSIM 吗？';
 
   @override
@@ -304,6 +276,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get packagesChoose => '选择套餐';
+
+  @override
+  String get esimActivatingNote =>
+      '在部分国家/地区，eSIM 要到你抵达且手机找到当地网络后才会激活。在此之前，设置中可能显示“正在激活…”。这是正常的，请不要删除 eSIM。';
 
   @override
   String get packagesEmpty => '此类别暂无套餐';
@@ -624,7 +600,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      '卡在“正在连接”，或设置中显示“正在激活…”？出发前这是正常的：关闭该页面，不要删除 eSIM。到达后它会自动连接。';
+      '安装一直停在“正在连接”？请关闭它，并查看 设置 → 蜂窝网络。如果没有这张 eSIM，请使用下方信息手动安装；如果已有且显示“正在激活…”，到达目的地之前这是正常的，请不要删除。';
+
+  @override
+  String get installLinkFailed => '无法打开安装程序。请使用下方的二维码或手动安装。';
 
   @override
   String get installManual => '手动安装';
@@ -644,6 +623,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get esimFullActivationCodeHint =>
       '在三星或其他 Android 手机上，选择“添加 eSIM”→“扫描二维码”→“手动输入激活码”，然后粘贴上方的完整代码，包括开头的 LPA:1\$。菜单名称可能因手机而异。';
+
+  @override
+  String get installManualIosHint =>
+      '在 iPhone 上打开 设置 → 蜂窝网络 → 添加 eSIM → 使用二维码 → 手动输入详细信息。粘贴上方的 SM-DP+ 地址和激活码，确认码留空。';
 
   @override
   String get esimKeepWarning => '套餐有效期间请勿从手机中删除 eSIM，只能在同一部手机上重新安装。';
@@ -1479,6 +1462,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get compatNoOtherBold => '确保该设备支持 eSIM 且未被运营商或网络锁定。';
+
+  @override
+  String get compatYesRow => '你的设备支持 eSIM';
+
+  @override
+  String get compatYesLead => '太好了！如果你的设备是通过运营商购买的，';
+
+  @override
+  String get compatYesBold => '请确认它没有被运营商或网络锁定。';
+
+  @override
+  String get compatLockTitle => '如何检查设备是否被运营商或网络锁定';
+
+  @override
+  String get compatLockIos =>
+      '打开 设置 → 通用 → 关于本机。如果“运营商锁”显示“无 SIM 卡限制”，并且能看到 EID 号码，就可以使用了。部分在中国大陆、香港和澳门销售的 iPhone 不支持 eSIM。';
+
+  @override
+  String get compatLockAndroid =>
+      '打开设备设置，查找 SIM 卡、运营商或网络锁定相关选项（例如 设置 → 连接 → SIM 卡管理）。如果没有锁定或限制，就可以使用了！';
+
+  @override
+  String get compatLockTip => '如果显示有锁定或限制，你可能需要联系你的移动运营商。';
 
   @override
   String get compatNoCheckDevices => '查看支持的设备';

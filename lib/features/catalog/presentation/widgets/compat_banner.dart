@@ -9,7 +9,8 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../../../../core/widgets/app_button.dart';
 
-/// Shows a result only when the device or the person has confirmed it.
+/// One tappable row with the device's eSIM support; each answer opens a sheet
+/// that says what to check next.
 class CompatBanner extends StatelessWidget {
   const CompatBanner({super.key});
 
@@ -17,110 +18,26 @@ class CompatBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final c = context.colors;
-    final supportCubit = context.watch<EsimSupportCubit>();
-    final support = supportCubit.state;
-
-    if (support == EsimSupport.no && !supportCubit.isModelBased) {
-      return _UnsupportedRow(onTap: () => showUnsupportedSheet(context));
-    }
-
-    final (icon, tint, value) = switch (support) {
-      EsimSupport.yes => (AppIcons.check, c.success, l10n.compatYes),
-      EsimSupport.likely => (AppIcons.info, c.warning, l10n.compatUnknown),
-      EsimSupport.no => (AppIcons.error, c.error, l10n.compatNo),
-      _ => (AppIcons.info, c.textSecondary, l10n.compatUnknown),
+    return switch (context.watch<EsimSupportCubit>().state) {
+      EsimSupport.yes => _CompatRow(
+        icon: AppIcons.check,
+        color: c.success,
+        label: l10n.compatYesRow,
+        onTap: () => showSupportedSheet(context),
+      ),
+      EsimSupport.no => _CompatRow(
+        icon: AppIcons.warning,
+        color: c.error,
+        label: l10n.compatNoRow,
+        onTap: () => showUnsupportedSheet(context),
+      ),
+      _ => _CompatRow(
+        icon: AppIcons.info,
+        color: c.textSecondary,
+        label: l10n.compatSheetTitle,
+        onTap: () => showCompatSheet(context),
+      ),
     };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                HugeIcon(icon: icon, size: 20, color: tint),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(text: '${l10n.compatLabel} '),
-                        TextSpan(
-                          text: value,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                    style: context.text.caption,
-                  ),
-                ),
-                if (supportCubit.isModelBased && support != EsimSupport.likely)
-                  TextButton(
-                    onPressed: supportCubit.clearEidConfirmation,
-                    child: Text(l10n.compatChangeEid),
-                  )
-                else if (support == null || support == EsimSupport.unknown)
-                  TextButton(
-                    onPressed: () => showCompatSheet(context),
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(44, 44),
-                      foregroundColor: c.link,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                      ),
-                    ),
-                    child: Text(
-                      l10n.compatHowToCheck,
-                      style: context.text.caption.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            if (support == EsimSupport.likely)
-              Padding(
-                padding: const EdgeInsets.only(left: 20 + AppSpacing.sm),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.compatLikely,
-                      style: context.text.caption.copyWith(
-                        color: c.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      children: [
-                        TextButton(
-                          onPressed: () =>
-                              supportCubit.confirmEid(present: true),
-                          child: Text(l10n.compatEidFound),
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              supportCubit.confirmEid(present: false),
-                          child: Text(l10n.compatEidMissing),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -198,16 +115,23 @@ Future<bool> confirmBuyWithoutEsim(BuildContext context) async {
   return proceed ?? false;
 }
 
-/// Red "device doesn't support eSIMs" row; opens [showUnsupportedSheet].
-class _UnsupportedRow extends StatelessWidget {
-  const _UnsupportedRow({required this.onTap});
+/// White card row: tinted icon disc, label, chevron.
+class _CompatRow extends StatelessWidget {
+  const _CompatRow({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.onTap,
+  });
 
+  final AppIconData icon;
+  final Color color;
+  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final label = context.l10n.compatNoRow;
     return Semantics(
       button: true,
       label: label,
@@ -222,7 +146,7 @@ class _UnsupportedRow extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
-                _IconDisc(icon: AppIcons.warning, color: c.error),
+                _IconDisc(icon: icon, color: color),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(child: Text(label, style: context.text.bodyMed)),
                 HugeIcon(
@@ -265,6 +189,137 @@ class _IconDisc extends StatelessWidget {
   }
 }
 
+/// Large tinted circle at the top of a "Check your device" sheet.
+class _SheetBadge extends StatelessWidget {
+  const _SheetBadge({required this.icon, required this.fill});
+
+  final AppIconData icon;
+  final Color fill;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 100,
+        height: 100,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: fill, shape: BoxShape.circle),
+        child: HugeIcon(
+          icon: icon,
+          size: 48,
+          color: context.colors.textPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+/// "Check your device" for a phone with eSIM: it also has to be free of a
+/// carrier lock, and iPhone regional variants need the EID check.
+Future<void> showSupportedSheet(BuildContext context) {
+  final l10n = context.l10n;
+  final isIos = Theme.of(context).platform == TargetPlatform.iOS;
+  return showAppSheet<void>(
+    context,
+    title: l10n.compatNoSheetTitle,
+    closeLabel: l10n.actionClose,
+    builder: (sheetContext) {
+      final c = sheetContext.colors;
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.page,
+          0,
+          AppSpacing.page,
+          AppSpacing.xxl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SheetBadge(
+              icon: AppIcons.check,
+              fill: c.success.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Text(l10n.compatYesRow, style: sheetContext.text.h3),
+            const SizedBox(height: AppSpacing.md),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: l10n.compatYesLead),
+                  TextSpan(
+                    text: l10n.compatYesBold,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              style: sheetContext.text.body,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.compatLockTitle,
+                    style: sheetContext.text.bodyMed.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    isIos ? l10n.compatLockIos : l10n.compatLockAndroid,
+                    style: sheetContext.text.bodySm,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: c.background,
+                      borderRadius: BorderRadius.circular(AppRadius.card),
+                      border: Border.all(color: c.border, width: 2),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        HugeIcon(
+                          icon: AppIcons.tip,
+                          size: 24,
+                          color: c.textPrimary,
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Text(
+                            l10n.compatLockTip,
+                            style: sheetContext.text.bodySm.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            AppButton(
+              label: l10n.actionGotIt,
+              onPressed: () => Navigator.of(sheetContext).pop(),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 /// "Check your device": why this phone cannot use Waysim, and what to check
 /// when buying for another one.
 Future<void> showUnsupportedSheet(BuildContext context) {
@@ -286,21 +341,9 @@ Future<void> showUnsupportedSheet(BuildContext context) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: c.warning.withValues(alpha: 0.7),
-                  shape: BoxShape.circle,
-                ),
-                child: HugeIcon(
-                  icon: AppIcons.warning,
-                  size: 48,
-                  color: c.textPrimary,
-                ),
-              ),
+            _SheetBadge(
+              icon: AppIcons.warning,
+              fill: c.warning.withValues(alpha: 0.7),
             ),
             const SizedBox(height: AppSpacing.xxl),
             Text(l10n.compatNoRow, style: sheetContext.text.h3),

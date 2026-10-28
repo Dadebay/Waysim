@@ -112,9 +112,6 @@ class FakeCompatibility implements EsimCompatibility {
 
   @override
   Future<String> deviceName() async => 'Test phone';
-
-  @override
-  Future<String?> deviceIdentifier() async => 'test-device';
 }
 
 /// A connection the test controls; online unless told otherwise.

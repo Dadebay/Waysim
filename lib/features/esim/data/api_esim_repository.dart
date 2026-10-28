@@ -65,10 +65,12 @@ class ApiEsimRepository implements EsimRepository {
         'failed' => EsimStatus.failed,
         _ => EsimStatus.provisioning,
       },
-      smdpAddress: install.str('smdpAddress'),
-      activationCode: install.str('activationCode'),
+      // Trimmed: stray whitespace would break the QR code and push the
+      // one-tap link off Apple's plain `carddata` form.
+      smdpAddress: install.str('smdpAddress').trim(),
+      activationCode: install.str('activationCode').trim(),
       iccid: install.str('iccid'),
-      lpaString: install.strOrNull('lpaString'),
+      lpaString: install.strOrNull('lpaString')?.trim(),
       appleUniversalLink: install.strOrNull('appleUniversalLink'),
       expiresAt: j.dateOrNull('expiresAt'),
       installBy: j.dateOrNull('installBefore'),

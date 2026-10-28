@@ -384,6 +384,8 @@ class _DestinationViewState extends State<_DestinationView> {
                     );
                   },
                 ),
+                const SizedBox(height: AppSpacing.sm),
+                const _ActivationNote(),
               ],
             ),
           ),
@@ -673,6 +675,30 @@ class _BuyBarState extends State<_BuyBar> with SingleTickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Some networks only activate the eSIM in the destination, so iOS shows
+/// "Activating…" until then; said before buying so nobody deletes it.
+class _ActivationNote extends StatelessWidget {
+  const _ActivationNote();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        HugeIcon(icon: AppIcons.info, size: 16, color: c.textSecondary),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            context.l10n.esimActivatingNote,
+            style: context.text.caption.copyWith(color: c.textSecondary),
+          ),
+        ),
+      ],
     );
   }
 }

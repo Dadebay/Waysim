@@ -259,34 +259,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchBack => 'Back';
 
   @override
-  String get compatLabel => 'Device supports eSIM:';
-
-  @override
-  String get compatYes => 'Yes';
-
-  @override
-  String get compatLikely =>
-      'This iPhone model may support eSIM. In Settings → General → About, do you see EID? SEID is different.';
-
-  @override
-  String get compatEidFound => 'I see EID';
-
-  @override
-  String get compatEidMissing => 'No EID';
-
-  @override
-  String get compatChangeEid => 'Change';
-
-  @override
-  String get compatNo => 'No';
-
-  @override
-  String get compatUnknown => 'Check first';
-
-  @override
-  String get compatHowToCheck => 'How to check';
-
-  @override
   String get compatSheetTitle => 'Does my phone support eSIM?';
 
   @override
@@ -315,6 +287,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get packagesChoose => 'Choose a plan';
+
+  @override
+  String get esimActivatingNote =>
+      'In some countries the eSIM activates only after you arrive and your phone finds a local network. Until then, Settings may show “Activating…”. That’s normal: don’t delete the eSIM.';
 
   @override
   String get packagesEmpty => 'No plans in this category';
@@ -668,7 +644,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      'Stuck on “Connecting”, or Settings shows “Activating…”? That’s normal before the trip: close the screen and don’t delete the eSIM. It connects when you arrive.';
+      'Installer stuck on “Connecting”? Close it and check Settings → Cellular. If the eSIM isn’t there, install it manually with the details below. If it’s there and shows “Activating…”, that’s normal until you arrive: don’t delete it.';
+
+  @override
+  String get installLinkFailed =>
+      'Couldn’t open the installer. Use the QR code or manual installation below.';
 
   @override
   String get installManual => 'Manual installation';
@@ -688,6 +668,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get esimFullActivationCodeHint =>
       'On Samsung/Android, choose Add eSIM → Scan QR code → Enter activation code manually, then paste the full code above, starting with LPA:1\$. Menu names may vary by phone.';
+
+  @override
+  String get installManualIosHint =>
+      'On iPhone, open Settings → Cellular → Add eSIM → Use QR Code → Enter Details Manually. Paste the SM-DP+ address and activation code above, and leave Confirmation Code empty.';
 
   @override
   String get esimKeepWarning =>
@@ -1563,6 +1547,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get compatNoOtherBold =>
       'make sure it supports eSIMs and is not locked to a carrier or network.';
+
+  @override
+  String get compatYesRow => 'Your device supports eSIMs';
+
+  @override
+  String get compatYesLead =>
+      'Great! If you got your device through a mobile provider, ';
+
+  @override
+  String get compatYesBold =>
+      'make sure it’s not locked to a carrier or network.';
+
+  @override
+  String get compatLockTitle =>
+      'How to check if your device is locked to a carrier or network';
+
+  @override
+  String get compatLockIos =>
+      'Open Settings → General → About. If Carrier Lock says “No SIM restrictions” and you see an EID number, you’re good to go. Some iPhones sold in mainland China, Hong Kong and Macau don’t support eSIM.';
+
+  @override
+  String get compatLockAndroid =>
+      'Open your device settings and look for SIM, carrier, or network lock (for example Settings → Connections → SIM manager). If it shows no lock or restrictions, you’re good to go!';
+
+  @override
+  String get compatLockTip =>
+      'If it shows a lock or restrictions, you may need to contact your mobile provider.';
 
   @override
   String get compatNoCheckDevices => 'Check supported devices';

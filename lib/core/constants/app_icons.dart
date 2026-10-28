@@ -64,4 +64,5 @@ abstract final class AppIcons {
   static const AppIconData warning = HugeIcons.strokeRoundedAlert02;
   static const AppIconData offline = HugeIcons.strokeRoundedWifiOff01;
   static const AppIconData info = HugeIcons.strokeRoundedInformationCircle;
+  static const AppIconData tip = HugeIcons.strokeRoundedIdea01;
 }

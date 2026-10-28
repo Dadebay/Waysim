@@ -186,11 +186,37 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('missing EID changes model estimate to No and warns', (
+  testWidgets('a supported phone says so and explains the carrier lock', (
     tester,
   ) async {
-    (getIt<EsimCompatibility>() as FakeCompatibility).support =
-        EsimSupport.likely;
+    await phone(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Where do you need an eSIM?'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'tur');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Türkiye'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your device supports eSIMs'), findsOneWidget);
+
+    await tester.tap(find.text('Your device supports eSIMs'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'How to check if your device is locked to a carrier or network',
+      ),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(find.text('Got it'));
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your device supports eSIMs'), findsOneWidget);
+  });
+
+  testWidgets('a phone without eSIM warns before buying', (tester) async {
+    (getIt<EsimCompatibility>() as FakeCompatibility).support = EsimSupport.no;
     await getIt<EsimSupportCubit>().check();
     await phone(tester);
     await tester.pumpWidget(const App());
@@ -202,15 +228,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Türkiye'));
     await tester.pumpAndSettle();
-    expect(find.text('Device supports eSIM: Check first'), findsOneWidget);
-    expect(find.text('How to check'), findsNothing);
-    expect(find.text('No EID'), findsOneWidget);
-    await tester.tap(find.text('No EID'));
-    await tester.pumpAndSettle();
-    expect(find.text('Device supports eSIM: No'), findsOneWidget);
-    await getIt<EsimSupportCubit>().check();
-    await tester.pumpAndSettle();
-    expect(find.text('Device supports eSIM: No'), findsOneWidget);
+    expect(find.text("Your device doesn't support eSIMs"), findsOneWidget);
     await tester.tap(find.text(r'Buy for $5.99'));
     await tester.pumpAndSettle();
 

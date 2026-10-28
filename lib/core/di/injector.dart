@@ -350,7 +350,7 @@ void _registerSessionCubits() {
     )
     ..registerLazySingleton<EsimCompatibility>(DeviceEsimCompatibility.new)
     ..registerLazySingleton<EsimSupportCubit>(
-      () => EsimSupportCubit(getIt<EsimCompatibility>(), getIt<LocalStorage>()),
+      () => EsimSupportCubit(getIt<EsimCompatibility>()),
     )
     ..registerLazySingleton<TelemetryCoordinator>(
       () => TelemetryCoordinator(

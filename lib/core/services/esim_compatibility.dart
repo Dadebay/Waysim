@@ -3,15 +3,15 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 
-enum EsimSupport { yes, likely, no, unknown }
+enum EsimSupport { yes, no, unknown }
 
 /// Whether this phone can use an eSIM.
 ///
 /// * Android asks the platform: `EuiccManager.isEnabled` through a method
 ///   channel (`MainActivity.kt`).
-/// * iOS model identifiers identify eSIM-capable families but not regional
-///   SIM variants, so the user checks EID in Settings before the result
-///   becomes Yes/No.
+/// * iOS has no public check (CoreTelephony's needs a carrier entitlement),
+///   so the model identifier decides. It can't tell regional variants
+///   without eSIM apart; the "supported" sheet explains how to confirm.
 abstract interface class EsimCompatibility {
   Future<EsimSupport> check();
 
@@ -23,9 +23,6 @@ abstract interface class EsimCompatibility {
   /// The phone's marketing-neutral model, e.g. `iPhone14,5` or `Pixel 8`;
   /// sent when an eSIM is installed so one package binds to one device.
   Future<String> deviceName();
-
-  /// Used only to keep the person's EID confirmation on this iPhone.
-  Future<String?> deviceIdentifier();
 }
 
 class DeviceEsimCompatibility implements EsimCompatibility {
@@ -82,13 +79,12 @@ class DeviceEsimCompatibility implements EsimCompatibility {
     return m > major || (m == major && n >= minor);
   }
 
-  /// A model identifier cannot prove eSIM support on regional variants.
+  /// Every iPhone from the XS/XR (`iPhone11,x`) on has eSIM, except some
+  /// regional variants that share the same identifier.
   EsimSupport iosSupport(String machine) {
     final match = RegExp(r'^iPhone(\d+),').firstMatch(machine);
     if (match == null) return EsimSupport.unknown; // iPad, iPod, …
-    return int.parse(match.group(1)!) >= 11
-        ? EsimSupport.likely
-        : EsimSupport.no;
+    return int.parse(match.group(1)!) >= 11 ? EsimSupport.yes : EsimSupport.no;
   }
 
   @override
@@ -103,17 +99,5 @@ class DeviceEsimCompatibility implements EsimCompatibility {
       // Unknown device is still a valid binding label.
     }
     return 'Unknown device';
-  }
-
-  @override
-  Future<String?> deviceIdentifier() async {
-    try {
-      if (Platform.isIOS) {
-        return (await _deviceInfo.iosInfo).identifierForVendor;
-      }
-    } on Object {
-      // A missing identifier simply means the answer is not persisted.
-    }
-    return null;
   }
 }
