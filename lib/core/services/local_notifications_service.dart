@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class LocalNotificationsService {
   LocalNotificationsService();
@@ -89,4 +90,35 @@ class LocalNotificationsService {
       iOS: const DarwinNotificationDetails(),
     ),
   );
+
+  /// Fires once after [after], even if the app is closed. Same [id] replaces
+  /// an earlier schedule; cancel it with [cancel].
+  Future<void> schedule({
+    required int id,
+    required Duration after,
+    required String title,
+    required String body,
+    String? payload,
+    String? channel,
+  }) => _plugin.zonedSchedule(
+    id: id,
+    title: title,
+    body: body,
+    scheduledDate: tz.TZDateTime.now(tz.UTC).add(after),
+    notificationDetails: NotificationDetails(
+      android: AndroidNotificationDetails(
+        channels.containsKey(channel) ? channel! : channelId,
+        channels[channel] ?? _channelName,
+        channelDescription: _channelDescription,
+        importance: Importance.max,
+        priority: Priority.high,
+        icon: '@drawable/ic_stat_waysim',
+      ),
+      iOS: const DarwinNotificationDetails(),
+    ),
+    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    payload: payload,
+  );
+
+  Future<void> cancel(int id) => _plugin.cancel(id: id);
 }

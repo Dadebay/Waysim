@@ -576,6 +576,10 @@
   "topUpMethod": "Payment method",
   "topUpPaypalTitle": "PayPal",
   "topUpPaypalBody": "PayPal balance or card via PayPal",
+  "topUpComingSoon": "Coming soon",
+  "topUpGooglePayTitle": "Google Pay",
+  "topUpApplePayTitle": "Apple Pay",
+  "topUpBankCardTitle": "Bank card",
   "topUpCryptoTitle": "Cryptocurrency",
   "topUpCryptoBody": "Choose a coin and network",
   "topUpMinimumLabel": "Minimum top-up",
@@ -949,5 +953,26 @@
   "compatNoCheckDevices": "Check supported devices",
   "@compatNoCheckDevices": {
     "description": "Unsupported-device card and sheet text"
-  }
+  },
+  "installTroubleTitle": "Install not working?",
+  "installTroubleStep1": "Use a stable Wi-Fi and turn off VPN.",
+  "installTroubleStep2": "Restart the phone and try the installation again.",
+  "installTroubleStepResetIos": "Reset network settings: Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. Saved Wi-Fi passwords will be removed. Then try again.",
+  "installTroubleStepResetAndroid": "Reset network settings: Settings → System → Reset options → Reset Wi-Fi, mobile & Bluetooth. Saved Wi-Fi passwords will be removed. Then try again.",
+  "installTroubleStep4": "If the line is stuck on “Activating…” even after that, delete it in Settings → Cellular and install manually with the details above.",
+  "installTroubleStep5": "Still no luck? Contact support from the app.",
+  "installStuckTitle": "Installing for {minutes} min already",
+  "@installStuckTitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "installStuckBody": "This takes a minute or two. If it keeps loading, close the installer and follow the steps below: resetting network settings fixes it in some countries.",
+  "installStuckRestart": "Restart timer",
+  "installReminderTitle": "Waysim eSIM",
+  "installReminderBody": "Is the eSIM installed? If it is stuck, open the app for the fix steps.",
+  "installOpenSettings": "Open Settings",
+  "installOpenSettingsHint": "Opens your phone’s Settings. On iPhone tap “Settings” at the top left to reach the main list, then follow the reset step."
 }

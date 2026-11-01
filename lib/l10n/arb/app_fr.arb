@@ -275,6 +275,10 @@
   "topUpMethod": "Moyen de paiement",
   "topUpPaypalTitle": "PayPal",
   "topUpPaypalBody": "Solde PayPal ou carte via PayPal",
+  "topUpComingSoon": "Bientôt disponible",
+  "topUpGooglePayTitle": "Google Pay",
+  "topUpApplePayTitle": "Apple Pay",
+  "topUpBankCardTitle": "Carte bancaire",
   "topUpCryptoTitle": "Cryptomonnaie",
   "topUpCryptoBody": "Choisissez la devise et le réseau",
   "topUpMinimumLabel": "Recharge minimale",
@@ -442,5 +446,26 @@
   "compatLockIos": "Ouvrez Réglages → Général → Informations. « Verrouillage de l’opérateur » doit indiquer « Aucune restriction de SIM ». Un verrouillage peut empêcher une eSIM de voyage de fonctionner.",
   "compatLockAndroid": "Ouvrez les paramètres de l’appareil et cherchez SIM, opérateur ou verrouillage réseau (par exemple Paramètres → Connexions → Gestionnaire de SIM). S’il n’y a ni verrouillage ni restriction, tout est prêt !",
   "compatLockTip": "En cas de verrouillage ou de restrictions, vous devrez peut-être contacter votre opérateur mobile.",
-  "compatNoCheckDevices": "Voir les appareils compatibles"
+  "compatNoCheckDevices": "Voir les appareils compatibles",
+  "installTroubleTitle": "L’installation ne marche pas ?",
+  "installTroubleStep1": "Utilisez un Wi-Fi stable et désactivez le VPN.",
+  "installTroubleStep2": "Redémarrez le téléphone et réessayez l’installation.",
+  "installTroubleStepResetIos": "Réinitialisez les réglages réseau : Réglages → Général → Transférer ou réinitialiser l’iPhone → Réinitialiser → Réinitialiser les réglages réseau. Les mots de passe Wi-Fi enregistrés seront supprimés. Puis réessayez.",
+  "installTroubleStepResetAndroid": "Réinitialisez les réglages réseau : Paramètres → Système → Options de réinitialisation → Réinitialiser le Wi-Fi, le mobile et le Bluetooth. Les mots de passe Wi-Fi enregistrés seront supprimés. Puis réessayez.",
+  "installTroubleStep4": "Si la ligne reste sur « Activation… » même ensuite, supprimez-la dans Réglages → Données mobiles et installez manuellement avec les informations ci-dessus.",
+  "installTroubleStep5": "Toujours bloqué ? Contactez le support depuis l’application.",
+  "installStuckTitle": "Installation en cours depuis {minutes} min",
+  "@installStuckTitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "installStuckBody": "Cela prend d’habitude une à deux minutes. Si le chargement continue, fermez l’installateur et suivez les étapes ci-dessous : réinitialiser les réglages réseau règle le problème dans certains pays.",
+  "installStuckRestart": "Relancer le minuteur",
+  "installReminderTitle": "Waysim eSIM",
+  "installReminderBody": "L’eSIM est-elle installée ? Si elle est bloquée, ouvrez l’app pour voir les étapes.",
+  "installOpenSettings": "Ouvrir les réglages",
+  "installOpenSettingsHint": "Ouvre les réglages du téléphone. Sur iPhone, touchez « Réglages » en haut à gauche pour accéder à la liste principale, puis suivez l’étape de réinitialisation."
 }

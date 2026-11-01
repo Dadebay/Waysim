@@ -4,6 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
+/// The translations for Chinese (`zh`).
 class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
@@ -946,6 +947,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get topUpPaypalBody => 'PayPal 余额或通过 PayPal 使用银行卡';
 
   @override
+  String get topUpComingSoon => '即将推出';
+
+  @override
+  String get topUpGooglePayTitle => 'Google Pay';
+
+  @override
+  String get topUpApplePayTitle => 'Apple Pay';
+
+  @override
+  String get topUpBankCardTitle => '银行卡';
+
+  @override
   String get topUpCryptoTitle => '加密货币';
 
   @override
@@ -1489,4 +1502,53 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get compatNoCheckDevices => '查看支持的设备';
+
+  @override
+  String get installTroubleTitle => '安装不成功？';
+
+  @override
+  String get installTroubleStep1 => '使用稳定的 Wi-Fi，并关闭 VPN。';
+
+  @override
+  String get installTroubleStep2 => '重启手机后再试一次。';
+
+  @override
+  String get installTroubleStepResetIos =>
+      '还原网络设置：设置 → 通用 → 传输或还原 iPhone → 还原 → 还原网络设置。已保存的 Wi-Fi 密码会被清除。然后重试。';
+
+  @override
+  String get installTroubleStepResetAndroid =>
+      '还原网络设置：设置 → 系统 → 重置选项 → 重置 Wi-Fi、移动网络和蓝牙。已保存的 Wi-Fi 密码会被清除。然后重试。';
+
+  @override
+  String get installTroubleStep4 =>
+      '如果之后线路仍停在“正在激活…”，请在 设置 → 蜂窝网络 中删除它，并用上方信息手动安装。';
+
+  @override
+  String get installTroubleStep5 => '仍然不行？请在应用内联系客服。';
+
+  @override
+  String installStuckTitle(int minutes) {
+    return '已安装 $minutes 分钟';
+  }
+
+  @override
+  String get installStuckBody =>
+      '通常需要一两分钟。如果一直在加载，请关闭安装程序并按下方步骤操作：在部分国家还原网络设置可以解决。';
+
+  @override
+  String get installStuckRestart => '重新计时';
+
+  @override
+  String get installReminderTitle => 'Waysim eSIM';
+
+  @override
+  String get installReminderBody => 'eSIM 安装好了吗？如果卡住了，请打开应用查看解决步骤。';
+
+  @override
+  String get installOpenSettings => '打开设置';
+
+  @override
+  String get installOpenSettingsHint =>
+      '打开手机设置。在 iPhone 上点左上角的“设置”回到主列表，然后按重置步骤操作。';
 }

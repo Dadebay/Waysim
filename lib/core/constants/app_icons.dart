@@ -10,6 +10,7 @@ abstract final class AppIcons {
   static const AppIconData profile = HugeIcons.strokeRoundedUser;
 
   static const AppIconData check = HugeIcons.strokeRoundedTick02;
+  static const AppIconData edit = HugeIcons.strokeRoundedEdit02;
   static const AppIconData close = HugeIcons.strokeRoundedCancel01;
   static const AppIconData add = HugeIcons.strokeRoundedAdd01;
   static const AppIconData minus = HugeIcons.strokeRoundedMinus;
@@ -28,6 +29,9 @@ abstract final class AppIcons {
   static const AppIconData globe = HugeIcons.strokeRoundedGlobe02;
   static const AppIconData wallet = HugeIcons.strokeRoundedWallet01;
   static const AppIconData paypal = HugeIcons.strokeRoundedPaypal;
+  static const AppIconData googlePay = HugeIcons.strokeRoundedGoogle;
+  static const AppIconData applePay = HugeIcons.strokeRoundedApple;
+  static const AppIconData bankCard = HugeIcons.strokeRoundedCreditCard;
   static const AppIconData crypto = HugeIcons.strokeRoundedBitcoinCircle;
   static const AppIconData gift = HugeIcons.strokeRoundedGift;
   static const AppIconData qrCode = HugeIcons.strokeRoundedQrCode01;
@@ -43,6 +47,7 @@ abstract final class AppIcons {
   static const AppIconData aiChat = HugeIcons.strokeRoundedAiChat02;
   static const AppIconData mail = HugeIcons.strokeRoundedMail01;
   static const AppIconData sparkles = HugeIcons.strokeRoundedSparkles;
+  static const AppIconData youtube = HugeIcons.strokeRoundedYoutube;
   static const AppIconData send = HugeIcons.strokeRoundedSent;
 
   static const AppIconData error = HugeIcons.strokeRoundedAlertCircle;

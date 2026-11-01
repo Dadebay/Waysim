@@ -70,6 +70,7 @@ class ApiConfigRepository implements ConfigRepository {
       email: link('email'),
       telegram: link('telegram'),
       instagram: link('instagram'),
+      youtube: link('youtube'),
     );
   }
 }

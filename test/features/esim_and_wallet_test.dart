@@ -13,7 +13,6 @@ import 'package:waysim/core/widgets/copy_field.dart';
 import 'package:waysim/features/auth/domain/repositories/auth_repository.dart';
 import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
-import 'package:waysim/features/wallet/presentation/cubit/wallet_cubit.dart';
 import 'package:waysim/features/wallet/presentation/cubit/top_up_cubit.dart';
 import 'package:waysim/mock/mock_backend.dart';
 
@@ -166,54 +165,63 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('the balance pill opens top-up and PayPal credits the balance', (
-    tester,
-  ) async {
-    phone(tester);
-    await signInAnna(tester);
-    await tester.pumpWidget(const App());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'the balance pill opens top-up with other methods marked coming soon',
+    (tester) async {
+      phone(tester);
+      await signInAnna(tester);
+      await tester.pumpWidget(const App());
+      await tester.pumpAndSettle();
 
-    expect(find.text(r'$24.50'), findsOneWidget);
-    await tester.tap(find.text(r'$24.50'));
-    await tester.pumpAndSettle();
+      expect(find.text(r'$24.50'), findsOneWidget);
+      await tester.tap(find.text(r'$24.50'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Top up balance'), findsWidgets);
-    final currentBalance = tester.widget<Text>(find.text(r'$24.50').last);
-    expect(currentBalance.style?.fontWeight, FontWeight.w700);
-    expect(
-      tester.widget<TextField>(find.byType(TextField)).decoration?.hintText,
-      'Amount in USD',
-    );
-    for (final method in ['payment-paypal', 'payment-crypto']) {
-      expect(
-        find.descendant(
-          of: find.byKey(ValueKey(method)),
-          matching: find.byType(HugeIcon),
-        ),
-        findsOneWidget,
+      expect(find.text('Top up balance'), findsWidgets);
+      final currentBalance = tester.widget<Text>(find.text(r'$24.50').last);
+      expect(currentBalance.style?.fontWeight, FontWeight.w700);
+      for (final method in [
+        'payment-crypto',
+        'payment-paypal',
+        'payment-google-pay',
+        'payment-bank-card',
+      ]) {
+        expect(
+          find.descendant(
+            of: find.byKey(ValueKey(method)),
+            matching: find.byType(HugeIcon),
+          ),
+          findsOneWidget,
+        );
+      }
+      expect(find.text('Coming soon'), findsNWidgets(3));
+      await tester.scrollUntilVisible(
+        find.byType(TextField),
+        250,
+        scrollable: find.byType(Scrollable).first,
       );
-    }
-    expect(
-      tester.widget<Text>(find.text(r'$20')).style?.fontWeight,
-      FontWeight.w700,
-    );
-    await tester.tap(find.text(r'$20'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(r'Top up $20'));
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Waiting for PayPal'), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).decoration?.hintText,
+        'Amount in USD',
+      );
+      expect(
+        tester
+            .widget<Semantics>(
+              find
+                  .descendant(
+                    of: find.byKey(const ValueKey('payment-paypal')),
+                    matching: find.byType(Semantics),
+                  )
+                  .first,
+            )
+            .properties
+            .enabled,
+        isFalse,
+      );
 
-    for (var i = 0; i < 4; i++) {
-      await tester.pump(const Duration(seconds: 2));
-    }
-    await tester.pumpAndSettle();
-    expect(find.text('Balance topped up'), findsOneWidget);
-    expect(getIt<WalletCubit>().state.balance?.cents, 4450);
-
-    await tester.pumpWidget(const SizedBox());
-  });
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets('coin and network selectors open the chosen crypto invoice', (
     tester,
@@ -288,9 +296,12 @@ void main() {
 
     await tester.tap(find.text(r'$24.50'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(r'$20'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text(r'$20'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('payment-crypto')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(
       find.byKey(const ValueKey('top-up-coin-selector')),
@@ -341,6 +352,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(r'Top up $20'), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.text(r'$50'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(find.text(r'$50'));
     await tester.pumpAndSettle();
     await tester.tap(find.text(r'$50'));
@@ -373,9 +389,12 @@ void main() {
 
     await tester.tap(find.text(r'$24.50'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(r'$20'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text(r'$20'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('payment-crypto')));
     await tester.pumpAndSettle();
     expect(find.text('TRC-20'), findsOneWidget);
     await tester.scrollUntilVisible(

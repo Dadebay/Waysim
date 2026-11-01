@@ -175,6 +175,10 @@ void main() {
               'url': 'https://t.me/waysim_support',
             },
             'instagram': null,
+            'youtube': {
+              'label': 'Waysim',
+              'url': 'https://youtube.com/@waysim',
+            },
           },
         },
       );
@@ -184,6 +188,7 @@ void main() {
       expect(config.contacts.website?.url, 'https://waysim.co');
       expect(config.contacts.telegram?.label, '@waysim_support');
       expect(config.contacts.instagram, isNull);
+      expect(config.contacts.youtube?.url, 'https://youtube.com/@waysim');
 
       expect(config.supportEmail, 'support@waysim.co');
       expect(config.minTopUpCents, 100);

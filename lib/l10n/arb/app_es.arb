@@ -275,6 +275,10 @@
   "topUpMethod": "Método de pago",
   "topUpPaypalTitle": "PayPal",
   "topUpPaypalBody": "Saldo de PayPal o tarjeta mediante PayPal",
+  "topUpComingSoon": "Próximamente",
+  "topUpGooglePayTitle": "Google Pay",
+  "topUpApplePayTitle": "Apple Pay",
+  "topUpBankCardTitle": "Tarjeta bancaria",
   "topUpCryptoTitle": "Criptomoneda",
   "topUpCryptoBody": "Elige la moneda y la red",
   "topUpMinimumLabel": "Recarga mínima",
@@ -442,5 +446,26 @@
   "compatLockIos": "Abre Ajustes → General → Información. En «Bloqueo de operador» debe figurar «Sin restricciones de SIM». Un bloqueo puede impedir que funcione una eSIM de viaje.",
   "compatLockAndroid": "Abre los ajustes del dispositivo y busca SIM, operador o bloqueo de red (por ejemplo, Ajustes → Conexiones → Administrador de SIM). Si no hay bloqueo ni restricciones, ¡todo está listo!",
   "compatLockTip": "Si aparece un bloqueo o restricciones, quizá tengas que contactar con tu operador móvil.",
-  "compatNoCheckDevices": "Ver dispositivos compatibles"
+  "compatNoCheckDevices": "Ver dispositivos compatibles",
+  "installTroubleTitle": "¿No se instala?",
+  "installTroubleStep1": "Usa una red Wi-Fi estable y desactiva la VPN.",
+  "installTroubleStep2": "Reinicia el teléfono e intenta instalar de nuevo.",
+  "installTroubleStepResetIos": "Restablece los ajustes de red: Ajustes → General → Transferir o restablecer iPhone → Restablecer → Restablecer ajustes de red. Se borrarán las contraseñas Wi-Fi guardadas. Luego vuelve a intentarlo.",
+  "installTroubleStepResetAndroid": "Restablece los ajustes de red: Ajustes → Sistema → Opciones de restablecimiento → Restablecer Wi-Fi, móvil y Bluetooth. Se borrarán las contraseñas Wi-Fi guardadas. Luego vuelve a intentarlo.",
+  "installTroubleStep4": "Si la línea sigue en «Activando…», elimínala en Ajustes → Datos móviles e instálala manualmente con los datos de arriba.",
+  "installTroubleStep5": "¿Sigue sin funcionar? Escribe a soporte desde la app.",
+  "installStuckTitle": "Instalando desde hace {minutes} min",
+  "@installStuckTitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "installStuckBody": "Suele tardar uno o dos minutos. Si sigue cargando, cierra el instalador y sigue los pasos de abajo: restablecer los ajustes de red lo soluciona en algunos países.",
+  "installStuckRestart": "Reiniciar temporizador",
+  "installReminderTitle": "Waysim eSIM",
+  "installReminderBody": "¿Se instaló la eSIM? Si se quedó atascada, abre la app para ver los pasos.",
+  "installOpenSettings": "Abrir Ajustes",
+  "installOpenSettingsHint": "Abre los Ajustes del teléfono. En iPhone toca «Ajustes» arriba a la izquierda para ir a la lista principal y sigue el paso de restablecer."
 }

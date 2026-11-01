@@ -176,6 +176,7 @@ class _ContactLinks extends StatelessWidget {
       if (contacts.email != null) (AppIcons.mail, contacts.email!),
       if (contacts.telegram != null) (AppIcons.send, contacts.telegram!),
       if (contacts.instagram != null) (AppIcons.sparkles, contacts.instagram!),
+      if (contacts.youtube != null) (AppIcons.youtube, contacts.youtube!),
     ];
     if (rows.isEmpty) {
       final email = config.supportEmail.trim().isNotEmpty

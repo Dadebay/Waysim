@@ -63,16 +63,27 @@ class AppConfig extends Equatable {
 }
 
 class AppContacts extends Equatable {
-  const AppContacts({this.website, this.email, this.telegram, this.instagram});
+  const AppContacts({
+    this.website,
+    this.email,
+    this.telegram,
+    this.instagram,
+    this.youtube,
+  });
 
   final ContactLink? website;
   final ContactLink? email;
   final ContactLink? telegram;
   final ContactLink? instagram;
+  final ContactLink? youtube;
 
   bool get isEmpty =>
-      website == null && email == null && telegram == null && instagram == null;
+      website == null &&
+      email == null &&
+      telegram == null &&
+      instagram == null &&
+      youtube == null;
 
   @override
-  List<Object?> get props => [website, email, telegram, instagram];
+  List<Object?> get props => [website, email, telegram, instagram, youtube];
 }

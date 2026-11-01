@@ -4,6 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
+/// The translations for Russian (`ru`).
 class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
@@ -1009,6 +1010,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get topUpPaypalBody => 'Баланс PayPal или карта через PayPal';
 
   @override
+  String get topUpComingSoon => 'Скоро';
+
+  @override
+  String get topUpGooglePayTitle => 'Google Pay';
+
+  @override
+  String get topUpApplePayTitle => 'Apple Pay';
+
+  @override
+  String get topUpBankCardTitle => 'Банковская карта';
+
+  @override
   String get topUpCryptoTitle => 'Криптовалюта';
 
   @override
@@ -1580,4 +1593,57 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get compatNoCheckDevices => 'Проверить поддерживаемые устройства';
+
+  @override
+  String get installTroubleTitle => 'Не устанавливается?';
+
+  @override
+  String get installTroubleStep1 =>
+      'Подключитесь к стабильному Wi-Fi и отключите VPN.';
+
+  @override
+  String get installTroubleStep2 =>
+      'Перезагрузите телефон и повторите установку.';
+
+  @override
+  String get installTroubleStepResetIos =>
+      'Сбросьте настройки сети: Настройки → Основные → Перенос или сброс iPhone → Сброс → Сбросить настройки сети. Сохранённые пароли Wi-Fi будут удалены. Затем повторите установку.';
+
+  @override
+  String get installTroubleStepResetAndroid =>
+      'Сбросьте настройки сети: Настройки → Система → Сброс → Сбросить настройки Wi-Fi, мобильного интернета и Bluetooth. Сохранённые пароли Wi-Fi будут удалены. Затем повторите установку.';
+
+  @override
+  String get installTroubleStep4 =>
+      'Если линия всё равно зависла на «Активация…», удалите её в Настройки → Сотовая связь и установите вручную по данным выше.';
+
+  @override
+  String get installTroubleStep5 =>
+      'Не помогло? Напишите в поддержку из приложения.';
+
+  @override
+  String installStuckTitle(int minutes) {
+    return 'Установка идёт уже $minutes мин.';
+  }
+
+  @override
+  String get installStuckBody =>
+      'Обычно это занимает минуту-две. Если загрузка не заканчивается, закройте установщик и выполните шаги ниже: в некоторых странах помогает сброс настроек сети.';
+
+  @override
+  String get installStuckRestart => 'Сбросить таймер';
+
+  @override
+  String get installReminderTitle => 'Waysim eSIM';
+
+  @override
+  String get installReminderBody =>
+      'eSIM установилась? Если установка зависла, откройте приложение: там шаги решения.';
+
+  @override
+  String get installOpenSettings => 'Открыть настройки';
+
+  @override
+  String get installOpenSettingsHint =>
+      'Откроются настройки телефона. На iPhone нажмите «Настройки» слева вверху, чтобы попасть в основной список, и выполните шаг со сбросом.';
 }

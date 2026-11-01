@@ -4,6 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
+/// The translations for English (`en`).
 class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
@@ -1007,6 +1008,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get topUpPaypalBody => 'PayPal balance or card via PayPal';
 
   @override
+  String get topUpComingSoon => 'Coming soon';
+
+  @override
+  String get topUpGooglePayTitle => 'Google Pay';
+
+  @override
+  String get topUpApplePayTitle => 'Apple Pay';
+
+  @override
+  String get topUpBankCardTitle => 'Bank card';
+
+  @override
   String get topUpCryptoTitle => 'Cryptocurrency';
 
   @override
@@ -1579,4 +1592,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get compatNoCheckDevices => 'Check supported devices';
+
+  @override
+  String get installTroubleTitle => 'Install not working?';
+
+  @override
+  String get installTroubleStep1 => 'Use a stable Wi-Fi and turn off VPN.';
+
+  @override
+  String get installTroubleStep2 =>
+      'Restart the phone and try the installation again.';
+
+  @override
+  String get installTroubleStepResetIos =>
+      'Reset network settings: Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. Saved Wi-Fi passwords will be removed. Then try again.';
+
+  @override
+  String get installTroubleStepResetAndroid =>
+      'Reset network settings: Settings → System → Reset options → Reset Wi-Fi, mobile & Bluetooth. Saved Wi-Fi passwords will be removed. Then try again.';
+
+  @override
+  String get installTroubleStep4 =>
+      'If the line is stuck on “Activating…” even after that, delete it in Settings → Cellular and install manually with the details above.';
+
+  @override
+  String get installTroubleStep5 =>
+      'Still no luck? Contact support from the app.';
+
+  @override
+  String installStuckTitle(int minutes) {
+    return 'Installing for $minutes min already';
+  }
+
+  @override
+  String get installStuckBody =>
+      'This takes a minute or two. If it keeps loading, close the installer and follow the steps below: resetting network settings fixes it in some countries.';
+
+  @override
+  String get installStuckRestart => 'Restart timer';
+
+  @override
+  String get installReminderTitle => 'Waysim eSIM';
+
+  @override
+  String get installReminderBody =>
+      'Is the eSIM installed? If it is stuck, open the app for the fix steps.';
+
+  @override
+  String get installOpenSettings => 'Open Settings';
+
+  @override
+  String get installOpenSettingsHint =>
+      'Opens your phone’s Settings. On iPhone tap “Settings” at the top left to reach the main list, then follow the reset step.';
 }

@@ -4,6 +4,7 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
+/// The translations for French (`fr`).
 class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
@@ -1006,6 +1007,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get topUpPaypalBody => 'Solde PayPal ou carte via PayPal';
 
   @override
+  String get topUpComingSoon => 'Bientôt disponible';
+
+  @override
+  String get topUpGooglePayTitle => 'Google Pay';
+
+  @override
+  String get topUpApplePayTitle => 'Apple Pay';
+
+  @override
+  String get topUpBankCardTitle => 'Carte bancaire';
+
+  @override
   String get topUpCryptoTitle => 'Cryptomonnaie';
 
   @override
@@ -1580,4 +1593,57 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get compatNoCheckDevices => 'Voir les appareils compatibles';
+
+  @override
+  String get installTroubleTitle => 'L’installation ne marche pas ?';
+
+  @override
+  String get installTroubleStep1 =>
+      'Utilisez un Wi-Fi stable et désactivez le VPN.';
+
+  @override
+  String get installTroubleStep2 =>
+      'Redémarrez le téléphone et réessayez l’installation.';
+
+  @override
+  String get installTroubleStepResetIos =>
+      'Réinitialisez les réglages réseau : Réglages → Général → Transférer ou réinitialiser l’iPhone → Réinitialiser → Réinitialiser les réglages réseau. Les mots de passe Wi-Fi enregistrés seront supprimés. Puis réessayez.';
+
+  @override
+  String get installTroubleStepResetAndroid =>
+      'Réinitialisez les réglages réseau : Paramètres → Système → Options de réinitialisation → Réinitialiser le Wi-Fi, le mobile et le Bluetooth. Les mots de passe Wi-Fi enregistrés seront supprimés. Puis réessayez.';
+
+  @override
+  String get installTroubleStep4 =>
+      'Si la ligne reste sur « Activation… » même ensuite, supprimez-la dans Réglages → Données mobiles et installez manuellement avec les informations ci-dessus.';
+
+  @override
+  String get installTroubleStep5 =>
+      'Toujours bloqué ? Contactez le support depuis l’application.';
+
+  @override
+  String installStuckTitle(int minutes) {
+    return 'Installation en cours depuis $minutes min';
+  }
+
+  @override
+  String get installStuckBody =>
+      'Cela prend d’habitude une à deux minutes. Si le chargement continue, fermez l’installateur et suivez les étapes ci-dessous : réinitialiser les réglages réseau règle le problème dans certains pays.';
+
+  @override
+  String get installStuckRestart => 'Relancer le minuteur';
+
+  @override
+  String get installReminderTitle => 'Waysim eSIM';
+
+  @override
+  String get installReminderBody =>
+      'L’eSIM est-elle installée ? Si elle est bloquée, ouvrez l’app pour voir les étapes.';
+
+  @override
+  String get installOpenSettings => 'Ouvrir les réglages';
+
+  @override
+  String get installOpenSettingsHint =>
+      'Ouvre les réglages du téléphone. Sur iPhone, touchez « Réglages » en haut à gauche pour accéder à la liste principale, puis suivez l’étape de réinitialisation.';
 }

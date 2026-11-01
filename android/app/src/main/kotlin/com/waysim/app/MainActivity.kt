@@ -1,6 +1,8 @@
 package com.waysim.app
 
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.os.Build
 import android.telephony.euicc.EuiccManager
 import android.view.WindowInsets
@@ -31,6 +33,12 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "isEsimSupported" -> result.success(isEsimSupported())
+                    "openSettings" -> {
+                        startActivity(
+                            Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             }

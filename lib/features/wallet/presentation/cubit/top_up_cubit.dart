@@ -19,7 +19,7 @@ enum TopUpPhase { form, creating, paying, credited, expired, failed }
 class TopUpState extends Equatable {
   const TopUpState({
     this.amount,
-    this.method = TopUpMethod.paypal,
+    this.method = TopUpMethod.crypto,
     this.crypto = CryptoOption.usdtBep20,
     this.phase = TopUpPhase.form,
     this.session,

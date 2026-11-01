@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -166,6 +167,7 @@ class _FormState extends State<_Form> {
     final networks = currencies
         .where((option) => option.coin == state.crypto.coin)
         .toList();
+    final isIos = defaultTargetPlatform == TargetPlatform.iOS;
     final singleCrypto =
         state.options?.methods.length == 1 &&
         (state.options?.methods.contains(TopUpMethod.crypto) ?? false);
@@ -241,21 +243,6 @@ class _FormState extends State<_Form> {
               const SizedBox(height: AppSpacing.xxl),
               Text(l10n.topUpMethod, style: context.text.h3),
               const SizedBox(height: AppSpacing.md),
-              if ((state.options?.methods.contains(TopUpMethod.paypal) ??
-                  false))
-                _MethodCard(
-                  key: const ValueKey('payment-paypal'),
-                  icon: AppIcons.paypal,
-                  title: l10n.topUpPaypalTitle,
-                  body: l10n.topUpPaypalBody,
-                  selected: state.method == TopUpMethod.paypal,
-                  onTap: () => cubit.setMethod(TopUpMethod.paypal),
-                ),
-              if ((state.options?.methods.contains(TopUpMethod.paypal) ??
-                      false) &&
-                  (state.options?.methods.contains(TopUpMethod.crypto) ??
-                      false))
-                const SizedBox(height: AppSpacing.sm),
               if ((state.options?.methods.contains(TopUpMethod.crypto) ??
                       false) &&
                   !singleCrypto)
@@ -366,6 +353,34 @@ class _FormState extends State<_Form> {
                   ),
                 ),
               ],
+              const SizedBox(height: AppSpacing.sm),
+              _MethodCard(
+                key: const ValueKey('payment-paypal'),
+                icon: AppIcons.paypal,
+                title: l10n.topUpPaypalTitle,
+                body: l10n.topUpComingSoon,
+                selected: false,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _MethodCard(
+                key: ValueKey(
+                  isIos ? 'payment-apple-pay' : 'payment-google-pay',
+                ),
+                icon: isIos ? AppIcons.applePay : AppIcons.googlePay,
+                title: isIos
+                    ? l10n.topUpApplePayTitle
+                    : l10n.topUpGooglePayTitle,
+                body: l10n.topUpComingSoon,
+                selected: false,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _MethodCard(
+                key: const ValueKey('payment-bank-card'),
+                icon: AppIcons.bankCard,
+                title: l10n.topUpBankCardTitle,
+                body: l10n.topUpComingSoon,
+                selected: false,
+              ),
               const SizedBox(height: AppSpacing.xxl),
               Text(l10n.topUpChooseAmount, style: context.text.h3),
               const SizedBox(height: AppSpacing.md),
@@ -533,73 +548,80 @@ class _MethodCard extends StatelessWidget {
     required this.title,
     required this.body,
     required this.selected,
-    required this.onTap,
+    this.onTap,
   });
 
   final AppIconData icon;
   final String title;
   final String body;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: '$title. $body',
-      excludeSemantics: true,
-      child: AppCard(
+    final disabled = onTap == null;
+    return Opacity(
+      opacity: disabled ? 0.55 : 1,
+      child: Semantics(
+        button: !disabled,
+        enabled: !disabled,
         selected: selected,
-        onTap: onTap,
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: c.background,
-                border: Border.all(color: c.border),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
+        label: '$title. $body',
+        excludeSemantics: true,
+        child: AppCard(
+          selected: selected,
+          onTap: onTap,
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: c.background,
+                  border: Border.all(color: c.border),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                alignment: Alignment.center,
+                child: HugeIcon(icon: icon, size: 22, color: c.primary),
               ),
-              alignment: Alignment.center,
-              child: HugeIcon(icon: icon, size: 22, color: c.primary),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: context.text.bodyMed.copyWith(
-                      fontWeight: FontWeight.w700,
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: context.text.bodyMed.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    body,
-                    style: context.text.bodySm.copyWith(color: c.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: c.background,
-                border: Border.all(
-                  color: selected ? c.primary : c.border,
-                  width: selected ? 6.5 : 1.5,
+                    const SizedBox(height: 2),
+                    Text(
+                      body,
+                      style: context.text.bodySm.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: AppSpacing.md),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: c.background,
+                  border: Border.all(
+                    color: selected ? c.primary : c.border,
+                    width: selected ? 6.5 : 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

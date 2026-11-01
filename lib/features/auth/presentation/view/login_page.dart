@@ -431,10 +431,11 @@ class _CodeStepState extends State<_CodeStep> {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                TextButton(
+                IconButton(
+                  key: const ValueKey('change-email-button'),
+                  tooltip: l10n.changeEmail,
                   onPressed: cubit.changeEmail,
-                  style: TextButton.styleFrom(foregroundColor: c.link),
-                  child: Text(l10n.changeEmail),
+                  icon: HugeIcon(icon: AppIcons.edit, size: 22, color: c.link),
                 ),
               ],
             ),

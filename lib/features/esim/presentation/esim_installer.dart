@@ -9,11 +9,13 @@ import '../../../core/di/injector.dart';
 import '../../../core/localization/failure_localizer.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/services/esim_compatibility.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/result.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../domain/entities/esim.dart';
 import 'cubit/esim_list_cubit.dart';
+import 'esim_install_tracker.dart';
 
 Future<void> installEsim(
   BuildContext context,
@@ -36,10 +38,19 @@ Future<void> installEsim(
       getIt<AnalyticsService>().startedEsimInstall(
         method: oneTap ? 'one_tap' : 'qr',
       );
+      EsimInstallTracker.setReminderText(
+        l10n.installReminderTitle,
+        l10n.installReminderBody,
+      );
+      await EsimInstallTracker.start(
+        data.id,
+        method: oneTap ? 'one_tap' : 'qr',
+      );
       if (!fromDetail) {
         unawaited(router.push(AppRoute.esim.withParams({'id': data.id})));
       }
       if (oneTap && !await _openAppleInstaller(data.appleInstallUri)) {
+        AppLogger.w('[ESIM-INSTALL] installer link failed id=${data.id}');
         if (context.mounted) {
           AppToast.show(context, l10n.installLinkFailed, isError: true);
         }

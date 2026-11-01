@@ -123,7 +123,7 @@ void main() {
 
     expect(find.text('Enter the code'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
-    await tester.tap(find.text('Change e-mail'));
+    await tester.tap(find.byKey(const ValueKey('change-email-button')));
     await tester.pumpAndSettle();
     expect(
       tester.widget<TextField>(find.byType(TextField).first).controller?.text,

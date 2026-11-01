@@ -132,10 +132,13 @@ void _registerCore() {
       () => FirebaseSetup.ready ? CrashlyticsReporter() : LogCrashReporter(),
     )
     ..registerLazySingleton<SlowFrameReporter>(NoopSlowFrameReporter.new)
+    ..registerLazySingleton<LocalNotificationsService>(
+      LocalNotificationsService.new,
+    )
     ..registerLazySingleton<PushService>(
       () => FirebaseSetup.ready
           ? FcmPushService(
-              LocalNotificationsService(),
+              getIt<LocalNotificationsService>(),
               onSignedOut: () async {
                 final storage = getIt<SecureStorage>();
                 if (await storage.readAccessToken() == null) return;

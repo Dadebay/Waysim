@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +10,7 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/services/esim_compatibility.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/utils/formatters/labels.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -22,7 +25,9 @@ import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/usage_progress.dart';
 import '../../domain/entities/esim.dart';
 import '../cubit/esim_list_cubit.dart';
+import '../esim_install_tracker.dart';
 import '../esim_installer.dart';
+import '../open_device_settings.dart';
 import '../esim_labels.dart';
 
 class EsimDetailPage extends StatefulWidget {
@@ -98,7 +103,9 @@ class _Detail extends StatefulWidget {
   State<_Detail> createState() => _DetailState();
 }
 
-class _DetailState extends State<_Detail> {
+class _DetailState extends State<_Detail> with WidgetsBindingObserver {
+  Timer? _ticker;
+
   late int _platformTab = Theme.of(context).platform == TargetPlatform.iOS
       ? 0
       : 1;
@@ -106,11 +113,57 @@ class _DetailState extends State<_Detail> {
       .supportsOneTapInstall();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _ticker = Timer.periodic(const Duration(seconds: 20), (_) => _tick());
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed || !mounted) return;
+    final started = EsimInstallTracker.startedAt(widget.esim.id);
+    if (started == null) return;
+    AppLogger.i(
+      '[ESIM-INSTALL] back in app id=${widget.esim.id} '
+      'elapsed=${DateTime.now().difference(started).inSeconds}s '
+      'status=${widget.esim.status.name}; refreshing',
+    );
+    unawaited(_refreshAfterResume());
+  }
+
+  Future<void> _refreshAfterResume() async {
+    final cubit = context.read<EsimListCubit>();
+    final result = await cubit.detail(widget.esim.id, refresh: true);
+    final status = result.dataOrNull?.status;
+    if (status != null && EsimInstallTracker.isDone(status)) {
+      await EsimInstallTracker.clear(widget.esim.id, reason: status.name);
+    }
+  }
+
+  void _tick() {
+    if (!mounted) return;
+    final esim = widget.esim;
+    if (EsimInstallTracker.isDone(esim.status)) {
+      unawaited(EsimInstallTracker.clear(esim.id, reason: esim.status.name));
+    }
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final esim = widget.esim;
     final l10n = context.l10n;
     final c = context.colors;
     final archived = esim.status.isArchived;
+    final stuck = EsimInstallTracker.stuckFor(esim, DateTime.now());
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -138,6 +191,20 @@ class _DetailState extends State<_Detail> {
             ],
           ),
         ),
+        if (!archived && stuck != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          _StuckCard(
+            minutes: stuck.inMinutes,
+            onRestart: () async {
+              EsimInstallTracker.setReminderText(
+                l10n.installReminderTitle,
+                l10n.installReminderBody,
+              );
+              await EsimInstallTracker.start(esim.id, method: 'restart');
+              if (mounted) setState(() {});
+            },
+          ),
+        ],
         if (!archived) ...[
           const SizedBox(height: AppSpacing.lg),
           _SectionCard(
@@ -265,6 +332,41 @@ class _DetailState extends State<_Detail> {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.lg),
+          _SectionCard(
+            key: const ValueKey('esim-trouble-card'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.installTroubleTitle, style: context.text.h3),
+                const SizedBox(height: AppSpacing.md),
+                _Steps(
+                  steps: [
+                    l10n.installTroubleStep1,
+                    l10n.installTroubleStep2,
+                    _platformTab == 0
+                        ? l10n.installTroubleStepResetIos
+                        : l10n.installTroubleStepResetAndroid,
+                    l10n.installTroubleStep4,
+                    l10n.installTroubleStep5,
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  key: const ValueKey('esim-open-settings'),
+                  label: l10n.installOpenSettings,
+                  icon: AppIcons.settings,
+                  size: AppButtonSize.md,
+                  onPressed: openDeviceSettings,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.installOpenSettingsHint,
+                  style: context.text.caption.copyWith(color: c.textSecondary),
+                ),
+              ],
+            ),
+          ),
         ],
         const SizedBox(height: AppSpacing.lg),
         _Usage(esim: esim),
@@ -381,6 +483,33 @@ class _SectionCard extends StatelessWidget {
         ],
       ),
       child: child,
+    );
+  }
+}
+
+class _StuckCard extends StatelessWidget {
+  const _StuckCard({required this.minutes, required this.onRestart});
+
+  final int minutes;
+  final VoidCallback onRestart;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      key: const ValueKey('esim-stuck-card'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Notice(
+          text: '${l10n.installStuckTitle(minutes)}\n${l10n.installStuckBody}',
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          label: l10n.installStuckRestart,
+          size: AppButtonSize.md,
+          onPressed: onRestart,
+        ),
+      ],
     );
   }
 }
