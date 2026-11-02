@@ -62,8 +62,17 @@ class MemorySecureStorage implements SecureStorage {
   @override
   Future<void> saveDeviceId(String id) async => _device = id;
 
+  String? _esimCache;
+
+  @override
+  Future<String?> readEsimCache() async => _esimCache;
+
+  @override
+  Future<void> saveEsimCache(String json) async => _esimCache = json;
+
   @override
   Future<void> clearSession() async {
+    _esimCache = null;
     _access = null;
     _refresh = null;
   }

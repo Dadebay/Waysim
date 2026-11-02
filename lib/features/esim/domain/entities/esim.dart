@@ -104,6 +104,52 @@ class Esim extends Equatable {
         'carddata': lpa,
       });
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'destinationCode': destinationCode,
+    'destinationNames': destinationNames,
+    'countryCount': countryCount,
+    'kind': kind.name,
+    'days': days,
+    'volumeBytes': volumeBytes,
+    'dailyBytes': dailyBytes,
+    'usedBytes': usedBytes,
+    'status': status.name,
+    'expiresAt': expiresAt?.toIso8601String(),
+    'installBy': installBy?.toIso8601String(),
+    'deviceName': deviceName,
+    'updatedAt': updatedAt?.toIso8601String(),
+    'smdpAddress': smdpAddress,
+    'activationCode': activationCode,
+    'iccid': iccid,
+    'topUpSupported': topUpSupported,
+    'lpaString': lpaString,
+    'appleUniversalLink': appleUniversalLink,
+  };
+
+  factory Esim.fromJson(Map<String, dynamic> j) => Esim(
+    id: j['id'] as String,
+    destinationCode: j['destinationCode'] as String,
+    destinationNames: Map<String, String>.from(j['destinationNames'] as Map),
+    countryCount: j['countryCount'] as int?,
+    kind: PackageKind.values.byName(j['kind'] as String),
+    days: j['days'] as int,
+    volumeBytes: j['volumeBytes'] as int?,
+    dailyBytes: j['dailyBytes'] as int?,
+    usedBytes: j['usedBytes'] as int? ?? 0,
+    status: EsimStatus.values.byName(j['status'] as String),
+    expiresAt: DateTime.tryParse(j['expiresAt'] as String? ?? ''),
+    installBy: DateTime.tryParse(j['installBy'] as String? ?? ''),
+    deviceName: j['deviceName'] as String?,
+    updatedAt: DateTime.tryParse(j['updatedAt'] as String? ?? ''),
+    smdpAddress: j['smdpAddress'] as String,
+    activationCode: j['activationCode'] as String,
+    iccid: j['iccid'] as String,
+    topUpSupported: j['topUpSupported'] as bool? ?? true,
+    lpaString: j['lpaString'] as String?,
+    appleUniversalLink: j['appleUniversalLink'] as String?,
+  );
+
   Esim copyWith({
     EsimStatus? status,
     int? usedBytes,

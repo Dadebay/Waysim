@@ -16,6 +16,11 @@ abstract interface class SecureStorage {
   Future<String?> readDeviceId();
   Future<void> saveDeviceId(String id);
 
+  /// The signed-in user's eSIMs (activation codes included), so a traveller
+  /// can still install them offline. Wiped with the session.
+  Future<String?> readEsimCache();
+  Future<void> saveEsimCache(String json);
+
   Future<void> clearSession();
 }
 
@@ -57,7 +62,15 @@ class SecureStorageImpl implements SecureStorage {
       _storage.write(key: StorageKeys.deviceId, value: id);
 
   @override
+  Future<String?> readEsimCache() => _storage.read(key: StorageKeys.esimCache);
+
+  @override
+  Future<void> saveEsimCache(String json) =>
+      _storage.write(key: StorageKeys.esimCache, value: json);
+
+  @override
   Future<void> clearSession() async {
+    await _storage.delete(key: StorageKeys.esimCache);
     await _storage.delete(key: StorageKeys.accessToken);
     await _storage.delete(key: StorageKeys.refreshToken);
   }

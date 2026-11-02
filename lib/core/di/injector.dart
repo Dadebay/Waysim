@@ -200,16 +200,16 @@ void _registerCore() {
             onUnauthorized: (failure) => getIt<AuthCubit>().sessionExpired(
               revoked:
                   failure is ApiFailure && failure.code == 'session_revoked',
-          UpgradeRequiredInterceptor(getIt<UpdateRequiredNotifier>()),
             ),
           ),
           AppCheckInterceptor(getIt<AppAttestation>()),
           LanguageInterceptor(getIt<LocalStorage>()),
-    ..registerLazySingleton<UpdateRequiredNotifier>(UpdateRequiredNotifier.new)
+          UpgradeRequiredInterceptor(getIt<UpdateRequiredNotifier>()),
           if (AppEnvironment.enableLogging) ApiLogInterceptor(),
         ],
       ),
     )
+    ..registerLazySingleton<UpdateRequiredNotifier>(UpdateRequiredNotifier.new)
     ..registerLazySingleton<ApiClient>(() => ApiClient(getIt<Dio>()));
 }
 
@@ -248,7 +248,11 @@ void _registerRepositories() {
         () => ApiCatalogRepository(getIt<ApiClient>(), getIt<LocalStorage>()),
       )
       ..registerLazySingleton<ApiEsimRepository>(
-        () => ApiEsimRepository(getIt<ApiClient>(), getIt<LocalStorage>()),
+        () => ApiEsimRepository(
+          getIt<ApiClient>(),
+          getIt<LocalStorage>(),
+          getIt<SecureStorage>(),
+        ),
       )
       ..registerLazySingleton<EsimRepository>(() => getIt<ApiEsimRepository>())
       ..registerLazySingleton<PurchaseRepository>(
