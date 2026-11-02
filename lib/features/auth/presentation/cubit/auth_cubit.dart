@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/error/failure.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/utils/result.dart';
@@ -36,15 +37,33 @@ class AuthCubit extends Cubit<AuthState> {
   bool _checkingSession = false;
   int _sessionRevision = 0;
 
+  /// The session could not be checked at startup (offline, backend failing)
+  /// and no saved profile existed. Shown as guest, but retried on the next
+  /// [revalidate] instead of being treated as signed out.
+  bool _unverified = false;
+
+  static bool _canRetryLater(Failure failure) => switch (failure) {
+    NetworkFailure() || TimeoutFailure() || ServerFailure() => true,
+    ApiFailure(:final statusCode) => statusCode == 429 || statusCode == 503,
+    _ => false,
+  };
+
   Future<void> revalidate() async {
-    if (!state.isSignedIn || _checkingSession) return;
+    if ((!state.isSignedIn && !_unverified) || _checkingSession) return;
     _checkingSession = true;
     final revision = _sessionRevision;
     try {
       final result = await _repository.restore();
-      if (isClosed || revision != _sessionRevision || !state.isSignedIn) return;
+      if (isClosed || revision != _sessionRevision) return;
       if (result case Success(:final data)) {
-        data == null ? sessionExpired() : userUpdated(data);
+        _unverified = false;
+        if (data != null) {
+          userUpdated(data);
+        } else if (state.isSignedIn) {
+          sessionExpired();
+        }
+      } else if (result case Error(:final failure)) {
+        if (!_canRetryLater(failure)) _unverified = false;
       }
     } finally {
       _checkingSession = false;
@@ -54,7 +73,12 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> restore() async {
     final revision = _sessionRevision;
     final guest = (await _repository.guestId()).dataOrNull;
-    final user = (await _repository.restore()).dataOrNull;
+    final restored = await _repository.restore();
+    final user = restored.dataOrNull;
+    _unverified = switch (restored) {
+      Error(:final failure) => _canRetryLater(failure),
+      _ => false,
+    };
     if (isClosed || revision != _sessionRevision) return;
     emit(
       AuthState(

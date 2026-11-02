@@ -121,3 +121,17 @@ class CacheException extends AppException {
 class ParsingException extends AppException {
   const ParsingException([super.message = 'Failed to parse response']);
 }
+
+extension AppExceptionTransient on AppException {
+  /// True when retrying later may succeed and the stored session is not at
+  /// fault: no connection, a timeout, rate limiting or a server-side failure.
+  bool get isTransient => switch (this) {
+    NetworkException() ||
+    TimeoutException() ||
+    RateLimitException() ||
+    ServiceUnavailableException() => true,
+    ServerException(:final statusCode) =>
+      statusCode == null || statusCode >= 500,
+    _ => false,
+  };
+}

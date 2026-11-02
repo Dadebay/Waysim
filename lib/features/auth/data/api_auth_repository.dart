@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import '../../../core/error/exceptions.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_helpers.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/network/device_session.dart';
+import '../../../core/storage/local_storage.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/storage/storage_keys.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/result.dart';
 import '../domain/entities/user.dart';
@@ -17,6 +21,27 @@ class ApiAuthRepository implements AuthRepository {
   String? _email;
   @override
   int resendAfterSeconds = 60;
+
+  LocalStorage get _local => device.local;
+
+  /// `/v1/me`, kept so a signed-in user is not demoted to guest when the app
+  /// starts offline or the backend is briefly failing.
+  Future<User> _fetchMe() async {
+    final json = asMap(await api.get('/v1/me'));
+    await _local.setString(StorageKeys.cachedUser, jsonEncode(json));
+    return _user(json);
+  }
+
+  User? _cachedUser() {
+    final raw = _local.getString(StorageKeys.cachedUser);
+    if (raw == null) return null;
+    try {
+      final json = jsonDecode(raw);
+      return json is Map<String, dynamic> ? _user(json) : null;
+    } on Object {
+      return null;
+    }
+  }
 
   User _user(Map<String, dynamic> j) {
     _email = j.str('email');
@@ -33,15 +58,32 @@ class ApiAuthRepository implements AuthRepository {
 
   @override
   Future<Result<String>> guestId() => apiResult(() async {
-    await device.ensure();
+    try {
+      await device.ensure();
+    } on AppException catch (e) {
+      if (!e.isTransient) rethrow;
+    }
     return await secure.readDeviceId() ?? '';
   });
 
   @override
   Future<Result<User?>> restore() => apiResult(() async {
-    await device.ensure();
-    if (await secure.readAccessToken() == null) return null;
-    return _user(asMap(await api.get('/v1/me')));
+    try {
+      await device.ensure();
+      if (await secure.readAccessToken() == null) {
+        await _local.remove(StorageKeys.cachedUser);
+        return null;
+      }
+      return await _fetchMe();
+    } on AppException catch (e) {
+      if (!e.isTransient || await secure.readAccessToken() == null) rethrow;
+      final cached = _cachedUser();
+      if (cached == null) rethrow;
+      AppLogger.w(
+        '[AUTH] restore failed (${e.runtimeType}); using saved profile',
+      );
+      return cached;
+    }
   });
 
   @override

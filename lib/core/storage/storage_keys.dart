@@ -6,6 +6,8 @@ abstract final class StorageKeys {
   static const deviceToken = 'device_token';
   static const installId = 'install_id';
 
+  static const cachedUser = 'cached_user';
+
   static const recentQueries = 'recent_queries';
 
   static const contentLanguage = 'content_language';
