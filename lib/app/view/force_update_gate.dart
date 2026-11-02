@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -5,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_icons.dart';
+import '../../core/di/injector.dart';
+import '../../core/network/interceptors/upgrade_required_interceptor.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/app_version.dart';
 import '../../core/utils/extensions/context_extensions.dart';
@@ -14,7 +17,15 @@ import '../../features/config/domain/entities/app_config.dart';
 import '../../features/config/presentation/cubit/config_cubit.dart';
 
 class ForceUpdateGate extends StatefulWidget {
-  const ForceUpdateGate({super.key, required this.child, this.currentVersion});
+  const ForceUpdateGate({
+    super.key,
+    required this.child,
+    this.currentVersion,
+    this.updateRequired,
+  });
+
+  /// Set by the API answering 426; defaults to the app-wide notifier.
+  final ValueListenable<bool>? updateRequired;
 
   final Widget child;
 
@@ -32,6 +43,20 @@ class _ForceUpdateGateState extends State<ForceUpdateGate> {
   @override
   Widget build(BuildContext context) {
     final config = context.watch<ConfigCubit>().state;
+    return ValueListenableBuilder<bool>(
+      valueListenable: _signal,
+      builder: (context, apiRejected, _) =>
+          apiRejected ? _UpdateScreen(config: config) : _versionGate(config),
+    );
+  }
+
+  late final ValueListenable<bool> _signal =
+      widget.updateRequired ??
+      (getIt.isRegistered<UpdateRequiredNotifier>()
+          ? getIt<UpdateRequiredNotifier>()
+          : ValueNotifier(false));
+
+  Widget _versionGate(AppConfig config) {
     final minimum = config.minSupportedVersion;
     if (minimum == null) return widget.child;
 

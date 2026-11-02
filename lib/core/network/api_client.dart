@@ -68,22 +68,24 @@ class ApiClient {
     final code = _extractString(body, 'code');
     final details = _extractMap(body, 'details');
     final errors = _extractErrors(body);
+    final requestId = e.response?.headers.value('x-request-id') ?? _extractString(body, 'requestId');
 
     return switch (e.type) {
       DioExceptionType.connectionTimeout || DioExceptionType.sendTimeout || DioExceptionType.receiveTimeout => const TimeoutException(),
       DioExceptionType.connectionError => const NetworkException(),
       DioExceptionType.badResponse => switch (status) {
-        400 || 422 => ValidationException(message, errors: errors, code: code, details: details),
-        401 => UnauthorizedException(message, code),
-        403 => ForbiddenException(message, code: code, details: details),
-        404 => NotFoundException(message, code: code, details: details),
-        409 => ConflictException(message, code: code, details: details),
-        429 => RateLimitException(message, code: code, details: details),
-        503 => ServiceUnavailableException(message, code: code, details: details),
-        _ => ServerException(message, statusCode: status, code: code, details: details),
+        400 || 422 => ValidationException(message, errors: errors, code: code, details: details, requestId: requestId),
+        401 => UnauthorizedException(message, code, requestId),
+        403 => ForbiddenException(message, code: code, details: details, requestId: requestId),
+        404 => NotFoundException(message, code: code, details: details, requestId: requestId),
+        409 => ConflictException(message, code: code, details: details, requestId: requestId),
+        426 => UpgradeRequiredException(message, code: code, details: details, requestId: requestId),
+        429 => RateLimitException(message, code: code, details: details, requestId: requestId),
+        503 => ServiceUnavailableException(message, code: code, details: details, requestId: requestId),
+        _ => ServerException(message, statusCode: status, code: code, details: details, requestId: requestId),
       },
       DioExceptionType.cancel => const NetworkException('Request cancelled'),
-      _ => ServerException(message, statusCode: status, code: code, details: details),
+      _ => ServerException(message, statusCode: status, code: code, details: details, requestId: requestId),
     };
   }
 

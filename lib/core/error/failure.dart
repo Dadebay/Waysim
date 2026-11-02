@@ -8,20 +8,24 @@ sealed class Failure extends Equatable {
     this.message,
     this.statusCode,
     this.details,
+    this.requestId,
   });
 
   final String code;
   final String? message;
   final int? statusCode;
 
+  /// The API's `X-Request-Id`, when the failure came from a response.
+  final String? requestId;
+
   final Map<String, dynamic>? details;
 
   @override
-  List<Object?> get props => [code, message, statusCode, details];
+  List<Object?> get props => [code, message, statusCode, details, requestId];
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure({super.message, super.statusCode})
+  const ServerFailure({super.message, super.statusCode, super.requestId})
     : super(code: 'server_error');
 }
 
@@ -42,6 +46,11 @@ class NotFoundFailure extends Failure {
   const NotFoundFailure({super.message}) : super(code: 'not_found_error');
 }
 
+class UpgradeRequiredFailure extends Failure {
+  const UpgradeRequiredFailure({super.message, super.requestId})
+    : super(code: 'upgrade_required', statusCode: 426);
+}
+
 class CacheFailure extends Failure {
   const CacheFailure({super.message}) : super(code: 'cache_error');
 }
@@ -56,6 +65,7 @@ class ApiFailure extends Failure {
     super.message,
     super.statusCode,
     super.details,
+    super.requestId,
     this.errors = const [],
   });
 
@@ -87,6 +97,7 @@ extension AppExceptionToFailure on AppException {
         message: message,
         statusCode: statusCode,
         details: details,
+        requestId: requestId,
         errors: switch (this) {
           ValidationException(:final errors) => errors,
           _ => const [],
@@ -97,6 +108,10 @@ extension AppExceptionToFailure on AppException {
     return switch (this) {
       NetworkException() => NetworkFailure(message: message),
       TimeoutException() => TimeoutFailure(message: message),
+      UpgradeRequiredException() => UpgradeRequiredFailure(
+        message: message,
+        requestId: requestId,
+      ),
       UnauthorizedException() => UnauthorizedFailure(message: message),
       ForbiddenException() => UnauthorizedFailure(message: message),
       NotFoundException() => NotFoundFailure(message: message),
@@ -106,6 +121,7 @@ extension AppExceptionToFailure on AppException {
         code: 'validation_error',
         message: message,
         statusCode: 400,
+        requestId: requestId,
         errors: errors,
       ),
       ConflictException() => ApiFailure(
@@ -113,20 +129,24 @@ extension AppExceptionToFailure on AppException {
         message: message,
         statusCode: 409,
         details: details,
+        requestId: requestId,
       ),
       RateLimitException() => ApiFailure(
         code: ApiCodes.tooManyRequests,
         message: message,
         statusCode: 429,
+        requestId: requestId,
       ),
       ServiceUnavailableException() => ApiFailure(
         code: 'service_unavailable',
         message: message,
         statusCode: 503,
+        requestId: requestId,
       ),
       ServerException() => ServerFailure(
         message: message,
         statusCode: statusCode,
+        requestId: requestId,
       ),
     };
   }

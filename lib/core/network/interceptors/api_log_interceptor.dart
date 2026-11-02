@@ -66,7 +66,11 @@ class ApiLogInterceptor extends Interceptor {
       '${AnsiColor.paint('← ${status ?? err.type.name}', AnsiColor.red)} '
       '${err.requestOptions.method} ${err.requestOptions.uri} '
       '${AnsiColor.paint(_elapsed(err.requestOptions), AnsiColor.grey)}',
-      lines: _body(err.response?.data),
+      lines: [
+        if (err.response?.headers.value('x-request-id') case final id?)
+          'requestId=$id',
+        ..._body(err.response?.data),
+      ],
       level: Level.warning,
     );
 

@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import '../network/interceptors/upgrade_required_interceptor.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -203,10 +204,12 @@ void _registerCore() {
             onUnauthorized: (failure) => getIt<AuthCubit>().sessionExpired(
               revoked:
                   failure is ApiFailure && failure.code == 'session_revoked',
+          UpgradeRequiredInterceptor(getIt<UpdateRequiredNotifier>()),
             ),
           ),
           AppCheckInterceptor(getIt<AppAttestation>()),
           LanguageInterceptor(getIt<LocalStorage>()),
+    ..registerLazySingleton<UpdateRequiredNotifier>(UpdateRequiredNotifier.new)
           if (AppEnvironment.enableLogging) ApiLogInterceptor(),
         ],
       ),
