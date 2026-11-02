@@ -37,6 +37,8 @@ flutter build ipa --release --dart-define=FLAVOR=prod --dart-define=API_BASE_URL
 
 2 Kasım 2026'da `1.0.0 (4)` üretim arşivi `xcodebuild -exportArchive` (`destination: upload`, otomatik imza) ile App Store Connect'e yüklendi; çıktı `Upload succeeded` / `EXPORT SUCCEEDED`. Build 3 zaten TestFlight'ta olduğu için numara 4'e çıkarıldı (`pubspec.yaml`: `1.0.0+4`). Aynı beş üçüncü taraf dSYM uyarısı tekrarlandı, yüklemeyi durdurmadı. Bu build, müşteri incelemesi düzeltmelerini (oturum, izinler, offline eSIM) içerir. App Store Connect'te işlemenin bitmesini ve build'in dağıtım sürümüne bağlanmasını ayrıca kontrol edin.
 
+App Store Connect, build 4 için "Unable to Add for Review" verdi: `Info.plist` içinde `NSUserTrackingUsageDescription` vardı, ama App Privacy yanıtları ve `PrivacyInfo.xcprivacy` izleme yapılmadığını söylüyordu. Uygulama izleme yapmadığı için ATT (eklenti, kod, plist anahtarı) kaldırıldı ve `1.0.0 (5)` aynı yöntemle yüklendi (`Upload succeeded`). IPA içinde anahtarın olmadığı doğrulandı. Review'a **build 5** seçilmeli.
+
 Gerçek iPhone/TestFlight'ta giriş, davet Universal Link'i, PayPal dönüşü, eSIM kurulum bağlantısı, APNs/FCM ve App Check'i doğrulayın. Simülatör eSIM ve APNs davranışı için yeterli değildir. İmzalı arşivdeki `aps-environment` değerini ve Crashlytics dSYM yüklemesini de kontrol edin.
 
 Kaynaklar: [Apple Associated Domains](https://developer.apple.com/documentation/xcode/supporting-associated-domains), [Apple privacy manifest](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files), [Firebase iOS FCM kurulumu](https://firebase.google.com/docs/cloud-messaging/flutter/get-started), [Apple'ın güncel SDK gereksinimi](https://developer.apple.com/news/upcoming-requirements/).
