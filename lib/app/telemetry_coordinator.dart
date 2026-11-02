@@ -39,7 +39,6 @@ class TelemetryCoordinator {
   final CatalogCubit? _catalog;
   final ConfigCubit? _config;
   Future<void> _sync = Future.value();
-  NotificationPrefs? _hydratedPrefs;
   void _save({String? locale, bool? esim, bool? marketing}) {
     _sync = _sync.then((_) async {
       await _preferences?.updatePreferences(
@@ -105,13 +104,14 @@ class TelemetryCoordinator {
       final user = state.user;
       if (user != null &&
           (user.notifyEsim != null || user.notifyMarketing != null)) {
-        final news = _notifications.state.news;
-        _hydratedPrefs = NotificationPrefs(
-          esim: user.notifyEsim ?? true,
-          news: news,
+        // The server's choice wins: a stored opt-out must survive signing in
+        // on a phone whose local default is "on".
+        _notifications.applyServerPreferences(
+          NotificationPrefs(
+            esim: user.notifyEsim ?? true,
+            news: user.notifyMarketing ?? _notifications.state.news,
+          ),
         );
-        _notifications.applyServerPreferences(_hydratedPrefs!);
-        if (news && user.notifyMarketing == false) _save(marketing: true);
       }
       unawaited(_config?.refresh());
       unawaited(_push.syncToken());
