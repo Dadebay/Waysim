@@ -17,6 +17,4 @@ abstract final class StorageKeys {
   static const notifyEsim = 'notify_esim';
 
   static const pushPromptShown = 'push_prompt_shown';
-
-  static const startupPermissionsShown = 'startup_permissions_shown';
 }

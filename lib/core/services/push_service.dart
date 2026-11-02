@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 
 import '../storage/local_storage.dart';
 import '../storage/storage_keys.dart';
+import 'tracking_permission.dart';
 
 class PushTap extends Equatable {
   const PushTap(this.data);
@@ -43,16 +44,20 @@ class NoopPushService implements PushService {
   Future<void> setNewsEnabled({required bool enabled}) async {}
 }
 
+/// Asks for notifications and tracking once, right after the first purchase,
+/// when the reason to allow them (eSIM updates) is obvious. Never at launch.
 class PushPermissionGate {
-  PushPermissionGate(this._push, this._storage);
+  PushPermissionGate(this._push, this._storage, this._tracking);
 
   final PushService _push;
   final LocalStorage _storage;
+  final TrackingPermission _tracking;
 
   Future<void> afterPurchase() async {
     if (_storage.getBool(StorageKeys.pushPromptShown) ?? false) return;
 
     await _storage.setBool(StorageKeys.pushPromptShown, value: true);
     await _push.requestPermission();
+    await _tracking.request();
   }
 }

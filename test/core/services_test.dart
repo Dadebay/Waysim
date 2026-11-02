@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:waysim/core/services/tracking_permission.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waysim/app/view/force_update_gate.dart';
 import 'package:waysim/core/network/interceptors/app_check_interceptor.dart';
@@ -109,12 +110,15 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final storage = LocalStorageImpl(await SharedPreferences.getInstance());
     final push = _CountingPush();
-    final gate = PushPermissionGate(push, storage);
+    final tracking = _CountingTracking();
+    final gate = PushPermissionGate(push, storage, tracking);
 
     expect(push.asked, 0);
+    expect(tracking.asked, 0, reason: 'nothing is asked at launch');
     await gate.afterPurchase();
     await gate.afterPurchase();
     expect(push.asked, 1);
+    expect(tracking.asked, 1);
   });
 
   test('versions compare numerically, not as text', () {
@@ -188,4 +192,11 @@ void main() {
 class _Capture extends RequestInterceptorHandler {
   @override
   void next(RequestOptions requestOptions) {}
+}
+
+class _CountingTracking implements TrackingPermission {
+  int asked = 0;
+
+  @override
+  Future<void> request() async => asked++;
 }

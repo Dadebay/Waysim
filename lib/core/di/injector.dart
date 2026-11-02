@@ -69,7 +69,6 @@ import '../services/device_integrity.dart';
 import '../services/esim_compatibility.dart';
 import '../services/esim_support_cubit.dart';
 import '../services/push_service.dart';
-import '../services/startup_permissions.dart';
 import '../services/tracking_permission.dart';
 import '../constants/app_environment.dart';
 import '../network/api_client.dart';
@@ -158,15 +157,12 @@ void _registerCore() {
           ? AttTrackingPermission()
           : NoopTrackingPermission(),
     )
-    ..registerLazySingleton<StartupPermissions>(
-      () => StartupPermissions(
-        getIt<PushService>(),
-        getIt<TrackingPermission>(),
-        getIt<LocalStorage>(),
-      ),
-    )
     ..registerLazySingleton<PushPermissionGate>(
-      () => PushPermissionGate(getIt<PushService>(), getIt<LocalStorage>()),
+      () => PushPermissionGate(
+        getIt<PushService>(),
+        getIt<LocalStorage>(),
+        getIt<TrackingPermission>(),
+      ),
     )
     ..registerLazySingleton<DeviceIntegrity>(
       () => DeviceContextIntegrity(getIt<DeviceContext>()),
