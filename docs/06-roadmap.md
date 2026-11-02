@@ -145,7 +145,8 @@ Sayaç: `dart run tool/roadmap_status.dart` (aşağıdaki onay kutularını okur
 - [x] **T8.1** Offline/arızalı backend ile açılışta oturum korunur (son `/v1/me` yerelde saklanır; geçici hata = misafir değil), profil yoksa sonraki `revalidate`'te yeniden denenir
 - [x] **T8.2** Çıkış offline iken de yerelde tamamlanır; token yenilemede 408/429 çıkışa yol açmaz
 - [x] **T8.3** Girişte sunucudaki pazarlama tercihi (opt-out) yerel varsayılanın üstüne yazılmaz
-- [x] **T8.4** Bildirim ve ATT izinleri açılışta değil, ilk satın almadan sonra istenir (T5.4 ile uyumlu)
+- [x] **T8.4** Bildirim izni açılışta değil, ilk satın almadan sonra istenir (T5.4 ile uyumlu)
+- [x] **T8.13** ATT tamamen kaldırıldı (`app_tracking_transparency`, `NSUserTrackingUsageDescription`): uygulama izleme yapmıyor (`NSPrivacyTracking=false`, [08](08-store-listing.md)); App Store Connect "Unable to Add for Review" hatası bu çelişkiden geliyordu
 - [x] **T8.5** Yakalanmamış async hatalar: ağ/API/zaman aşımı non-fatal, diğerleri fatal
 - [x] **T8.6** API `X-Request-Id` yakalanır (`Failure.requestId`, log), HTTP 426 → güncelleme ekranı
 - [x] **T8.7** Para alanları (bakiye, fiyat, tutar) eksikse `ParsingException`; 0 gösterilmez

@@ -62,7 +62,6 @@ dependencies:
   share_plus: ^13.3.0
 
   firebase_core: ^4.15.0
-  app_tracking_transparency: ^2.0.6
   firebase_messaging: ^16.7.0
   firebase_crashlytics: ^5.3.0
   firebase_app_check: ^0.4.2
