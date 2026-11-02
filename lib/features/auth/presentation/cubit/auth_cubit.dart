@@ -118,7 +118,11 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signOut() async {
-    await _repository.signOut();
+    try {
+      await _repository.signOut();
+    } on Object {
+      // The user still ends up signed out on this phone.
+    }
     sessionExpired();
   }
 

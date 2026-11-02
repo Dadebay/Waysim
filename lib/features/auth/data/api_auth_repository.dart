@@ -218,11 +218,20 @@ class ApiAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     final refresh = await secure.readRefreshToken();
-    final j = asMap(
-      await api.post('/v1/auth/logout', data: {'refreshToken': ?refresh}),
-    );
-    await secure.saveDeviceToken(j.str('deviceToken'));
+    try {
+      final j = asMap(
+        await api.post('/v1/auth/logout', data: {'refreshToken': ?refresh}),
+      );
+      await secure.saveDeviceToken(j.str('deviceToken'));
+    } on AppException catch (e) {
+      // Offline or the server is failing: still sign out on this phone. The
+      // server session expires by itself and the device re-registers on the
+      // next request.
+      AppLogger.w('[AUTH] logout request failed, signing out locally: $e');
+      device.invalidate();
+    }
     await secure.clearSession();
+    await _local.remove(StorageKeys.cachedUser);
     _email = null;
   }
 
@@ -283,6 +292,7 @@ class ApiAuthRepository implements AuthRepository {
         await api.delete('/v1/devices/me/push-token');
         await api.post('/v1/me/delete', data: {'confirm': true});
         await secure.clearSession();
+        await _local.remove(StorageKeys.cachedUser);
         device.invalidate();
         _email = null;
       });
