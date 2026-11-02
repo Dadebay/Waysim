@@ -35,6 +35,8 @@ flutter build ipa --release --dart-define=FLAVOR=prod --dart-define=API_BASE_URL
 
 25 Ekim 2026'da `1.0.0 (2)` üretim arşivi ve IPA oluşturulup `xcodebuild -exportArchive` ile App Store Connect'e yüklendi. Yükleme başarılı; App Store Connect → TestFlight → iOS → Build Uploads tablosunda build 2 **Processing** olarak doğrulandı. Aynı beş üçüncü taraf dSYM uyarısı tekrarlandı; yüklemeyi durdurmadı. Apple'ın işlemesi bitince build'i dağıtım sürümüne bağlayıp App Review hazırlığını tamamlayın.
 
+2 Kasım 2026'da `1.0.0 (4)` üretim arşivi `xcodebuild -exportArchive` (`destination: upload`, otomatik imza) ile App Store Connect'e yüklendi; çıktı `Upload succeeded` / `EXPORT SUCCEEDED`. Build 3 zaten TestFlight'ta olduğu için numara 4'e çıkarıldı (`pubspec.yaml`: `1.0.0+4`). Aynı beş üçüncü taraf dSYM uyarısı tekrarlandı, yüklemeyi durdurmadı. Bu build, müşteri incelemesi düzeltmelerini (oturum, izinler, offline eSIM) içerir. App Store Connect'te işlemenin bitmesini ve build'in dağıtım sürümüne bağlanmasını ayrıca kontrol edin.
+
 Gerçek iPhone/TestFlight'ta giriş, davet Universal Link'i, PayPal dönüşü, eSIM kurulum bağlantısı, APNs/FCM ve App Check'i doğrulayın. Simülatör eSIM ve APNs davranışı için yeterli değildir. İmzalı arşivdeki `aps-environment` değerini ve Crashlytics dSYM yüklemesini de kontrol edin.
 
 Kaynaklar: [Apple Associated Domains](https://developer.apple.com/documentation/xcode/supporting-associated-domains), [Apple privacy manifest](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files), [Firebase iOS FCM kurulumu](https://firebase.google.com/docs/cloud-messaging/flutter/get-started), [Apple'ın güncel SDK gereksinimi](https://developer.apple.com/news/upcoming-requirements/).
