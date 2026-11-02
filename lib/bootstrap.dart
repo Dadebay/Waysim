@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io' show SocketException;
 
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:dio/dio.dart' show DioException;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -9,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'core/bloc/app_bloc_observer.dart';
 import 'core/constants/app_environment.dart';
+import 'core/error/exceptions.dart' show AppException;
 import 'core/di/injector.dart';
 import 'app/session_coordinator.dart';
 import 'app/telemetry_coordinator.dart';
@@ -23,6 +26,12 @@ import 'core/utils/system_ui_manager.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/catalog/presentation/cubit/catalog_cubit.dart';
 import 'features/config/presentation/cubit/config_cubit.dart';
+
+bool _isExpectedFailure(Object error) =>
+    error is AppException ||
+    error is DioException ||
+    error is SocketException ||
+    error is TimeoutException;
 
 Future<void> bootstrap(Widget Function() builder) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +64,8 @@ Future<void> bootstrap(Widget Function() builder) async {
   FlutterError.onError = (details) =>
       reporter.recordError(details.exception, details.stack);
   PlatformDispatcher.instance.onError = (error, stack) {
-    reporter.recordError(error, stack, fatal: true);
+    // A failed request or lost connection is expected, not a crash.
+    reporter.recordError(error, stack, fatal: !_isExpectedFailure(error));
     return true;
   };
 
