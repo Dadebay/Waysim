@@ -273,6 +273,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get compatUnverifiedRow => 'Compatibilité eSIM non vérifiée';
 
   @override
+  String get compatModelSupportedRow =>
+      'L’iPhone 12 Pro prend en charge l’eSIM dans la plupart des régions';
+
+  @override
+  String get compat12ProSheet =>
+      'Les iPhone 12 Pro A2341, A2406 et A2407 prennent en charge l’eSIM. La version A2408 vendue en Chine continentale, à Hong Kong et à Macao utilise deux cartes SIM physiques. iOS ne communique pas ce numéro de modèle régional à Waysim.';
+
+  @override
   String get compatWarningTitle =>
       'Votre téléphone n’est peut-être pas compatible eSIM';
 
@@ -630,7 +638,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get installQrRetryNote =>
-      'L’installation a échoué ? Essayez une deuxième fois. Si cela ne fonctionne toujours pas, attendez 5 minutes puis réessayez pendant que nous terminons l’ajout de cette eSIM à notre système.';
+      'Si l’installation échoue sans message de code invalide, attendez 5 minutes et réessayez une seule fois. Si le code n’est plus valide, contactez l’assistance pour en obtenir un nouveau.';
 
   @override
   String get installArrivalNote =>
@@ -638,7 +646,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      'L’installation reste bloquée sur « Connexion » ? Fermez-la et vérifiez Réglages → Données mobiles. Si l’eSIM n’y figure pas, installez-la manuellement avec les informations ci-dessous. Si elle y figure et affiche « Activation… », c’est normal jusqu’à votre arrivée : ne la supprimez pas.';
+      'L’installation reste bloquée sur « Connexion » ? Fermez-la et vérifiez Réglages → Données mobiles. Si l’eSIM y figure déjà, ne la supprimez pas. Si l’iPhone indique que le code n’est plus valide, cessez de l’utiliser et contactez l’assistance pour en obtenir un nouveau.';
+
+  @override
+  String get installAlreadyIssued =>
+      'Cette eSIM est déjà indiquée comme installée ou active. Vérifiez Réglages → Données mobiles. Si elle n’y figure pas, son code a peut-être déjà été utilisé : contactez l’assistance pour en obtenir un nouveau. Ne supprimez pas une eSIM déjà présente sur le téléphone.';
 
   @override
   String get installLinkFailed =>
@@ -1603,19 +1615,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get installTroubleStep2 =>
-      'Redémarrez le téléphone et réessayez l’installation.';
+      'Vérifiez d’abord Réglages → Données mobiles. Si l’eSIM y figure déjà, ne la supprimez pas. Si elle n’y figure pas et qu’aucune erreur de code invalide n’est apparue, redémarrez le téléphone et réessayez une fois.';
 
   @override
   String get installTroubleStepResetIos =>
-      'Réinitialisez les réglages réseau : Réglages → Général → Transférer ou réinitialiser l’iPhone → Réinitialiser → Réinitialiser les réglages réseau. Les mots de passe Wi-Fi enregistrés seront supprimés. Puis réessayez.';
+      'Seulement si le Wi-Fi ou les données mobiles ne fonctionnent pas : Réglages → Général → Transférer ou réinitialiser l’iPhone → Réinitialiser → Réinitialiser les réglages réseau. Les mots de passe Wi-Fi enregistrés seront supprimés. Cela ne répare pas un code eSIM invalide.';
 
   @override
   String get installTroubleStepResetAndroid =>
-      'Réinitialisez les réglages réseau : Paramètres → Système → Options de réinitialisation → Réinitialiser le Wi-Fi, le mobile et le Bluetooth. Les mots de passe Wi-Fi enregistrés seront supprimés. Puis réessayez.';
+      'Seulement si le Wi-Fi ou les données mobiles ne fonctionnent pas : Paramètres → Système → Options de réinitialisation → Réinitialiser le Wi-Fi, le mobile et le Bluetooth. Les mots de passe Wi-Fi enregistrés seront supprimés. Cela ne répare pas un code eSIM invalide.';
 
   @override
   String get installTroubleStep4 =>
-      'Si la ligne reste sur « Activation… » même ensuite, supprimez-la dans Réglages → Données mobiles et installez manuellement avec les informations ci-dessus.';
+      'Si le téléphone indique que le code n’est plus valide, ne réutilisez pas le même QR code ni le code manuel. Contactez l’assistance pour en obtenir un nouveau et ne supprimez pas une eSIM déjà installée.';
 
   @override
   String get installTroubleStep5 =>
@@ -1628,10 +1640,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get installStuckBody =>
-      'Cela prend d’habitude une à deux minutes. Si le chargement continue, fermez l’installateur et suivez les étapes ci-dessous : réinitialiser les réglages réseau règle le problème dans certains pays.';
+      'Fermez l’installateur et vérifiez Réglages → Données mobiles. Si le téléphone indique que le code n’est plus valide, contactez l’assistance pour en obtenir un nouveau. Réinitialiser le réseau ne renouvelle pas le code.';
 
   @override
   String get installStuckRestart => 'Relancer le minuteur';
+
+  @override
+  String get installCancelledByProvider =>
+      'Cette eSIM est indiquée comme annulée. La réinitialisation du réseau ne restaurera pas son code. Contactez l’assistance.';
+
+  @override
+  String get installNetworkResetGuide => 'Étapes pour réinitialiser le réseau';
+
+  @override
+  String get installNetworkResetWarning =>
+      'Réinitialiser les réglages réseau ne supprime pas les eSIM installées. Cette action efface les mots de passe Wi-Fi enregistrés et réinitialise les réglages cellulaires, VPN et APN. La connexion actuelle peut être interrompue temporairement. Ne choisissez pas « Supprimer toutes les eSIM ».';
+
+  @override
+  String get installNetworkResetSettingsHint =>
+      'Sur iPhone, les réglages de Waysim s’ouvrent d’abord. Touchez Réglages en haut à gauche, puis Général → Transférer ou réinitialiser l’iPhone → Réinitialiser → Réinitialiser les réglages réseau.';
+
+  @override
+  String get installResetStep1 => 'Ouvrez l’app Réglages de l’iPhone';
+
+  @override
+  String get installResetStep2 => 'Général';
+
+  @override
+  String get installResetStep3 => 'Transférer ou réinitialiser l’iPhone';
+
+  @override
+  String get installResetStep4 => 'Réinitialiser';
+
+  @override
+  String get installResetStep5 => 'Réinitialiser les réglages réseau';
 
   @override
   String get installReminderTitle => 'Waysim eSIM';
@@ -1644,6 +1686,5 @@ class AppLocalizationsFr extends AppLocalizations {
   String get installOpenSettings => 'Ouvrir les réglages';
 
   @override
-  String get installOpenSettingsHint =>
-      'Ouvre les réglages du téléphone. Sur iPhone, touchez « Réglages » en haut à gauche pour accéder à la liste principale, puis suivez l’étape de réinitialisation.';
+  String get installOpenSettingsHint => 'Ouvre les réglages du téléphone.';
 }

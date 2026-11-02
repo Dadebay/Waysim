@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 
-enum EsimSupport { yes, no, likely, unknown }
+enum EsimSupport { yes, no, modelSupported, likely, unknown }
 
 abstract interface class EsimCompatibility {
   Future<EsimSupport> check();
@@ -68,6 +68,10 @@ class DeviceEsimCompatibility implements EsimCompatibility {
 
   EsimSupport iosSupport(String machine) {
     if (machine == 'iPhone18,4') return EsimSupport.yes;
+    // iPhone 12 Pro supports eSIM outside its two-nano-SIM regional variant.
+    // iOS exposes the same machine identifier for both variants, so this is
+    // model-level support, not a confirmed result for the individual phone.
+    if (machine == 'iPhone13,3') return EsimSupport.modelSupported;
     final match = RegExp(r'^iPhone(\d+),').firstMatch(machine);
     if (match == null) return EsimSupport.unknown;
     return int.parse(match.group(1)!) >= 11

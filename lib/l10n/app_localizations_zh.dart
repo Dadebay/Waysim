@@ -262,6 +262,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get compatUnverifiedRow => 'eSIM 支持情况尚未确认';
 
   @override
+  String get compatModelSupportedRow => 'iPhone 12 Pro 在大多数地区支持 eSIM';
+
+  @override
+  String get compat12ProSheet =>
+      'iPhone 12 Pro 的 A2341、A2406 和 A2407 型号支持 eSIM。在中国大陆、香港和澳门销售的 A2408 版本使用两张实体 SIM 卡。iOS 不会向 Waysim 提供这个地区型号。';
+
+  @override
   String get compatWarningTitle => '你的手机可能不支持 eSIM';
 
   @override
@@ -595,14 +602,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get installQrRetryNote =>
-      '安装失败？请再试一次。如果仍未成功，请等待 5 分钟后重试，我们正在完成将此 eSIM 接入系统的处理。';
+      '如果安装失败但没有提示激活码无效，请等待 5 分钟后再试一次。如果激活码已失效，请联系客户支持获取新码。';
 
   @override
   String get installArrivalNote => '到达目的地且手机找到当地网络后，eSIM 才会连接。';
 
   @override
   String get installStuckNote =>
-      '安装一直停在“正在连接”？请关闭它，并查看 设置 → 蜂窝网络。如果没有这张 eSIM，请使用下方信息手动安装；如果已有且显示“正在激活…”，到达目的地之前这是正常的，请不要删除。';
+      '安装一直停在“正在连接”？请关闭安装界面并查看 设置 → 蜂窝网络。如果 eSIM 已在其中，请不要删除。如果 iPhone 提示激活码已失效，请停止重试并联系客户支持获取新码。';
+
+  @override
+  String get installAlreadyIssued =>
+      '这张 eSIM 已标记为已安装或已激活。请查看 设置 → 蜂窝网络。如果没有这张 eSIM，激活码可能已被使用；请联系客户支持获取新码。不要删除手机上已有的 eSIM。';
 
   @override
   String get installLinkFailed => '无法打开安装程序。请使用下方的二维码或手动安装。';
@@ -1510,19 +1521,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get installTroubleStep1 => '使用稳定的 Wi-Fi，并关闭 VPN。';
 
   @override
-  String get installTroubleStep2 => '重启手机后再试一次。';
+  String get installTroubleStep2 =>
+      '先查看 设置 → 蜂窝网络。如果 eSIM 已在其中，请不要删除。如果没有 eSIM 且未出现激活码无效提示，请重启手机后再试一次。';
 
   @override
   String get installTroubleStepResetIos =>
-      '还原网络设置：设置 → 通用 → 传输或还原 iPhone → 还原 → 还原网络设置。已保存的 Wi-Fi 密码会被清除。然后重试。';
+      '仅当 Wi-Fi 或蜂窝数据本身无法使用时：设置 → 通用 → 传输或还原 iPhone → 还原 → 还原网络设置。已保存的 Wi-Fi 密码会被清除。此操作无法修复无效的 eSIM 激活码。';
 
   @override
   String get installTroubleStepResetAndroid =>
-      '还原网络设置：设置 → 系统 → 重置选项 → 重置 Wi-Fi、移动网络和蓝牙。已保存的 Wi-Fi 密码会被清除。然后重试。';
+      '仅当 Wi-Fi 或移动数据本身无法使用时：设置 → 系统 → 重置选项 → 重置 Wi-Fi、移动网络和蓝牙。已保存的 Wi-Fi 密码会被清除。此操作无法修复无效的 eSIM 激活码。';
 
   @override
   String get installTroubleStep4 =>
-      '如果之后线路仍停在“正在激活…”，请在 设置 → 蜂窝网络 中删除它，并用上方信息手动安装。';
+      '如果手机提示激活码已失效，请不要重复使用相同的二维码或手动激活码。请联系客户支持获取新码，不要删除手机上已有的 eSIM。';
 
   @override
   String get installTroubleStep5 => '仍然不行？请在应用内联系客服。';
@@ -1534,10 +1546,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get installStuckBody =>
-      '通常需要一两分钟。如果一直在加载，请关闭安装程序并按下方步骤操作：在部分国家还原网络设置可以解决。';
+      '请关闭安装界面并查看 设置 → 蜂窝网络。如果手机提示激活码已失效，请联系客户支持获取新码。还原网络设置不会让激活码重新生效。';
 
   @override
   String get installStuckRestart => '重新计时';
+
+  @override
+  String get installCancelledByProvider => '此 eSIM 显示为已取消。还原网络设置无法恢复其代码。请联系客服。';
+
+  @override
+  String get installNetworkResetGuide => '还原网络设置步骤';
+
+  @override
+  String get installNetworkResetWarning =>
+      '“还原网络设置”不会删除已安装的 eSIM，但会清除已保存的 Wi-Fi 密码并重置蜂窝网络、VPN 和 APN 设置，当前连接可能暂时中断。不要选择“删除所有 eSIM”。';
+
+  @override
+  String get installNetworkResetSettingsHint =>
+      '在 iPhone 上会先打开 Waysim 设置。点左上角的“设置”，然后前往“通用”→“传输或还原 iPhone”→“还原”→“还原网络设置”。';
+
+  @override
+  String get installResetStep1 => '打开 iPhone 的“设置”App';
+
+  @override
+  String get installResetStep2 => '通用';
+
+  @override
+  String get installResetStep3 => '传输或还原 iPhone';
+
+  @override
+  String get installResetStep4 => '还原';
+
+  @override
+  String get installResetStep5 => '还原网络设置';
 
   @override
   String get installReminderTitle => 'Waysim eSIM';
@@ -1549,6 +1590,5 @@ class AppLocalizationsZh extends AppLocalizations {
   String get installOpenSettings => '打开设置';
 
   @override
-  String get installOpenSettingsHint =>
-      '打开手机设置。在 iPhone 上点左上角的“设置”回到主列表，然后按重置步骤操作。';
+  String get installOpenSettingsHint => '打开手机设置。';
 }

@@ -273,6 +273,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get compatUnverifiedRow => 'eSIM support not verified';
 
   @override
+  String get compatModelSupportedRow =>
+      'iPhone 12 Pro supports eSIM in most regions';
+
+  @override
+  String get compat12ProSheet =>
+      'iPhone 12 Pro models A2341, A2406 and A2407 support eSIM. The A2408 version sold in China mainland, Hong Kong and Macao uses two physical SIM cards. iOS does not share this regional model number with Waysim.';
+
+  @override
   String get compatWarningTitle => 'Your phone may not support eSIM';
 
   @override
@@ -639,7 +647,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installQrRetryNote =>
-      'Didn\'t install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.';
+      'If installation fails without an invalid-code message, wait 5 minutes and try once more. If the code is no longer valid, contact support for a replacement.';
 
   @override
   String get installArrivalNote =>
@@ -647,7 +655,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      'Installer stuck on “Connecting”? Close it and check Settings → Cellular. If the eSIM isn’t there, install it manually with the details below. If it’s there and shows “Activating…”, that’s normal until you arrive: don’t delete it.';
+      'Installer stuck on “Connecting”? Close it and check Settings → Cellular. If the eSIM is there, don’t delete it. If iPhone says the code is no longer valid, stop retrying that code and contact support for a replacement.';
+
+  @override
+  String get installAlreadyIssued =>
+      'This eSIM is already marked installed or active. Check Settings → Cellular. If it is missing, its code may have been used; contact support for a replacement. Do not delete an eSIM already on your phone.';
 
   @override
   String get installLinkFailed =>
@@ -1601,19 +1613,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installTroubleStep2 =>
-      'Restart the phone and try the installation again.';
+      'Check Settings → Cellular first. If the eSIM is already there, don’t delete it. If it isn’t there and no invalid-code error appeared, restart the phone and try once more.';
 
   @override
   String get installTroubleStepResetIos =>
-      'Reset network settings: Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. Saved Wi-Fi passwords will be removed. Then try again.';
+      'Only if Wi-Fi or mobile data itself is failing: Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. This removes saved Wi-Fi passwords. It cannot fix an invalid eSIM code.';
 
   @override
   String get installTroubleStepResetAndroid =>
-      'Reset network settings: Settings → System → Reset options → Reset Wi-Fi, mobile & Bluetooth. Saved Wi-Fi passwords will be removed. Then try again.';
+      'Only if Wi-Fi or mobile data itself is failing: Settings → System → Reset options → Reset Wi-Fi, mobile & Bluetooth. This removes saved Wi-Fi passwords. It cannot fix an invalid eSIM code.';
 
   @override
   String get installTroubleStep4 =>
-      'If the line is stuck on “Activating…” even after that, delete it in Settings → Cellular and install manually with the details above.';
+      'If your phone says the code is no longer valid, stop retrying the same QR or manual code. Contact support for a replacement; do not delete an eSIM already on your phone.';
 
   @override
   String get installTroubleStep5 =>
@@ -1626,10 +1638,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installStuckBody =>
-      'This takes a minute or two. If it keeps loading, close the installer and follow the steps below: resetting network settings fixes it in some countries.';
+      'Close the installer and check Settings → Cellular. If your phone says the code is no longer valid, contact support for a replacement. Resetting network settings will not renew the code.';
 
   @override
   String get installStuckRestart => 'Restart timer';
+
+  @override
+  String get installCancelledByProvider =>
+      'This eSIM is marked as cancelled. Resetting network settings cannot restore its code. Contact support for help.';
+
+  @override
+  String get installNetworkResetGuide => 'Network reset steps';
+
+  @override
+  String get installNetworkResetWarning =>
+      'Reset Network Settings does not delete stored eSIMs. It removes saved Wi-Fi passwords and resets cellular, VPN and APN settings, so your current connection may stop temporarily. Do not choose Delete All eSIMs.';
+
+  @override
+  String get installNetworkResetSettingsHint =>
+      'On iPhone, this opens Waysim settings. Tap Settings at the top left, then General → Transfer or Reset iPhone → Reset → Reset Network Settings.';
+
+  @override
+  String get installResetStep1 => 'Open the iPhone Settings app';
+
+  @override
+  String get installResetStep2 => 'General';
+
+  @override
+  String get installResetStep3 => 'Transfer or Reset iPhone';
+
+  @override
+  String get installResetStep4 => 'Reset';
+
+  @override
+  String get installResetStep5 => 'Reset Network Settings';
 
   @override
   String get installReminderTitle => 'Waysim eSIM';
@@ -1642,6 +1684,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get installOpenSettings => 'Open Settings';
 
   @override
-  String get installOpenSettingsHint =>
-      'Opens your phone’s Settings. On iPhone tap “Settings” at the top left to reach the main list, then follow the reset step.';
+  String get installOpenSettingsHint => 'Opens your phone’s Settings.';
 }

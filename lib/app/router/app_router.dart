@@ -141,7 +141,11 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoute.esim.path,
         name: AppRoute.esim.routeName,
-        builder: (_, state) => EsimDetailPage(id: state.pathParameters['id']!),
+        builder: (_, state) => EsimDetailPage(
+          id: state.pathParameters['id']!,
+          showNetworkResetOnOpen:
+              state.uri.queryParameters['networkReset'] == 'true',
+        ),
       ),
       GoRoute(
         path: AppRoute.esimTopUp.path,

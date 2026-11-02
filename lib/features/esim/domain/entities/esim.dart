@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/utils/safe_url.dart';
 import '../../../catalog/domain/entities/esim_package.dart';
 
 enum EsimStatus {
@@ -95,21 +94,15 @@ class Esim extends Equatable {
   int? daysLeft(DateTime now) =>
       expiresAt?.difference(now).inDays.clamp(0, 100000);
 
-  String get lpa => lpaString ?? 'LPA:1\$$smdpAddress\$$activationCode';
+  String get lpa => lpaString?.isNotEmpty == true
+      ? lpaString!
+      : 'LPA:1\$$smdpAddress\$$activationCode';
 
-  Uri get appleInstallUri {
-    final plain = RegExp(r'^[A-Za-z0-9.-]+$');
-    if (plain.hasMatch(smdpAddress) && plain.hasMatch(activationCode)) {
-      return Uri.parse(
-        'https://esimsetup.apple.com/esim_qrcode_provisioning'
-        '?carddata=LPA:1\$$smdpAddress\$$activationCode',
-      );
-    }
-    return safeHttpsUriOn(appleUniversalLink, 'esimsetup.apple.com') ??
-        Uri.https('esimsetup.apple.com', '/esim_qrcode_provisioning', {
-          'carddata': lpa,
-        });
-  }
+  Uri get appleInstallUri =>
+      Uri.https('esimsetup.apple.com', '/esim_qrcode_provisioning', {
+        // Use the complete API LPA string, including any matching ID.
+        'carddata': lpa,
+      });
 
   Esim copyWith({
     EsimStatus? status,

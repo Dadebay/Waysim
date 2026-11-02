@@ -18,6 +18,10 @@ abstract final class PushRouter {
     final validId = id != null && _id.hasMatch(id);
 
     switch (data['type']) {
+      case 'esim_install_stuck':
+        return validId
+            ? '${AppRoute.esim.withParams({'id': id})}?networkReset=true'
+            : AppRoute.myEsim.path;
       case 'esim_ready' ||
           'order_done' ||
           'topup_done' ||

@@ -1,15 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:waysim/app/app.dart';
 import 'package:waysim/app/session_coordinator.dart';
 import 'package:waysim/core/di/injector.dart';
 import 'package:waysim/core/constants/app_icons.dart';
 import 'package:waysim/core/services/esim_compatibility.dart';
+import 'package:waysim/core/storage/local_storage.dart';
 import 'package:waysim/core/utils/result.dart';
 import 'package:waysim/core/widgets/app_bottom_sheet.dart';
 import 'package:waysim/core/widgets/copy_field.dart';
+import 'package:waysim/features/esim/presentation/esim_install_tracker.dart';
 import 'package:waysim/features/auth/domain/repositories/auth_repository.dart';
 import 'package:waysim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:waysim/features/catalog/presentation/cubit/catalog_cubit.dart';
@@ -95,6 +99,10 @@ void main() {
 
     expect(find.text('eSIM details'), findsOneWidget);
     expect(find.byType(QrImageView), findsOneWidget);
+    expect(find.text('SM-DP+ address'), findsNothing);
+    await tester.tap(find.text('Manual installation'));
+    await tester.pumpAndSettle();
+    expect(find.byType(QrImageView), findsNothing);
     await tester.scrollUntilVisible(
       find.text('SM-DP+ address'),
       300,
@@ -146,7 +154,7 @@ void main() {
 
     await tester.tap(find.text('My eSIM').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Türkiye'));
+    await tester.tap(find.text('Georgia'));
     await tester.pumpAndSettle();
 
     expect(find.text('Install in one tap'), findsOneWidget);
@@ -162,6 +170,102 @@ void main() {
       findsOneWidget,
     );
 
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('active eSIM does not offer a reused one-tap code', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    (getIt<EsimCompatibility>() as FakeCompatibility).oneTap = true;
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('My eSIM').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Türkiye'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Install in one tap'), findsNothing);
+    expect(
+      find.textContaining('already marked installed or active'),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('returning to a stuck install shows network reset steps once', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    phone(tester);
+    await signInAnna(tester);
+    (getIt<EsimCompatibility>() as FakeCompatibility).oneTap = true;
+    await getIt<LocalStorage>().setString(
+      'esim_install_started_esim_seed_ge',
+      DateTime.now().subtract(const Duration(minutes: 4)).toIso8601String(),
+    );
+    await getIt<LocalStorage>().setString(
+      'esim_install_status_esim_seed_ge',
+      'notInstalled',
+    );
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('My eSIM').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Georgia'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Network reset steps'), findsWidgets);
+    expect(find.text('Open the iPhone Settings app'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('esim-network-reset-open-settings')),
+      findsNothing,
+    );
+    expect(
+      find.textContaining('Do not choose Delete All eSIMs'),
+      findsOneWidget,
+    );
+    expect(EsimInstallTracker.guideWasShown('esim_seed_ge'), isTrue);
+
+    await tester.pumpWidget(const SizedBox());
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('stuck-install notification route opens the reset guide', (
+    tester,
+  ) async {
+    phone(tester);
+    await signInAnna(tester);
+    await getIt<LocalStorage>().setString(
+      'esim_install_started_esim_seed_ge',
+      DateTime.now().subtract(const Duration(minutes: 2)).toIso8601String(),
+    );
+    await getIt<LocalStorage>().setString(
+      'esim_install_status_esim_seed_ge',
+      'notInstalled',
+    );
+    await getIt<LocalStorage>().setString(
+      'esim_install_method_esim_seed_ge',
+      'one_tap',
+    );
+    await EsimInstallTracker.markGuideShown('esim_seed_ge');
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    GoRouter.of(
+      tester.element(find.text('My eSIM').last),
+    ).push('/esim/esim_seed_ge?networkReset=true');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Network reset steps'), findsWidgets);
+    expect(
+      find.textContaining('Do not choose Delete All eSIMs'),
+      findsOneWidget,
+    );
     await tester.pumpWidget(const SizedBox());
   });
 

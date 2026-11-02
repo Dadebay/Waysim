@@ -70,6 +70,13 @@ void main() {
         PushRouter.routeFor({'type': 'data_low', 'esimId': 'abc-9'}),
         '/esim/abc-9',
       );
+      expect(
+        PushRouter.routeFor({
+          'type': 'esim_install_stuck',
+          'esimId': 'esim_12',
+        }),
+        '/esim/esim_12?networkReset=true',
+      );
     });
 
     test('a hostile id falls back to the eSIM list', () {

@@ -1283,7 +1283,7 @@ void main() {
     },
   );
 
-  test('padded install details still give the plain one-tap link', () async {
+  test('padded install details give an encoded one-tap link', () async {
     final padded = esim(detail: true)
       ..['install'] = {
         'iccid': '890000001',
@@ -1307,7 +1307,7 @@ void main() {
     expect(
       installed.appleInstallUri.toString(),
       'https://esimsetup.apple.com/esim_qrcode_provisioning'
-      '?carddata=LPA:1\$smdp.test\$activation',
+      '?carddata=LPA%3A1%24smdp.test%24activation',
     );
   });
 

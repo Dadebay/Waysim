@@ -225,6 +225,31 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
+  testWidgets('iPhone 12 Pro shows model support and its regional caveat', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    (getIt<EsimCompatibility>() as FakeCompatibility).support =
+        EsimSupport.modelSupported;
+    await getIt<EsimSupportCubit>().check();
+    await phone(tester);
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Where do you need an eSIM?'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'tur');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Türkiye'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('iPhone 12 Pro supports eSIM in most regions'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('A2408'), findsOneWidget);
+    expect(find.textContaining('EID'), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('a phone without eSIM warns before buying', (tester) async {
     (getIt<EsimCompatibility>() as FakeCompatibility).support = EsimSupport.no;
     await getIt<EsimSupportCubit>().check();

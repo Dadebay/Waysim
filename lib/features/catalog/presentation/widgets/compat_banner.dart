@@ -29,6 +29,12 @@ class CompatBanner extends StatelessWidget {
         label: l10n.compatNoRow,
         onTap: () => showUnsupportedSheet(context),
       ),
+      EsimSupport.modelSupported => _CompatRow(
+        icon: AppIcons.info,
+        color: c.success,
+        label: l10n.compatModelSupportedRow,
+        onTap: () => showCompatSheet(context, iPhone12Pro: true),
+      ),
       EsimSupport.likely => _CompatRow(
         icon: AppIcons.info,
         color: c.warning,
@@ -43,7 +49,7 @@ class CompatBanner extends StatelessWidget {
   }
 }
 
-Future<void> showCompatSheet(BuildContext context) {
+Future<void> showCompatSheet(BuildContext context, {bool iPhone12Pro = false}) {
   final l10n = context.l10n;
   final isIos = Theme.of(context).platform == TargetPlatform.iOS;
   return showAppSheet<void>(
@@ -62,7 +68,11 @@ Future<void> showCompatSheet(BuildContext context) {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isIos ? l10n.compatSheetIos : l10n.compatSheetAndroid,
+            iPhone12Pro
+                ? l10n.compat12ProSheet
+                : isIos
+                ? l10n.compatSheetIos
+                : l10n.compatSheetAndroid,
             style: sheetContext.text.body,
           ),
           const SizedBox(height: AppSpacing.xl),

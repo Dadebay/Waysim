@@ -95,7 +95,7 @@ void main() {
     expect(esim.appleInstallUri.host, 'esimsetup.apple.com');
   });
 
-  test('the one-tap link is Apple’s plain carddata form', () {
+  test('the one-tap link uses the complete encoded API LPA string', () {
     const esim = Esim(
       id: 'e1',
       destinationCode: 'AE',
@@ -109,12 +109,17 @@ void main() {
       appleUniversalLink:
           'https://esimsetup.apple.com/esim_qrcode_provisioning'
           '?carddata=LPA%3A1%24other%24code',
+      lpaString:
+          'LPA:1\$rsp-eu.redteamobile.com'
+          '\$43DE23C67EE747BCAD6B63E8B67B261F\$matching-id',
     );
+    expect(esim.appleInstallUri.host, 'esimsetup.apple.com');
+    expect(esim.appleInstallUri.queryParameters['carddata'], esim.lpa);
     expect(
       esim.appleInstallUri.toString(),
       'https://esimsetup.apple.com/esim_qrcode_provisioning'
-      '?carddata=LPA:1\$rsp-eu.redteamobile.com'
-      '\$43DE23C67EE747BCAD6B63E8B67B261F',
+      '?carddata=LPA%3A1%24rsp-eu.redteamobile.com'
+      '%2443DE23C67EE747BCAD6B63E8B67B261F%24matching-id',
     );
   });
 

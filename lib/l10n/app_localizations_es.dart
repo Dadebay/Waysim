@@ -274,6 +274,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get compatUnverifiedRow => 'Compatibilidad eSIM sin verificar';
 
   @override
+  String get compatModelSupportedRow =>
+      'El iPhone 12 Pro admite eSIM en la mayoría de las regiones';
+
+  @override
+  String get compat12ProSheet =>
+      'Los modelos iPhone 12 Pro A2341, A2406 y A2407 admiten eSIM. La versión A2408, vendida en China continental, Hong Kong y Macao, usa dos tarjetas SIM físicas. iOS no comparte este número de modelo regional con Waysim.';
+
+  @override
   String get compatWarningTitle => 'Tu teléfono podría no admitir eSIM';
 
   @override
@@ -630,7 +638,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get installQrRetryNote =>
-      '¿No se instaló? Inténtalo una segunda vez. Si sigue sin funcionar, espera 5 minutos y vuelve a intentarlo mientras terminamos de añadir esta eSIM a nuestro sistema.';
+      'Si la instalación falla sin indicar que el código no es válido, espera 5 minutos e inténtalo una vez más. Si el código ya no es válido, contacta con soporte para obtener uno nuevo.';
 
   @override
   String get installArrivalNote =>
@@ -638,7 +646,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      '¿El instalador se queda en “Conectando”? Ciérralo y revisa Ajustes → Datos móviles. Si la eSIM no aparece, instálala manualmente con los datos de abajo. Si aparece y muestra “Activando…”, es normal hasta que llegues: no la borres.';
+      '¿El instalador se queda en “Conectando”? Ciérralo y revisa Ajustes → Datos móviles. Si la eSIM ya aparece, no la borres. Si el iPhone indica que el código ya no es válido, deja de usarlo y contacta con soporte para obtener uno nuevo.';
+
+  @override
+  String get installAlreadyIssued =>
+      'Esta eSIM ya figura como instalada o activa. Revisa Ajustes → Datos móviles. Si no aparece, es posible que el código ya se haya usado; contacta con soporte para obtener uno nuevo. No borres una eSIM que ya esté en el teléfono.';
 
   @override
   String get installLinkFailed =>
@@ -1596,19 +1608,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get installTroubleStep2 =>
-      'Reinicia el teléfono e intenta instalar de nuevo.';
+      'Primero revisa Ajustes → Datos móviles. Si la eSIM ya aparece, no la borres. Si no aparece y no hubo un error de código no válido, reinicia el teléfono e inténtalo una vez más.';
 
   @override
   String get installTroubleStepResetIos =>
-      'Restablece los ajustes de red: Ajustes → General → Transferir o restablecer iPhone → Restablecer → Restablecer ajustes de red. Se borrarán las contraseñas Wi-Fi guardadas. Luego vuelve a intentarlo.';
+      'Solo si falla la propia conexión Wi-Fi o los datos móviles: Ajustes → General → Transferir o restablecer iPhone → Restablecer → Restablecer ajustes de red. Se borrarán las contraseñas Wi-Fi guardadas. Esto no arregla un código eSIM no válido.';
 
   @override
   String get installTroubleStepResetAndroid =>
-      'Restablece los ajustes de red: Ajustes → Sistema → Opciones de restablecimiento → Restablecer Wi-Fi, móvil y Bluetooth. Se borrarán las contraseñas Wi-Fi guardadas. Luego vuelve a intentarlo.';
+      'Solo si falla la propia conexión Wi-Fi o los datos móviles: Ajustes → Sistema → Opciones de restablecimiento → Restablecer Wi-Fi, móvil y Bluetooth. Se borrarán las contraseñas Wi-Fi guardadas. Esto no arregla un código eSIM no válido.';
 
   @override
   String get installTroubleStep4 =>
-      'Si la línea sigue en «Activando…», elimínala en Ajustes → Datos móviles e instálala manualmente con los datos de arriba.';
+      'Si el teléfono indica que el código ya no es válido, no vuelvas a usar el mismo QR ni el código manual. Contacta con soporte para obtener uno nuevo y no borres una eSIM ya instalada.';
 
   @override
   String get installTroubleStep5 =>
@@ -1621,10 +1633,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get installStuckBody =>
-      'Suele tardar uno o dos minutos. Si sigue cargando, cierra el instalador y sigue los pasos de abajo: restablecer los ajustes de red lo soluciona en algunos países.';
+      'Cierra el instalador y revisa Ajustes → Datos móviles. Si el teléfono indica que el código ya no es válido, contacta con soporte para obtener uno nuevo. Restablecer la red no renueva el código.';
 
   @override
   String get installStuckRestart => 'Reiniciar temporizador';
+
+  @override
+  String get installCancelledByProvider =>
+      'Esta eSIM aparece como cancelada. Restablecer los ajustes de red no recuperará su código. Contacta con soporte.';
+
+  @override
+  String get installNetworkResetGuide => 'Pasos para restablecer la red';
+
+  @override
+  String get installNetworkResetWarning =>
+      'Restablecer ajustes de red no borra las eSIM instaladas. Elimina las contraseñas Wi-Fi guardadas y restablece los ajustes de datos móviles, VPN y APN, por lo que la conexión actual puede interrumpirse temporalmente. No elijas «Eliminar todas las eSIM».';
+
+  @override
+  String get installNetworkResetSettingsHint =>
+      'En iPhone se abren primero los ajustes de Waysim. Toca Ajustes arriba a la izquierda y luego General → Transferir o restablecer iPhone → Restablecer → Restablecer ajustes de red.';
+
+  @override
+  String get installResetStep1 => 'Abre la app Ajustes del iPhone';
+
+  @override
+  String get installResetStep2 => 'General';
+
+  @override
+  String get installResetStep3 => 'Transferir o restablecer iPhone';
+
+  @override
+  String get installResetStep4 => 'Restablecer';
+
+  @override
+  String get installResetStep5 => 'Restablecer ajustes de red';
 
   @override
   String get installReminderTitle => 'Waysim eSIM';
@@ -1637,6 +1679,5 @@ class AppLocalizationsEs extends AppLocalizations {
   String get installOpenSettings => 'Abrir Ajustes';
 
   @override
-  String get installOpenSettingsHint =>
-      'Abre los Ajustes del teléfono. En iPhone toca «Ajustes» arriba a la izquierda para ir a la lista principal y sigue el paso de restablecer.';
+  String get installOpenSettingsHint => 'Abre los Ajustes del teléfono.';
 }

@@ -14,6 +14,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../core/utils/formatters/labels.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../../../../core/widgets/app_hero.dart';
 import '../../../../core/widgets/copy_field.dart';
 import '../../../../core/widgets/country_row.dart';
@@ -31,15 +32,21 @@ import '../open_device_settings.dart';
 import '../esim_labels.dart';
 
 class EsimDetailPage extends StatefulWidget {
-  const EsimDetailPage({super.key, required this.id});
+  const EsimDetailPage({
+    super.key,
+    required this.id,
+    this.showNetworkResetOnOpen = false,
+  });
 
   final String id;
+  final bool showNetworkResetOnOpen;
   @override
   State<EsimDetailPage> createState() => _EsimDetailPageState();
 }
 
 class _EsimDetailPageState extends State<EsimDetailPage> {
   late Future<Result<Esim>> _load;
+  bool _guideRequested = false;
   @override
   void initState() {
     super.initState();
@@ -82,6 +89,7 @@ class _EsimDetailPageState extends State<EsimDetailPage> {
             );
           }
           final detail = esim ?? result!.dataOrNull!;
+          _openGuideIfStuck(detail);
           return RefreshIndicator(
             onRefresh: () async {
               await esims.detail(widget.id, refresh: true);
@@ -91,6 +99,30 @@ class _EsimDetailPageState extends State<EsimDetailPage> {
         },
       ),
     );
+  }
+
+  void _openGuideIfStuck(Esim detail) {
+    if (_guideRequested) return;
+    final stuck = EsimInstallTracker.stuckFor(detail, DateTime.now()) != null;
+    if (!widget.showNetworkResetOnOpen &&
+        (!stuck || EsimInstallTracker.guideWasShown(widget.id))) {
+      return;
+    }
+    _guideRequested = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final refreshed = await context.read<EsimListCubit>().detail(
+        widget.id,
+        refresh: true,
+      );
+      if (!mounted) return;
+      final current = refreshed.dataOrNull ?? detail;
+      if (EsimInstallTracker.stuckFor(current, DateTime.now()) != null) {
+        await EsimInstallTracker.markGuideShown(widget.id);
+        if (!mounted) return;
+        await _showNetworkResetGuide(context);
+      }
+    });
   }
 }
 
@@ -109,6 +141,7 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
   late int _platformTab = Theme.of(context).platform == TargetPlatform.iOS
       ? 0
       : 1;
+  int _installTab = 0;
   late final Future<bool> _oneTap = getIt<EsimCompatibility>()
       .supportsOneTapInstall();
 
@@ -143,7 +176,8 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
     final cubit = context.read<EsimListCubit>();
     final result = await cubit.detail(widget.esim.id, refresh: true);
     final status = result.dataOrNull?.status;
-    if (status != null && EsimInstallTracker.isDone(status)) {
+    if (status != null &&
+        EsimInstallTracker.completedSinceStart(widget.esim.id, status)) {
       await EsimInstallTracker.clear(widget.esim.id, reason: status.name);
     }
   }
@@ -151,7 +185,7 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
   void _tick() {
     if (!mounted) return;
     final esim = widget.esim;
-    if (EsimInstallTracker.isDone(esim.status)) {
+    if (EsimInstallTracker.completedSinceStart(esim.id, esim.status)) {
       unawaited(EsimInstallTracker.clear(esim.id, reason: esim.status.name));
     }
     setState(() {});
@@ -164,6 +198,8 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
     final c = context.colors;
     final archived = esim.status.isArchived;
     final stuck = EsimInstallTracker.stuckFor(esim, DateTime.now());
+    final usageFirst =
+        esim.status == EsimStatus.installed || esim.status == EsimStatus.active;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -193,104 +229,32 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
         ),
         if (!archived && stuck != null) ...[
           const SizedBox(height: AppSpacing.lg),
-          _StuckCard(
-            minutes: stuck.inMinutes,
-            onRestart: () async {
-              EsimInstallTracker.setReminderText(
-                l10n.installReminderTitle,
-                l10n.installReminderBody,
-              );
-              await EsimInstallTracker.start(esim.id, method: 'restart');
-              if (mounted) setState(() {});
-            },
-          ),
+          _StuckCard(minutes: stuck.inMinutes),
+        ],
+        if (usageFirst || archived) ...[
+          const SizedBox(height: AppSpacing.lg),
+          _Usage(esim: esim),
         ],
         if (!archived) ...[
           const SizedBox(height: AppSpacing.lg),
           _SectionCard(
-            key: const ValueKey('esim-qr-card'),
+            key: const ValueKey('esim-install-card'),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.installByQr, style: context.text.h3),
+                SegmentedTabs(
+                  labels: [l10n.installByQr, l10n.installManual],
+                  selectedIndex: _installTab,
+                  onChanged: (i) => setState(() => _installTab = i),
+                ),
                 const SizedBox(height: AppSpacing.lg),
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppRadius.card),
-                      border: Border.all(color: c.border),
-                    ),
-                    child: Semantics(
-                      label: l10n.installByQr,
-                      image: true,
-                      child: QrImageView(
-                        data: esim.lpa,
-                        size: 200,
-                        backgroundColor: Colors.white,
-                        eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: Color(0xFF161D2B),
-                        ),
-                        dataModuleStyle: const QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.square,
-                          color: Color(0xFF161D2B),
-                        ),
-                      ),
-                    ),
+                if (_installTab == 0)
+                  _QrBody(key: const ValueKey('esim-qr-card'), esim: esim)
+                else
+                  _ManualBody(
+                    key: const ValueKey('esim-manual-card'),
+                    esim: esim,
                   ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  l10n.installQrNote,
-                  textAlign: TextAlign.center,
-                  style: context.text.bodySm.copyWith(color: c.textSecondary),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _Notice(text: l10n.installQrRetryNote, info: true),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _SectionCard(
-            key: const ValueKey('esim-manual-card'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.installManual, style: context.text.h3),
-                const SizedBox(height: AppSpacing.md),
-                CopyField(label: l10n.esimSmdp, value: esim.smdpAddress),
-                const SizedBox(height: AppSpacing.sm),
-                CopyField(
-                  label: l10n.esimActivationCode,
-                  value: esim.activationCode,
-                  monospace: true,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                CopyField(
-                  label: l10n.esimIccid,
-                  value: _grouped(esim.iccid),
-                  copyValue: esim.iccid,
-                  monospace: true,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                CopyField(
-                  key: const ValueKey('esim-full-activation-code'),
-                  label: l10n.esimFullActivationCode,
-                  value: esim.lpa,
-                  monospace: true,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  l10n.installManualIosHint,
-                  style: context.text.bodySm.copyWith(color: c.textSecondary),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  l10n.esimFullActivationCodeHint,
-                  style: context.text.bodySm.copyWith(color: c.textSecondary),
-                ),
               ],
             ),
           ),
@@ -299,13 +263,12 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
           const SizedBox(height: AppSpacing.md),
           _Notice(text: l10n.esimRoamingWarning, info: true),
           const SizedBox(height: AppSpacing.lg),
-          _SectionCard(
+          _Collapsible(
             key: const ValueKey('esim-instructions-card'),
+            title: l10n.instructionsTitle,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.instructionsTitle, style: context.text.h3),
-                const SizedBox(height: AppSpacing.md),
                 SegmentedTabs(
                   labels: [l10n.tabIphone, l10n.tabAndroid],
                   selectedIndex: _platformTab,
@@ -333,13 +296,13 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          _SectionCard(
+          _Collapsible(
             key: const ValueKey('esim-trouble-card'),
+            title: l10n.installTroubleTitle,
+            initiallyExpanded: stuck != null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.installTroubleTitle, style: context.text.h3),
-                const SizedBox(height: AppSpacing.md),
                 _Steps(
                   steps: [
                     l10n.installTroubleStep1,
@@ -351,25 +314,31 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
                     l10n.installTroubleStep5,
                   ],
                 ),
-                const SizedBox(height: AppSpacing.md),
-                AppButton(
-                  key: const ValueKey('esim-open-settings'),
-                  label: l10n.installOpenSettings,
-                  icon: AppIcons.settings,
-                  size: AppButtonSize.md,
-                  onPressed: openDeviceSettings,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  l10n.installOpenSettingsHint,
-                  style: context.text.caption.copyWith(color: c.textSecondary),
-                ),
+                if (Theme.of(context).platform != TargetPlatform.iOS) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  AppButton(
+                    key: const ValueKey('esim-open-settings'),
+                    label: l10n.installOpenSettings,
+                    icon: AppIcons.settings,
+                    size: AppButtonSize.md,
+                    onPressed: openDeviceSettings,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    l10n.installOpenSettingsHint,
+                    style: context.text.caption.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         ],
-        const SizedBox(height: AppSpacing.lg),
-        _Usage(esim: esim),
+        if (!usageFirst && !archived) ...[
+          const SizedBox(height: AppSpacing.lg),
+          _Usage(esim: esim),
+        ],
       ],
     );
   }
@@ -378,6 +347,134 @@ class _DetailState extends State<_Detail> with WidgetsBindingObserver {
     for (var i = 0; i < digits.length; i += 4)
       digits.substring(i, (i + 4).clamp(0, digits.length)),
   ].join(' ');
+}
+
+class _QrBody extends StatelessWidget {
+  const _QrBody({super.key, required this.esim});
+
+  final Esim esim;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final c = context.colors;
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            border: Border.all(color: c.border),
+          ),
+          child: Semantics(
+            label: l10n.installByQr,
+            image: true,
+            child: QrImageView(
+              data: esim.lpa,
+              size: 200,
+              backgroundColor: Colors.white,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: Color(0xFF161D2B),
+              ),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: Color(0xFF161D2B),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          l10n.installQrNote,
+          textAlign: TextAlign.center,
+          style: context.text.bodySm.copyWith(color: c.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _Notice(text: l10n.installQrRetryNote, info: true),
+      ],
+    );
+  }
+}
+
+class _ManualBody extends StatelessWidget {
+  const _ManualBody({super.key, required this.esim});
+
+  final Esim esim;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final c = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CopyField(label: l10n.esimSmdp, value: esim.smdpAddress),
+        const SizedBox(height: AppSpacing.sm),
+        CopyField(
+          label: l10n.esimActivationCode,
+          value: esim.activationCode,
+          monospace: true,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        CopyField(
+          label: l10n.esimIccid,
+          value: _DetailState._grouped(esim.iccid),
+          copyValue: esim.iccid,
+          monospace: true,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        CopyField(
+          key: const ValueKey('esim-full-activation-code'),
+          label: l10n.esimFullActivationCode,
+          value: esim.lpa,
+          monospace: true,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          l10n.installManualIosHint,
+          style: context.text.bodySm.copyWith(color: c.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          l10n.esimFullActivationCodeHint,
+          style: context.text.bodySm.copyWith(color: c.textSecondary),
+        ),
+      ],
+    );
+  }
+}
+
+class _Collapsible extends StatelessWidget {
+  const _Collapsible({
+    super.key,
+    required this.title,
+    required this.child,
+    this.initiallyExpanded = false,
+  });
+
+  final String title;
+  final Widget child;
+  final bool initiallyExpanded;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(top: AppSpacing.md),
+          shape: const Border(),
+          collapsedShape: const Border(),
+          initiallyExpanded: initiallyExpanded,
+          title: Text(title, style: context.text.h3),
+          children: [child],
+        ),
+      ),
+    );
+  }
 }
 
 class _Header extends StatelessWidget {
@@ -430,6 +527,10 @@ class _OneTap extends StatelessWidget {
     final l10n = context.l10n;
     final c = context.colors;
     final by = esim.installBy;
+    if (esim.status == EsimStatus.installed ||
+        esim.status == EsimStatus.active) {
+      return _Notice(text: l10n.installAlreadyIssued, info: true);
+    }
     return Column(
       children: [
         AppButton(
@@ -454,6 +555,14 @@ class _OneTap extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
 
         _Notice(text: l10n.installStuckNote, info: true),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          key: const ValueKey('esim-network-reset-guide'),
+          label: l10n.installNetworkResetGuide,
+          variant: AppButtonVariant.secondary,
+          size: AppButtonSize.md,
+          onPressed: () => _showNetworkResetGuide(context),
+        ),
       ],
     );
   }
@@ -488,10 +597,9 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _StuckCard extends StatelessWidget {
-  const _StuckCard({required this.minutes, required this.onRestart});
+  const _StuckCard({required this.minutes});
 
   final int minutes;
-  final VoidCallback onRestart;
 
   @override
   Widget build(BuildContext context) {
@@ -503,15 +611,92 @@ class _StuckCard extends StatelessWidget {
         _Notice(
           text: '${l10n.installStuckTitle(minutes)}\n${l10n.installStuckBody}',
         ),
-        const SizedBox(height: AppSpacing.sm),
-        AppButton(
-          label: l10n.installStuckRestart,
-          size: AppButtonSize.md,
-          onPressed: onRestart,
-        ),
       ],
     );
   }
+}
+
+Future<void> _showNetworkResetGuide(BuildContext context) {
+  final l10n = context.l10n;
+  return showAppSheet<void>(
+    context,
+    title: l10n.installNetworkResetGuide,
+    closeLabel: l10n.actionClose,
+    builder: (sheetContext) {
+      final c = sheetContext.colors;
+      final ios = Theme.of(sheetContext).platform == TargetPlatform.iOS;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ios
+                        ? l10n.installTroubleStepResetIos
+                        : l10n.installTroubleStepResetAndroid,
+                    style: sheetContext.text.body.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  _Notice(text: l10n.installNetworkResetWarning),
+                  if (ios) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: c.surface,
+                        borderRadius: BorderRadius.circular(AppRadius.sm + 4),
+                        border: Border.all(color: c.border),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          AppSpacing.lg,
+                          AppSpacing.lg,
+                          AppSpacing.xs,
+                        ),
+                        child: _Steps(
+                          key: const ValueKey('esim-network-reset-steps'),
+                          steps: [
+                            l10n.installResetStep1,
+                            l10n.installResetStep2,
+                            l10n.installResetStep3,
+                            l10n.installResetStep4,
+                            l10n.installResetStep5,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+              ),
+            ),
+          ),
+          if (!ios)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.page,
+                AppSpacing.sm,
+                AppSpacing.page,
+                AppSpacing.xl,
+              ),
+              child: AppButton(
+                key: const ValueKey('esim-network-reset-open-settings'),
+                label: l10n.installOpenSettings,
+                icon: AppIcons.settings,
+                onPressed: openDeviceSettings,
+              ),
+            ),
+        ],
+      );
+    },
+  );
 }
 
 class _Notice extends StatelessWidget {
@@ -549,7 +734,7 @@ class _Notice extends StatelessWidget {
 }
 
 class _Steps extends StatelessWidget {
-  const _Steps({required this.steps});
+  const _Steps({super.key, required this.steps});
 
   final List<String> steps;
 

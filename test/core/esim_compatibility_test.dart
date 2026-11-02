@@ -11,6 +11,10 @@ void main() {
     expect(compatibility.iosSupport('iPhone18,4'), EsimSupport.yes);
   });
 
+  test('iPhone 12 Pro has model-level support with a regional exception', () {
+    expect(compatibility.iosSupport('iPhone13,3'), EsimSupport.modelSupported);
+  });
+
   test('iPhone XS/XR and later stay unverified across regional variants', () {
     expect(compatibility.iosSupport('iPhone17,3'), EsimSupport.likely);
     expect(compatibility.iosSupport('iPhone11,8'), EsimSupport.likely);

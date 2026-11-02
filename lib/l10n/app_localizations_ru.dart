@@ -276,6 +276,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get compatUnverifiedRow => 'Поддержка eSIM не подтверждена';
 
   @override
+  String get compatModelSupportedRow =>
+      'iPhone 12 Pro поддерживает eSIM в большинстве регионов';
+
+  @override
+  String get compat12ProSheet =>
+      'Модели iPhone 12 Pro A2341, A2406 и A2407 поддерживают eSIM. Версия A2408 для материкового Китая, Гонконга и Макао использует две физические SIM-карты. iOS не сообщает Waysim этот региональный номер модели.';
+
+  @override
   String get compatWarningTitle => 'Ваш телефон может не поддерживать eSIM';
 
   @override
@@ -639,7 +647,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get installQrRetryNote =>
-      'Не удалось установить? Попробуйте второй раз. Если снова не получится, подождите 5 минут и повторите попытку: мы завершаем добавление этой eSIM в нашу систему.';
+      'Если установка не удалась без сообщения о недействительном коде, подождите 5 минут и повторите попытку один раз. Если код больше не действителен, обратитесь в поддержку за новым.';
 
   @override
   String get installArrivalNote =>
@@ -647,7 +655,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get installStuckNote =>
-      'Установка зависла на «Подключение»? Закройте её и проверьте Настройки → Сотовая связь. Если eSIM там нет, установите её вручную по данным ниже. Если она есть и написано «Активация…», до прилёта это нормально: не удаляйте её.';
+      'Установка зависла на «Подключение»? Закройте её и проверьте Настройки → Сотовая связь. Если eSIM уже есть, не удаляйте её. Если iPhone пишет, что код больше не действителен, не повторяйте попытку с этим кодом и обратитесь в поддержку за новым.';
+
+  @override
+  String get installAlreadyIssued =>
+      'Эта eSIM уже отмечена как установленная или активная. Проверьте Настройки → Сотовая связь. Если её там нет, код мог быть использован: обратитесь в поддержку за новым. Не удаляйте eSIM, которая уже есть в телефоне.';
 
   @override
   String get installLinkFailed =>
@@ -1603,19 +1615,19 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get installTroubleStep2 =>
-      'Перезагрузите телефон и повторите установку.';
+      'Сначала проверьте Настройки → Сотовая связь. Если eSIM уже есть, не удаляйте её. Если её нет и ошибки о недействительном коде не было, перезагрузите телефон и повторите попытку один раз.';
 
   @override
   String get installTroubleStepResetIos =>
-      'Сбросьте настройки сети: Настройки → Основные → Перенос или сброс iPhone → Сброс → Сбросить настройки сети. Сохранённые пароли Wi-Fi будут удалены. Затем повторите установку.';
+      'Только если не работает сама сеть Wi-Fi или мобильная передача данных: Настройки → Основные → Перенос или сброс iPhone → Сброс → Сбросить настройки сети. Сохранённые пароли Wi-Fi будут удалены. Недействительный код eSIM это не исправит.';
 
   @override
   String get installTroubleStepResetAndroid =>
-      'Сбросьте настройки сети: Настройки → Система → Сброс → Сбросить настройки Wi-Fi, мобильного интернета и Bluetooth. Сохранённые пароли Wi-Fi будут удалены. Затем повторите установку.';
+      'Только если не работает сама сеть Wi-Fi или мобильная передача данных: Настройки → Система → Сброс → Сбросить настройки Wi-Fi, мобильного интернета и Bluetooth. Сохранённые пароли Wi-Fi будут удалены. Недействительный код eSIM это не исправит.';
 
   @override
   String get installTroubleStep4 =>
-      'Если линия всё равно зависла на «Активация…», удалите её в Настройки → Сотовая связь и установите вручную по данным выше.';
+      'Если телефон пишет, что код больше не действителен, не повторяйте установку с тем же QR-кодом или ручным кодом. Обратитесь в поддержку за новым кодом и не удаляйте уже установленную eSIM.';
 
   @override
   String get installTroubleStep5 =>
@@ -1628,10 +1640,40 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get installStuckBody =>
-      'Обычно это занимает минуту-две. Если загрузка не заканчивается, закройте установщик и выполните шаги ниже: в некоторых странах помогает сброс настроек сети.';
+      'Закройте установщик и проверьте Настройки → Сотовая связь. Если телефон пишет, что код больше не действителен, обратитесь в поддержку за новым. Сброс настроек сети не обновит код.';
 
   @override
   String get installStuckRestart => 'Сбросить таймер';
+
+  @override
+  String get installCancelledByProvider =>
+      'Эта eSIM отмечена как отменённая. Сброс настроек сети не восстановит её код. Обратитесь в поддержку.';
+
+  @override
+  String get installNetworkResetGuide => 'Как сбросить настройки сети';
+
+  @override
+  String get installNetworkResetWarning =>
+      'Сброс настроек сети не удаляет установленные eSIM. Он удаляет сохранённые пароли Wi-Fi и сбрасывает настройки сотовой связи, VPN и APN, поэтому текущее подключение может временно прерваться. Не выбирайте «Удалить все eSIM».';
+
+  @override
+  String get installNetworkResetSettingsHint =>
+      'На iPhone сначала откроются настройки Waysim. Нажмите «Настройки» слева вверху, затем «Основные» → «Перенос или сброс iPhone» → «Сброс» → «Сбросить настройки сети».';
+
+  @override
+  String get installResetStep1 => 'Откройте приложение «Настройки» на iPhone';
+
+  @override
+  String get installResetStep2 => 'Основные';
+
+  @override
+  String get installResetStep3 => 'Перенос или сброс iPhone';
+
+  @override
+  String get installResetStep4 => 'Сброс';
+
+  @override
+  String get installResetStep5 => 'Сбросить настройки сети';
 
   @override
   String get installReminderTitle => 'Waysim eSIM';
@@ -1644,6 +1686,5 @@ class AppLocalizationsRu extends AppLocalizations {
   String get installOpenSettings => 'Открыть настройки';
 
   @override
-  String get installOpenSettingsHint =>
-      'Откроются настройки телефона. На iPhone нажмите «Настройки» слева вверху, чтобы попасть в основной список, и выполните шаг со сбросом.';
+  String get installOpenSettingsHint => 'Откроются настройки телефона.';
 }

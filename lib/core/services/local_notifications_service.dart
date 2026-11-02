@@ -39,6 +39,11 @@ class LocalNotificationsService {
           onTap?.call(response.payload),
     );
 
+    final launch = await _plugin.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp == true) {
+      onTap?.call(launch?.notificationResponse?.payload);
+    }
+
     await _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin

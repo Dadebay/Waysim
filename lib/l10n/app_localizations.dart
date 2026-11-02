@@ -548,6 +548,18 @@ abstract class AppLocalizations {
   /// **'eSIM support not verified'**
   String get compatUnverifiedRow;
 
+  /// No description provided for @compatModelSupportedRow.
+  ///
+  /// In en, this message translates to:
+  /// **'iPhone 12 Pro supports eSIM in most regions'**
+  String get compatModelSupportedRow;
+
+  /// No description provided for @compat12ProSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'iPhone 12 Pro models A2341, A2406 and A2407 support eSIM. The A2408 version sold in China mainland, Hong Kong and Macao uses two physical SIM cards. iOS does not share this regional model number with Waysim.'**
+  String get compat12ProSheet;
+
   /// No description provided for @compatWarningTitle.
   ///
   /// In en, this message translates to:
@@ -1097,7 +1109,7 @@ abstract class AppLocalizations {
   /// No description provided for @installQrRetryNote.
   ///
   /// In en, this message translates to:
-  /// **'Didn\'t install? Try a second time. If it still fails, wait 5 minutes and try again while we finish adding this eSIM to our system.'**
+  /// **'If installation fails without an invalid-code message, wait 5 minutes and try once more. If the code is no longer valid, contact support for a replacement.'**
   String get installQrRetryNote;
 
   /// No description provided for @installArrivalNote.
@@ -1109,8 +1121,14 @@ abstract class AppLocalizations {
   /// No description provided for @installStuckNote.
   ///
   /// In en, this message translates to:
-  /// **'Installer stuck on “Connecting”? Close it and check Settings → Cellular. If the eSIM isn’t there, install it manually with the details below. If it’s there and shows “Activating…”, that’s normal until you arrive: don’t delete it.'**
+  /// **'Installer stuck on “Connecting”? Close it and check Settings → Cellular. If the eSIM is there, don’t delete it. If iPhone says the code is no longer valid, stop retrying that code and contact support for a replacement.'**
   String get installStuckNote;
+
+  /// No description provided for @installAlreadyIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'This eSIM is already marked installed or active. Check Settings → Cellular. If it is missing, its code may have been used; contact support for a replacement. Do not delete an eSIM already on your phone.'**
+  String get installAlreadyIssued;
 
   /// No description provided for @installLinkFailed.
   ///
@@ -2801,25 +2819,25 @@ abstract class AppLocalizations {
   /// No description provided for @installTroubleStep2.
   ///
   /// In en, this message translates to:
-  /// **'Restart the phone and try the installation again.'**
+  /// **'Check Settings → Cellular first. If the eSIM is already there, don’t delete it. If it isn’t there and no invalid-code error appeared, restart the phone and try once more.'**
   String get installTroubleStep2;
 
   /// No description provided for @installTroubleStepResetIos.
   ///
   /// In en, this message translates to:
-  /// **'Reset network settings: Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. Saved Wi-Fi passwords will be removed. Then try again.'**
+  /// **'Only if Wi-Fi or mobile data itself is failing: Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. This removes saved Wi-Fi passwords. It cannot fix an invalid eSIM code.'**
   String get installTroubleStepResetIos;
 
   /// No description provided for @installTroubleStepResetAndroid.
   ///
   /// In en, this message translates to:
-  /// **'Reset network settings: Settings → System → Reset options → Reset Wi-Fi, mobile & Bluetooth. Saved Wi-Fi passwords will be removed. Then try again.'**
+  /// **'Only if Wi-Fi or mobile data itself is failing: Settings → System → Reset options → Reset Wi-Fi, mobile & Bluetooth. This removes saved Wi-Fi passwords. It cannot fix an invalid eSIM code.'**
   String get installTroubleStepResetAndroid;
 
   /// No description provided for @installTroubleStep4.
   ///
   /// In en, this message translates to:
-  /// **'If the line is stuck on “Activating…” even after that, delete it in Settings → Cellular and install manually with the details above.'**
+  /// **'If your phone says the code is no longer valid, stop retrying the same QR or manual code. Contact support for a replacement; do not delete an eSIM already on your phone.'**
   String get installTroubleStep4;
 
   /// No description provided for @installTroubleStep5.
@@ -2837,7 +2855,7 @@ abstract class AppLocalizations {
   /// No description provided for @installStuckBody.
   ///
   /// In en, this message translates to:
-  /// **'This takes a minute or two. If it keeps loading, close the installer and follow the steps below: resetting network settings fixes it in some countries.'**
+  /// **'Close the installer and check Settings → Cellular. If your phone says the code is no longer valid, contact support for a replacement. Resetting network settings will not renew the code.'**
   String get installStuckBody;
 
   /// No description provided for @installStuckRestart.
@@ -2845,6 +2863,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restart timer'**
   String get installStuckRestart;
+
+  /// No description provided for @installCancelledByProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'This eSIM is marked as cancelled. Resetting network settings cannot restore its code. Contact support for help.'**
+  String get installCancelledByProvider;
+
+  /// No description provided for @installNetworkResetGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Network reset steps'**
+  String get installNetworkResetGuide;
+
+  /// No description provided for @installNetworkResetWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Network Settings does not delete stored eSIMs. It removes saved Wi-Fi passwords and resets cellular, VPN and APN settings, so your current connection may stop temporarily. Do not choose Delete All eSIMs.'**
+  String get installNetworkResetWarning;
+
+  /// No description provided for @installNetworkResetSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On iPhone, this opens Waysim settings. Tap Settings at the top left, then General → Transfer or Reset iPhone → Reset → Reset Network Settings.'**
+  String get installNetworkResetSettingsHint;
+
+  /// No description provided for @installResetStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the iPhone Settings app'**
+  String get installResetStep1;
+
+  /// No description provided for @installResetStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get installResetStep2;
+
+  /// No description provided for @installResetStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer or Reset iPhone'**
+  String get installResetStep3;
+
+  /// No description provided for @installResetStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get installResetStep4;
+
+  /// No description provided for @installResetStep5.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Network Settings'**
+  String get installResetStep5;
 
   /// No description provided for @installReminderTitle.
   ///
@@ -2867,7 +2939,7 @@ abstract class AppLocalizations {
   /// No description provided for @installOpenSettingsHint.
   ///
   /// In en, this message translates to:
-  /// **'Opens your phone’s Settings. On iPhone tap “Settings” at the top left to reach the main list, then follow the reset step.'**
+  /// **'Opens your phone’s Settings.'**
   String get installOpenSettingsHint;
 }
 
