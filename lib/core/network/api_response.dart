@@ -22,6 +22,20 @@ extension JsonMap on Map<String, dynamic> {
   int intVal(String key, [int fallback = 0]) =>
       (this[key] as num?)?.toInt() ?? fallback;
 
+  /// Like [intVal] but a missing or non-numeric field is a contract break:
+  /// money must fail loudly instead of silently showing 0.
+  int reqInt(String key) {
+    final value = this[key];
+    if (value is num) return value.toInt();
+    throw ParsingException('Missing or invalid "$key"');
+  }
+
+  String reqStr(String key) {
+    final value = this[key];
+    if (value is String && value.isNotEmpty) return value;
+    throw ParsingException('Missing or invalid "$key"');
+  }
+
   int? intOrNull(String key) => (this[key] as num?)?.toInt();
 
   num numVal(String key, [num fallback = 0]) => (this[key] as num?) ?? fallback;

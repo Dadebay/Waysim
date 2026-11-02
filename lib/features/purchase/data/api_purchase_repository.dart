@@ -170,7 +170,7 @@ class ApiPurchaseRepository implements PurchaseRepository {
         order.intOrNull('amountCents') ?? acceptedAmount ?? expectedPrice.cents,
       ),
       esim: esim.dataOrNull!,
-      balanceAfter: Money(wallet.intVal('balanceCents')),
+      balanceAfter: Money(wallet.reqInt('balanceCents')),
     );
   });
 }

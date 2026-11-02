@@ -16,7 +16,7 @@ class ApiWalletRepository implements WalletRepository {
   @override
   Future<Result<Money>> balance() => apiResult(
     () async =>
-        Money(asMap(await api.get('/v1/wallet')).intVal('balanceCents')),
+        Money(asMap(await api.get('/v1/wallet')).reqInt('balanceCents')),
   );
 
   @override
@@ -191,7 +191,7 @@ TopUpSession paymentFromApi(Map<String, dynamic> j) {
   return TopUpSession(
     id: j.str('id'),
     publicNo: j.intOrNull('publicNo'),
-    amount: Money(j.intVal('amountCents')),
+    amount: Money(j.reqInt('amountCents')),
     rawStatus: j.str('status'),
     createdAt: j.dateOrNull('createdAt'),
     creditedAt: j.dateOrNull('creditedAt'),

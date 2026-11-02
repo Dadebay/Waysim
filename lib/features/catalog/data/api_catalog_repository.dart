@@ -37,7 +37,7 @@ class ApiCatalogRepository implements CatalogRepository {
     code: j.str('code'),
     kind: region ? DestinationKind.region : DestinationKind.country,
     names: {language: j.str('name'), 'en': j.str('name')},
-    minPrice: Money(j.intVal('fromCents')),
+    minPrice: Money(j.reqInt('fromCents')),
     countryCount: region ? j.intVal('countriesCount') : null,
   );
 
@@ -171,7 +171,7 @@ EsimPackage packageFromApi(
   final duration = perDay
       ? (days ?? minDays).clamp(minDays, maxDays)
       : j.intVal('days');
-  final priceCents = j.intVal('priceCents');
+  final priceCents = j.reqInt('priceCents');
   final packageKind =
       kind ??
       (j.boolVal('unlimited') || perDay
