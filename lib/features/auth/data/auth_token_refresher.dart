@@ -50,7 +50,9 @@ class AuthTokenRefresher implements TokenRefresher {
       if (status == 401 && body is Map && body['code'] == 'session_revoked') {
         return RefreshOutcome.revoked;
       }
-      return status != null && status >= 400 && status < 500
+      // 408 and 429 only say "try later"; the refresh token is still good.
+      final retryLater = status == 408 || status == 429;
+      return status != null && status >= 400 && status < 500 && !retryLater
           ? RefreshOutcome.rejected
           : RefreshOutcome.unavailable;
     }
