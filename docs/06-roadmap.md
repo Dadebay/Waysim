@@ -140,6 +140,22 @@ Sayaç: `dart run tool/roadmap_status.dart` (aşağıdaki onay kutularını okur
 - [~] **T7.3** Mağaza hazırlığı: ekran görüntüleri (5 dil), açıklamalar, gizlilik formları, inceleme hesabı (bkz. [05](05-platform-ios-android.md))
 - [ ] **T7.4** Pentest bulgularının kapatılması; yayın
 
+## Faz 8 — Müşteri kod incelemesi düzeltmeleri *(2026-11-02)*
+
+- [x] **T8.1** Offline/arızalı backend ile açılışta oturum korunur (son `/v1/me` yerelde saklanır; geçici hata = misafir değil), profil yoksa sonraki `revalidate`'te yeniden denenir
+- [x] **T8.2** Çıkış offline iken de yerelde tamamlanır; token yenilemede 408/429 çıkışa yol açmaz
+- [x] **T8.3** Girişte sunucudaki pazarlama tercihi (opt-out) yerel varsayılanın üstüne yazılmaz
+- [x] **T8.4** Bildirim ve ATT izinleri açılışta değil, ilk satın almadan sonra istenir (T5.4 ile uyumlu)
+- [x] **T8.5** Yakalanmamış async hatalar: ağ/API/zaman aşımı non-fatal, diğerleri fatal
+- [x] **T8.6** API `X-Request-Id` yakalanır (`Failure.requestId`, log), HTTP 426 → güncelleme ekranı
+- [x] **T8.7** Para alanları (bakiye, fiyat, tutar) eksikse `ParsingException`; 0 gösterilmez
+- [x] **T8.8** Offline eSIM erişimi: liste (aktivasyon kodları dahil) `flutter_secure_storage`'da saklanır, çıkışta silinir
+- [x] **T8.9** `docs/` geri yüklendi (73d137e silmişti); commit'ler Conventional Commits'e göre bölündü
+- [ ] **T8.10** 73d137e'nin sildiği ~3000 satır yorumun geri getirilmesi (dosya dosya; tam revert 22 çakışma verdi)
+- [ ] **T8.11** Pull request açıklaması (ne eklendi, neden, test) ve review için PR
+- [ ] **T8.12** `requestId`'yi hata ekranında/destek e-postasında göstermek
+- *Yapılmadı (müşteri kararı):* cihaz diline göre otomatik dil — varsayılan dil İngilizce kalır
+
 ## Müşteri/ekipten beklenenler (engelleyiciler)
 
 Firebase projesi (+ `GoogleService-Info.plist`, `google-services.json`), Apple Developer & Google Play hesapları, `waysim.co` DNS (AASA/assetlinks),
