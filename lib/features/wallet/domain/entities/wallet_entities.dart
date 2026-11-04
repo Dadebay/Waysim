@@ -4,7 +4,14 @@ import '../../../../core/utils/formatters/money.dart';
 
 enum OrderType { purchase, topUp }
 
-enum OrderOutcome { completed, failedRefunded, pending, review, failed }
+enum OrderOutcome {
+  completed,
+  failedRefunded,
+  pending,
+  processing,
+  review,
+  failed,
+}
 
 class WalletOrder extends Equatable {
   const WalletOrder({
@@ -75,7 +82,15 @@ class WalletOrder extends Equatable {
 
 enum TopUpMethod { paypal, crypto }
 
-enum TopUpStatus { waiting, confirming, credited, review, expired, failed }
+enum TopUpStatus {
+  waiting,
+  processing,
+  confirming,
+  credited,
+  review,
+  expired,
+  failed,
+}
 
 class TopUpSession extends Equatable {
   const TopUpSession({

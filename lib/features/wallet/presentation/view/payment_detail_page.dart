@@ -46,6 +46,7 @@ class _PaymentDetailPageState extends State<PaymentDetailPage> {
       if (_visible &&
           session != null &&
           (session.status == TopUpStatus.waiting ||
+              session.status == TopUpStatus.processing ||
               session.status == TopUpStatus.confirming ||
               session.status == TopUpStatus.review)) {
         unawaited(_payment.load(silent: true));
@@ -124,6 +125,7 @@ class _PaymentDetails extends StatelessWidget {
 
   String _status(AppLocalizations l10n) => switch (session.status) {
     TopUpStatus.waiting => l10n.cryptoWaitingPayment,
+    TopUpStatus.processing => l10n.statusProvisioning,
     TopUpStatus.confirming => l10n.cryptoStepConfirmations,
     TopUpStatus.credited => l10n.orderCompleted,
     TopUpStatus.review => l10n.paymentReview,

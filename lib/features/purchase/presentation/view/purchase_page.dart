@@ -64,7 +64,7 @@ class _PurchaseView extends StatelessWidget {
                   PurchasePhase.success => _Success(
                     key: const ValueKey('success'),
                     subject: subject,
-                    esim: state.esim!,
+                    esim: state.esim,
                   ),
                   PurchasePhase.failed => _Failed(
                     key: const ValueKey('failed'),
@@ -124,7 +124,7 @@ class _Success extends StatelessWidget {
   const _Success({super.key, required this.subject, required this.esim});
 
   final PurchaseSubject subject;
-  final Esim esim;
+  final Esim? esim;
 
   @override
   Widget build(BuildContext context) {
@@ -159,49 +159,50 @@ class _Success extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.xxl),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-            border: Border.all(color: c.border),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Row(
-              children: [
-                subject.flagCode == null
-                    ? const RegionIcon(size: 40)
-                    : FlagIcon(subject.flagCode!, size: 40),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(l10n.esimTitle(esim), style: context.text.h3),
-                      Text(
-                        l10n.esimPlan(esim),
-                        style: context.text.bodySm.copyWith(
-                          color: c.textSecondary,
+        if (esim != null)
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: c.border),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Row(
+                children: [
+                  subject.flagCode == null
+                      ? const RegionIcon(size: 40)
+                      : FlagIcon(subject.flagCode!, size: 40),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.esimTitle(esim!), style: context.text.h3),
+                        Text(
+                          l10n.esimPlan(esim!),
+                          style: context.text.bodySm.copyWith(
+                            color: c.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                StatusBadge(
-                  label: esim.status.label(l10n),
-                  tone: esim.status.tone,
-                ),
-              ],
+                  StatusBadge(
+                    label: esim!.status.label(l10n),
+                    tone: esim!.status.tone,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         const Spacer(),
         if (topUp)
           AppButton(label: l10n.actionDone, onPressed: () => context.pop(true))
-        else ...[
+        else if (esim != null) ...[
           AppButton(
             label: l10n.esimInstall,
-            onPressed: () => installEsim(context, esim),
+            onPressed: () => installEsim(context, esim!),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -213,6 +214,11 @@ class _Success extends StatelessWidget {
           AppButton(
             label: l10n.actionLater,
             variant: AppButtonVariant.ghost,
+            onPressed: () => context.go(AppRoute.myEsim.path),
+          ),
+        ] else ...[
+          AppButton(
+            label: l10n.actionGoToMyEsim,
             onPressed: () => context.go(AppRoute.myEsim.path),
           ),
         ],

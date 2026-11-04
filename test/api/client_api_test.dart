@@ -5,8 +5,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:waysim/core/error/failure.dart';
+import 'package:waysim/core/error/exceptions.dart';
 import 'package:waysim/core/utils/result.dart';
 import 'package:waysim/core/services/push_router.dart';
+import 'package:waysim/core/services/push_service.dart';
 import 'package:waysim/features/notification/presentation/cubit/notification_prefs_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,8 +27,10 @@ import 'package:waysim/features/catalog/domain/entities/esim_package.dart';
 import 'package:waysim/features/config/data/api_config_repository.dart';
 import 'package:waysim/features/esim/data/api_esim_repository.dart';
 import 'package:waysim/features/esim/domain/entities/esim.dart';
+import 'package:waysim/features/esim/presentation/cubit/esim_list_cubit.dart';
 import 'package:waysim/features/legal/data/api_legal_repository.dart';
 import 'package:waysim/features/purchase/data/api_purchase_repository.dart';
+import 'package:waysim/features/purchase/presentation/cubit/purchase_cubit.dart';
 import 'package:waysim/features/referral/data/api_referral_repository.dart';
 import 'package:waysim/features/support/data/api_support_repository.dart';
 import 'package:waysim/features/support/presentation/cubit/chat_cubit.dart';
@@ -764,7 +768,7 @@ void main() {
   });
 
   test(
-    'purchase polls to done, gets installation and wallet, retries the same order without another POST',
+    'purchase polls to done and retries the same order without another POST',
     () async {
       var polls = 0;
       final adapter = ContractAdapter(
@@ -783,18 +787,11 @@ void main() {
             'amountCents': 575,
             'esimId': 'esim-1',
           },
-          '/v1/esims/esim-1' => esim(detail: true),
-          '/v1/catalog/packages/pkg-1' => package,
-          '/v1/wallet' => {'balanceCents': 1851},
           _ => throw StateError('Unexpected ${o.path}'),
         },
       );
       final api = ApiClient(transport(adapter));
-      final repo = ApiPurchaseRepository(
-        api,
-        ApiEsimRepository(api, local),
-        delay: (_) async {},
-      );
+      final repo = ApiPurchaseRepository(api, delay: (_) async {});
       final result = await repo.buy(
         packageId: 'pkg-1',
         idempotencyKey: 'key-1',
@@ -804,8 +801,7 @@ void main() {
       expect(result.isSuccess, true);
       expect(result.dataOrNull!.orderId, 'order-1');
       expect(result.dataOrNull!.charged.cents, 575);
-      expect(result.dataOrNull!.balanceAfter.cents, 1851);
-      expect(result.dataOrNull!.esim.lpa, 'LPA:1\$smdp.test\$activation');
+      expect(result.dataOrNull!.esimId, 'esim-1');
       expect(adapter.requests.first.headers['Idempotency-Key'], 'key-1');
       expect(body(adapter.requests.first), {'packageId': 'pkg-1', 'days': 7});
       await repo.buy(
@@ -829,14 +825,171 @@ void main() {
       },
     );
     final api = ApiClient(transport(adapter));
-    final result =
-        await ApiPurchaseRepository(api, ApiEsimRepository(api, local)).buy(
-          packageId: 'p',
-          idempotencyKey: 'key',
-          expectedPrice: const Money(500),
-        );
+    final result = await ApiPurchaseRepository(api).buy(
+      packageId: 'p',
+      idempotencyKey: 'key',
+      expectedPrice: const Money(500),
+    );
     expect(result.failureOrNull?.code, 'order_failed_refunded');
     expect(adapter.requests, hasLength(1));
+  });
+
+  test('a completed order succeeds before eSIM and wallet reads', () async {
+    final adapter = ContractAdapter(
+      (o) => switch (o.path) {
+        '/v1/orders' => {
+          'order': {
+            'id': 'order-done',
+            'status': 'done',
+            'amountCents': 575,
+            'esimId': 'esim-1',
+          },
+        },
+        _ => throw StateError('Post-purchase read is unavailable: ${o.path}'),
+      },
+    );
+    final api = ApiClient(transport(adapter));
+    final result = await ApiPurchaseRepository(api).buy(
+      packageId: 'pkg-1',
+      idempotencyKey: 'done-key',
+      expectedPrice: const Money(599),
+    );
+
+    expect(result.isSuccess, true);
+    expect(result.dataOrNull?.orderId, 'order-done');
+    expect(result.dataOrNull?.charged.cents, 575);
+    expect(adapter.requests.map((o) => o.path), ['/v1/orders']);
+  });
+
+  test('a completed order without an eSIM ID still reports success', () async {
+    final adapter = ContractAdapter(
+      (o) => {
+        'order': {'id': 'order-done', 'status': 'done', 'amountCents': 575},
+      },
+    );
+    final result = await ApiPurchaseRepository(ApiClient(transport(adapter)))
+        .buy(
+          packageId: 'pkg-1',
+          idempotencyKey: 'done-key',
+          expectedPrice: const Money(599),
+        );
+
+    expect(result.isSuccess, true);
+    expect(result.dataOrNull?.esimId, isNull);
+    expect(adapter.requests, hasLength(1));
+  });
+
+  test(
+    'purchase success survives failed background eSIM and wallet loads',
+    () async {
+      final detail = Completer<Object?>();
+      final walletRead = Completer<Object?>();
+      final readsStarted = Completer<void>();
+      final requested = <String>{};
+      final adapter = ContractAdapter((o) {
+        if (o.path == '/v1/esims/esim-1' || o.path == '/v1/wallet') {
+          requested.add(o.path);
+          if (requested.length == 2) readsStarted.complete();
+        }
+        return switch (o.path) {
+          '/v1/orders' => {
+            'order': {
+              'id': 'order-done',
+              'status': 'done',
+              'amountCents': 575,
+              'esimId': 'esim-1',
+            },
+          },
+          '/v1/esims/esim-1' => detail.future,
+          '/v1/wallet' => walletRead.future,
+          _ => throw StateError('Unexpected ${o.path}'),
+        };
+      });
+      final api = ApiClient(transport(adapter));
+      final esims = EsimListCubit(ApiEsimRepository(api, local));
+      final wallet = WalletCubit(ApiWalletRepository(api));
+      final cubit = PurchaseCubit(
+        repository: ApiPurchaseRepository(api),
+        wallet: wallet,
+        esims: esims,
+        pushGate: PushPermissionGate(NoopPushService(), local),
+        analytics: RecordingAnalytics(),
+        package: const EsimPackage(
+          id: 'pkg-1',
+          destinationCode: 'TR',
+          kind: PackageKind.limited,
+          days: 7,
+          price: Money(599),
+        ),
+      );
+      addTearDown(cubit.close);
+      addTearDown(esims.close);
+      addTearDown(wallet.close);
+
+      await cubit.run();
+      expect(cubit.state.phase, PurchasePhase.success);
+      await readsStarted.future.timeout(const Duration(seconds: 2));
+      expect(
+        adapter.requests.map((o) => o.path),
+        containsAll(['/v1/orders', '/v1/esims/esim-1', '/v1/wallet']),
+      );
+
+      detail.complete(reply({'error': 'unavailable'}, 503));
+      walletRead.complete(reply({'error': 'unavailable'}, 503));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.phase, PurchasePhase.success);
+    },
+  );
+
+  test('completed purchase hydrates eSIM and balance after success', () async {
+    final adapter = ContractAdapter(
+      (o) => switch (o.path) {
+        '/v1/orders' => {
+          'order': {
+            'id': 'order-done',
+            'status': 'done',
+            'amountCents': 575,
+            'esimId': 'esim-1',
+          },
+        },
+        '/v1/esims/esim-1' => esim(detail: true),
+        '/v1/catalog/packages/pkg-1' => package,
+        '/v1/wallet' => {'balanceCents': 1851},
+        _ => throw StateError('Unexpected ${o.path}'),
+      },
+    );
+    final api = ApiClient(transport(adapter));
+    final esims = EsimListCubit(ApiEsimRepository(api, local));
+    final wallet = WalletCubit(ApiWalletRepository(api));
+    final cubit = PurchaseCubit(
+      repository: ApiPurchaseRepository(api),
+      wallet: wallet,
+      esims: esims,
+      pushGate: PushPermissionGate(NoopPushService(), local),
+      analytics: RecordingAnalytics(),
+      package: const EsimPackage(
+        id: 'pkg-1',
+        destinationCode: 'TR',
+        kind: PackageKind.limited,
+        days: 7,
+        price: Money(599),
+      ),
+    );
+    addTearDown(cubit.close);
+    addTearDown(esims.close);
+    addTearDown(wallet.close);
+
+    final loadedEsim = cubit.stream.firstWhere((s) => s.esim != null);
+    final loadedBalance = wallet.stream.firstWhere((s) => s.balance != null);
+    await cubit.run();
+    expect(cubit.state.phase, PurchasePhase.success);
+    await Future.wait([
+      loadedEsim.timeout(const Duration(seconds: 2)),
+      loadedBalance.timeout(const Duration(seconds: 2)),
+    ]);
+    expect(cubit.state.esim?.lpa, 'LPA:1\$smdp.test\$activation');
+    expect(wallet.state.balance, const Money(1851));
+    expect(esims.byId('esim-1'), isNotNull);
   });
 
   test(
@@ -897,9 +1050,31 @@ void main() {
       ]) {
         expect(paymentStatus(status), TopUpStatus.review);
       }
-      expect(paymentStatus('disputed'), TopUpStatus.failed);
+      expect(paymentStatus('failed'), TopUpStatus.failed);
+      expect(paymentStatus('disputed'), TopUpStatus.processing);
     },
   );
+
+  test('a crypto invoice requires a nonempty address and amount', () {
+    for (final missing in ['payAddress', 'payAmount']) {
+      final invoice = payment();
+      (invoice['crypto'] as Map<String, dynamic>).remove(missing);
+      expect(() => paymentFromApi(invoice), throwsA(isA<ParsingException>()));
+    }
+  });
+
+  test('unknown payment and order statuses remain in progress', () {
+    expect(paymentStatus('provider_new_state'), TopUpStatus.processing);
+    expect(
+      walletOrderFromApi({
+        'id': 'order-1',
+        'publicNo': 1,
+        'status': 'provider_new_state',
+        'amountCents': 100,
+      }, OrderType.purchase).outcome,
+      OrderOutcome.processing,
+    );
+  });
 
   test(
     'top-up cubit blocks below currency minimum and resumes a pending invoice without POST',
@@ -1048,7 +1223,7 @@ void main() {
     expect(adapter.requests.single.path, '/v1/orders');
     expect(result.dataOrNull, hasLength(1));
     expect(result.dataOrNull!.single.id, 'order-uuid');
-    expect(result.dataOrNull!.single.outcome, OrderOutcome.pending);
+    expect(result.dataOrNull!.single.outcome, OrderOutcome.processing);
   });
 
   test(

@@ -147,11 +147,13 @@ WalletOrder walletOrderFromApi(Map<String, dynamic> j, OrderType type) {
     outcome: switch (j.str('status')) {
       'done' || 'credited' => OrderOutcome.completed,
       'failed_refunded' || 'refunded' => OrderOutcome.failedRefunded,
-      'pending' || 'processing' || 'confirming' => OrderOutcome.pending,
+      'pending' || 'confirming' => OrderOutcome.pending,
+      'processing' => OrderOutcome.processing,
       'review_underpaid' ||
       'review_overpaid' ||
       'review_late' => OrderOutcome.review,
-      _ => OrderOutcome.failed,
+      'failed' => OrderOutcome.failed,
+      _ => OrderOutcome.processing,
     },
     amount: Money(
       payment && j.str('status') == 'credited'
@@ -173,13 +175,15 @@ WalletOrder walletOrderFromApi(Map<String, dynamic> j, OrderType type) {
 
 TopUpStatus paymentStatus(String status) => switch (status) {
   'pending' => TopUpStatus.waiting,
+  'processing' => TopUpStatus.processing,
   'confirming' => TopUpStatus.confirming,
   'credited' => TopUpStatus.credited,
   'review_underpaid' ||
   'review_overpaid' ||
   'review_late' => TopUpStatus.review,
   'expired' => TopUpStatus.expired,
-  _ => TopUpStatus.failed,
+  'failed' => TopUpStatus.failed,
+  _ => TopUpStatus.processing,
 };
 
 TopUpSession paymentFromApi(Map<String, dynamic> j) {
@@ -208,8 +212,8 @@ TopUpSession paymentFromApi(Map<String, dynamic> j) {
         : CryptoInvoice(
             coin: c.str('coin'),
             network: c.str('network'),
-            address: c.str('payAddress'),
-            amountText: c.str('payAmount'),
+            address: c.reqStr('payAddress'),
+            amountText: c.reqStr('payAmount'),
             paidAmountText: c.strOrNull('paidAmount'),
             providerStatus: c.strOrNull('providerStatus'),
             feeCents: c.intOrNull('feeCents'),

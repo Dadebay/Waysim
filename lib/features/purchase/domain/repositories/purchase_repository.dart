@@ -6,14 +6,16 @@ class PurchaseReceipt {
   const PurchaseReceipt({
     required this.orderId,
     required this.charged,
-    required this.esim,
-    required this.balanceAfter,
+    required this.esimId,
+    this.esim,
+    this.balanceAfter,
   });
 
   final String orderId;
   final Money charged;
-  final Esim esim;
-  final Money balanceAfter;
+  final String? esimId;
+  final Esim? esim;
+  final Money? balanceAfter;
 }
 
 abstract interface class PurchaseRepository {

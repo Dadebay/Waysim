@@ -238,6 +238,7 @@ class MockBackend {
     final status = switch (order.outcome) {
       OrderOutcome.completed => TopUpStatus.credited,
       OrderOutcome.pending => TopUpStatus.waiting,
+      OrderOutcome.processing => TopUpStatus.processing,
       OrderOutcome.review => TopUpStatus.review,
       OrderOutcome.failed || OrderOutcome.failedRefunded => TopUpStatus.failed,
     };
@@ -354,6 +355,7 @@ class MockBackend {
       _receipts[key] = PurchaseReceipt(
         orderId: order.id!,
         charged: order.amount,
+        esimId: esim.id,
         esim: esim,
         balanceAfter: _balance,
       ),
@@ -414,6 +416,7 @@ class MockBackend {
       _receipts[key] = PurchaseReceipt(
         orderId: order.id!,
         charged: order.amount,
+        esimId: updated.id,
         esim: updated,
         balanceAfter: _balance,
       ),

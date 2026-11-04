@@ -56,9 +56,9 @@ void main() {
 
       final receipt = result.dataOrNull!;
       expect(receipt.balanceAfter, const Money(1851));
-      expect(receipt.esim.status, EsimStatus.notInstalled);
-      expect(receipt.esim.volumeBytes, 5 * 1024 * 1024 * 1024);
-      expect(receipt.esim.lpa, startsWith(r'LPA:1$smdp.example.com$'));
+      expect(receipt.esim!.status, EsimStatus.notInstalled);
+      expect(receipt.esim!.volumeBytes, 5 * 1024 * 1024 * 1024);
+      expect(receipt.esim!.lpa, startsWith(r'LPA:1$smdp.example.com$'));
       expect((await b.orders(OrderType.purchase)).dataOrNull, hasLength(1));
     });
 
@@ -113,7 +113,7 @@ void main() {
       );
 
       final after = result.dataOrNull!.esim;
-      expect(after.volumeBytes, before.volumeBytes! + 3 * 1024 * 1024 * 1024);
+      expect(after!.volumeBytes, before.volumeBytes! + 3 * 1024 * 1024 * 1024);
       expect(after.days, before.days + 30);
       expect(result.dataOrNull!.balanceAfter, const Money(2051));
     });
@@ -226,7 +226,7 @@ void main() {
       'TR_1_7',
       'k',
       const Money(199),
-    )).dataOrNull!.esim.id;
+    )).dataOrNull!.esim!.id;
 
     expect((await b.bindToDevice(id, 'iPhone 15')).isSuccess, isTrue);
     expect((await b.bindToDevice(id, 'iPhone 15')).isSuccess, isTrue);

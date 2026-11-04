@@ -113,10 +113,18 @@ class PurchaseCubit extends Cubit<PurchaseState> {
     switch (result) {
       case Success(:final data):
         AppLogger.i(
-          '[ORDER] Checkout completed packageId=${package.id} esimId=${data.esim.id}',
+          '[ORDER] Checkout completed packageId=${package.id} esimId=${data.esimId}',
         );
-        _wallet.set(data.balanceAfter);
-        _esims.replace(data.esim);
+        final balance = data.balanceAfter;
+        if (balance == null) {
+          unawaited(_wallet.refresh());
+        } else {
+          _wallet.set(balance);
+        }
+        final esim =
+            data.esim ??
+            (data.esimId == null ? null : _esims.byId(data.esimId!));
+        if (data.esim != null) _esims.replace(data.esim!);
         _analytics.purchased(
           transactionId: data.orderId,
           packageId: package.id,
@@ -124,7 +132,11 @@ class PurchaseCubit extends Cubit<PurchaseState> {
           price: data.charged,
           addOn: esimId != null,
         );
-        emit(PurchaseState(phase: PurchasePhase.success, esim: data.esim));
+        emit(PurchaseState(phase: PurchasePhase.success, esim: esim));
+
+        if (data.esim == null && data.esimId != null) {
+          unawaited(_loadEsim(data.esimId!));
+        }
 
         unawaited(_pushGate.afterPurchase());
       case Error(:final failure):
@@ -144,6 +156,18 @@ class PurchaseCubit extends Cubit<PurchaseState> {
         unawaited(_wallet.refresh());
         _analytics.purchaseFailed(packageId: package.id, reason: failure.code);
         emit(PurchaseState(phase: PurchasePhase.failed, failure: failure));
+    }
+  }
+
+  Future<void> _loadEsim(String id) async {
+    try {
+      final result = await _esims.detail(id);
+      if (isClosed || state.phase != PurchasePhase.success) return;
+      if (result case Success(:final data)) {
+        emit(PurchaseState(phase: PurchasePhase.success, esim: data));
+      }
+    } on Object catch (error) {
+      AppLogger.w('[ORDER] eSIM refresh failed after completed order: $error');
     }
   }
 

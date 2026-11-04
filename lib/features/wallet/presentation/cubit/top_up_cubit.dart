@@ -388,6 +388,7 @@ class TopUpCubit extends Cubit<TopUpState> {
           _poll?.cancel();
           emit(state.copyWith(phase: TopUpPhase.expired, progress: data));
         case TopUpStatus.waiting ||
+            TopUpStatus.processing ||
             TopUpStatus.confirming ||
             TopUpStatus.review:
           emit(state.copyWith(progress: data));

@@ -1054,6 +1054,8 @@ class _CryptoInvoiceState extends State<_CryptoInvoice> {
                   child: Text(
                     progress.status == TopUpStatus.review
                         ? l10n.paymentReview
+                        : progress.status == TopUpStatus.processing
+                        ? l10n.statusProvisioning
                         : progress.status == TopUpStatus.confirming
                         ? l10n.cryptoStepConfirmations
                         : l10n.cryptoWaitingPayment,

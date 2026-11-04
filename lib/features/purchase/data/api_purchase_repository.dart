@@ -5,17 +5,11 @@ import '../../../core/network/api_response.dart';
 import '../../../core/utils/formatters/money.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/result.dart';
-import '../../esim/data/api_esim_repository.dart';
 import '../domain/repositories/purchase_repository.dart';
 
 class ApiPurchaseRepository implements PurchaseRepository {
-  ApiPurchaseRepository(
-    this.api,
-    this.esims, {
-    this.delay = Future<void>.delayed,
-  });
+  ApiPurchaseRepository(this.api, {this.delay = Future<void>.delayed});
   final ApiClient api;
-  final ApiEsimRepository esims;
   final Future<void> Function(Duration) delay;
   final _orders = <String, String>{};
 
@@ -145,23 +139,14 @@ class ApiPurchaseRepository implements PurchaseRepository {
       );
     }
     final esimId = order.strOrNull('esimId');
-    if (status != 'done' || esimId == null) {
+    if (status != 'done') {
       AppLogger.w(
         '[ORDER] Incomplete orderId=$orderId status=$status esimId=${esimId ?? '-'}',
       );
       throw const ParsingException('Incomplete order');
     }
-    final esim = await esims.get(esimId);
-    if (esim case Error(:final failure)) {
-      throw ServerException(
-        failure.message ?? 'eSIM unavailable',
-        code: failure.code,
-      );
-    }
-    final wallet = asMap(await api.get('/v1/wallet'));
     AppLogger.i(
-      '[ORDER] Ready orderId=$orderId esimId=$esimId '
-      'balanceCents=${wallet.intVal('balanceCents')} '
+      '[ORDER] Done orderId=$orderId esimId=$esimId '
       'elapsedMs=${elapsed.elapsedMilliseconds}',
     );
     return PurchaseReceipt(
@@ -169,8 +154,7 @@ class ApiPurchaseRepository implements PurchaseRepository {
       charged: Money(
         order.intOrNull('amountCents') ?? acceptedAmount ?? expectedPrice.cents,
       ),
-      esim: esim.dataOrNull!,
-      balanceAfter: Money(wallet.reqInt('balanceCents')),
+      esimId: esimId,
     );
   });
 }

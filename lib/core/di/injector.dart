@@ -246,10 +246,7 @@ void _registerRepositories() {
       )
       ..registerLazySingleton<EsimRepository>(() => getIt<ApiEsimRepository>())
       ..registerLazySingleton<PurchaseRepository>(
-        () => ApiPurchaseRepository(
-          getIt<ApiClient>(),
-          getIt<ApiEsimRepository>(),
-        ),
+        () => ApiPurchaseRepository(getIt<ApiClient>()),
       )
       ..registerLazySingleton<WalletRepository>(
         () => ApiWalletRepository(getIt<ApiClient>()),

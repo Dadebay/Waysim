@@ -164,6 +164,7 @@ class _OrderContent extends StatelessWidget {
       OrderOutcome.completed => l10n.orderCompleted,
       OrderOutcome.failedRefunded => l10n.statusFailedRefunded,
       OrderOutcome.pending => l10n.paymentPending,
+      OrderOutcome.processing => l10n.statusProvisioning,
       OrderOutcome.review => l10n.paymentReview,
       OrderOutcome.failed => l10n.statusFailed,
     };
