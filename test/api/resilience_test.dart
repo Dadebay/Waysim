@@ -172,6 +172,78 @@ void main() {
       expect((await repo.get('unknown')).isSuccess, isFalse);
     });
 
+    test(
+      'a purchased eSIM installation code is available offline without opening its detail first',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final local = LocalStorageImpl(await SharedPreferences.getInstance());
+        final secure = MemorySecureStorage();
+        var online = true;
+        final adapter = ContractAdapter((o) {
+          if (!online) throw _offline(o);
+          return switch (o.path) {
+            '/v1/esims' => {
+              'items': o.queryParameters['tab'] == 'current' ? [esim()] : [],
+              'nextCursor': null,
+            },
+            '/v1/catalog/packages/pkg-1' => package,
+            '/v1/esims/esim-1' => esim(detail: true),
+            _ => throw StateError('Unexpected ${o.path}'),
+          };
+        });
+        final repo = ApiEsimRepository(
+          ApiClient(transport(adapter)),
+          local,
+          secure,
+        );
+
+        expect((await repo.list()).dataOrNull, hasLength(1));
+        online = false;
+        expect(
+          (await repo.get('esim-1')).dataOrNull?.lpa,
+          'LPA:1\$smdp.test\$activation',
+        );
+      },
+    );
+
+    test('a list refresh does not discard a saved installation code', () async {
+      SharedPreferences.setMockInitialValues({});
+      final local = LocalStorageImpl(await SharedPreferences.getInstance());
+      final secure = MemorySecureStorage();
+      var online = true;
+      var detailOnline = true;
+      final adapter = ContractAdapter((o) {
+        if (!online) throw _offline(o);
+        return switch (o.path) {
+          '/v1/esims' => {
+            'items': o.queryParameters['tab'] == 'current' ? [esim()] : [],
+            'nextCursor': null,
+          },
+          '/v1/catalog/packages/pkg-1' => package,
+          '/v1/esims/esim-1' when detailOnline => esim(detail: true),
+          '/v1/esims/esim-1' => throw _offline(o),
+          _ => throw StateError('Unexpected ${o.path}'),
+        };
+      });
+      final repo = ApiEsimRepository(
+        ApiClient(transport(adapter)),
+        local,
+        secure,
+      );
+
+      expect(
+        (await repo.get('esim-1')).dataOrNull?.activationCode,
+        'activation',
+      );
+      detailOnline = false;
+      expect((await repo.list()).dataOrNull, hasLength(1));
+      online = false;
+      expect(
+        (await repo.get('esim-1')).dataOrNull?.activationCode,
+        'activation',
+      );
+    });
+
     test('signing out wipes the saved codes', () async {
       final secure = MemorySecureStorage();
       await secure.saveEsimCache('[]');

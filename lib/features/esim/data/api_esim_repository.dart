@@ -118,6 +118,45 @@ class ApiEsimRepository implements EsimRepository {
     await _remember(all);
   }
 
+  Future<Esim> _listItem(
+    Map<String, dynamic> card,
+    Map<String, Esim> saved,
+  ) async {
+    if (card.str('status') != 'not_installed' ||
+        card.mapOrNull('install')?.str('activationCode').isNotEmpty == true) {
+      return decode(card);
+    }
+
+    final id = card.reqStr('id');
+    try {
+      // List cards omit installation credentials. Save the detail while online
+      // so the traveller can install an already purchased eSIM offline.
+      return await decode(
+        asMap(await api.get('/v1/esims/${Uri.encodeComponent(id)}')),
+      );
+    } on AppException catch (e) {
+      if (!e.isTransient) rethrow;
+      final previous = saved[id];
+      if (previous == null ||
+          previous.status != EsimStatus.notInstalled ||
+          previous.activationCode.isEmpty) {
+        return decode(card);
+      }
+      // A temporary detail failure must not erase a valid saved code when the
+      // card list itself still says this profile has not been installed.
+      return decode({
+        ...card,
+        'install': {
+          'smdpAddress': previous.smdpAddress,
+          'activationCode': previous.activationCode,
+          'iccid': previous.iccid,
+          'lpaString': previous.lpaString,
+          'appleUniversalLink': previous.appleUniversalLink,
+        },
+      });
+    }
+  }
+
   /// Runs [load]; when the phone is offline or the backend is failing, falls
   /// back to the saved copy so a traveller can still open and install eSIMs.
   Future<T> _orCached<T>(
@@ -144,9 +183,14 @@ class ApiEsimRepository implements EsimRepository {
       final cards = {
         for (final j in pages.expand((x) => x)) j.str('id'): j,
       }.values.toList();
+      final saved = {for (final e in await _cached()) e.id: e};
       final result = <Esim>[];
       for (var i = 0; i < cards.length; i += 4) {
-        result.addAll(await Future.wait(cards.skip(i).take(4).map(decode)));
+        result.addAll(
+          await Future.wait(
+            cards.skip(i).take(4).map((card) => _listItem(card, saved)),
+          ),
+        );
       }
       await _remember(result);
       return result;

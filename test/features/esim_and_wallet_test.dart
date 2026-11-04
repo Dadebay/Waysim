@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -256,9 +258,11 @@ void main() {
     await tester.pumpWidget(const App());
     await tester.pumpAndSettle();
 
-    GoRouter.of(
-      tester.element(find.text('My eSIM').last),
-    ).push('/esim/esim_seed_ge?networkReset=true');
+    unawaited(
+      GoRouter.of(
+        tester.element(find.text('My eSIM').last),
+      ).push('/esim/esim_seed_ge?networkReset=true'),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Network reset steps'), findsWidgets);
