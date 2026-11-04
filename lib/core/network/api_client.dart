@@ -24,10 +24,26 @@ class ApiClient {
     return dio;
   }
 
-  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters, CancelToken? cancelToken}) =>
-      _request(() => _dio.get<dynamic>(path, queryParameters: _clean(queryParameters), cancelToken: cancelToken));
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+  }) => _request(
+    () => _dio.get<dynamic>(
+      path,
+      queryParameters: _clean(queryParameters),
+      cancelToken: cancelToken,
+    ),
+  );
 
-  Future<dynamic> post(String path, {Object? data, Map<String, dynamic>? queryParameters, CancelToken? cancelToken, Duration? receiveTimeout, Map<String, dynamic>? headers}) => _request(
+  Future<dynamic> post(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    Duration? receiveTimeout,
+    Map<String, dynamic>? headers,
+  }) => _request(
     () => _dio.post<dynamic>(
       path,
       data: data,
@@ -37,11 +53,26 @@ class ApiClient {
     ),
   );
 
-  Future<dynamic> put(String path, {Object? data, CancelToken? cancelToken}) => _request(() => _dio.put<dynamic>(path, data: data, cancelToken: cancelToken));
+  Future<dynamic> put(String path, {Object? data, CancelToken? cancelToken}) =>
+      _request(
+        () => _dio.put<dynamic>(path, data: data, cancelToken: cancelToken),
+      );
 
-  Future<dynamic> patch(String path, {Object? data, CancelToken? cancelToken}) => _request(() => _dio.patch<dynamic>(path, data: data, cancelToken: cancelToken));
+  Future<dynamic> patch(
+    String path, {
+    Object? data,
+    CancelToken? cancelToken,
+  }) => _request(
+    () => _dio.patch<dynamic>(path, data: data, cancelToken: cancelToken),
+  );
 
-  Future<dynamic> delete(String path, {Object? data, CancelToken? cancelToken}) => _request(() => _dio.delete<dynamic>(path, data: data, cancelToken: cancelToken));
+  Future<dynamic> delete(
+    String path, {
+    Object? data,
+    CancelToken? cancelToken,
+  }) => _request(
+    () => _dio.delete<dynamic>(path, data: data, cancelToken: cancelToken),
+  );
 
   Map<String, dynamic>? _clean(Map<String, dynamic>? params) {
     if (params == null) return null;
@@ -68,28 +99,81 @@ class ApiClient {
     final code = _extractString(body, 'code');
     final details = _extractMap(body, 'details');
     final errors = _extractErrors(body);
-    final requestId = e.response?.headers.value('x-request-id') ?? _extractString(body, 'requestId');
+    final requestId =
+        e.response?.headers.value('x-request-id') ??
+        _extractString(body, 'requestId');
 
     return switch (e.type) {
-      DioExceptionType.connectionTimeout || DioExceptionType.sendTimeout || DioExceptionType.receiveTimeout => const TimeoutException(),
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.sendTimeout ||
+      DioExceptionType.receiveTimeout => const TimeoutException(),
       DioExceptionType.connectionError => const NetworkException(),
       DioExceptionType.badResponse => switch (status) {
-        400 || 422 => ValidationException(message, errors: errors, code: code, details: details, requestId: requestId),
+        400 || 422 => ValidationException(
+          message,
+          errors: errors,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
         401 => UnauthorizedException(message, code, requestId),
-        403 => ForbiddenException(message, code: code, details: details, requestId: requestId),
-        404 => NotFoundException(message, code: code, details: details, requestId: requestId),
-        409 => ConflictException(message, code: code, details: details, requestId: requestId),
-        426 => UpgradeRequiredException(message, code: code, details: details, requestId: requestId),
-        429 => RateLimitException(message, code: code, details: details, requestId: requestId),
-        503 => ServiceUnavailableException(message, code: code, details: details, requestId: requestId),
-        _ => ServerException(message, statusCode: status, code: code, details: details, requestId: requestId),
+        403 => ForbiddenException(
+          message,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
+        404 => NotFoundException(
+          message,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
+        409 => ConflictException(
+          message,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
+        426 => UpgradeRequiredException(
+          message,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
+        429 => RateLimitException(
+          message,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
+        503 => ServiceUnavailableException(
+          message,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
+        _ => ServerException(
+          message,
+          statusCode: status,
+          code: code,
+          details: details,
+          requestId: requestId,
+        ),
       },
       DioExceptionType.cancel => const NetworkException('Request cancelled'),
-      _ => ServerException(message, statusCode: status, code: code, details: details, requestId: requestId),
+      _ => ServerException(
+        message,
+        statusCode: status,
+        code: code,
+        details: details,
+        requestId: requestId,
+      ),
     };
   }
 
-  String? _extractMessage(dynamic data) => _extractString(data, 'message') ?? _extractString(data, 'error');
+  String? _extractMessage(dynamic data) =>
+      _extractString(data, 'message') ?? _extractString(data, 'error');
 
   String? _extractString(dynamic data, String key) {
     if (data is Map && data[key] is String) return data[key] as String;
