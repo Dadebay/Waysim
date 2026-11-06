@@ -51,8 +51,13 @@ class DeviceSession {
     await secure.saveDeviceId(asMap(json['device']).str('id'));
     await secure.saveDeviceToken(json.str('deviceToken'));
 
-    if (json['user'] == null ||
-        await secure.readAccessToken() == 'mock-session') {
+    // `signedIn` says whether this install is still attached to an account.
+    // `user` is only filled when the request carried that account's access
+    // token, so it must not decide whether to keep the session. Older servers
+    // and the mock backend send no `signedIn`; they fall back to `user`.
+    final signedIn = json['signedIn'];
+    final detached = signedIn is bool ? !signedIn : json['user'] == null;
+    if (detached || await secure.readAccessToken() == 'mock-session') {
       await secure.clearSession();
     }
     return json;
