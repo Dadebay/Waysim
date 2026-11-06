@@ -161,12 +161,21 @@ void _registerCore() {
       () => DeviceIntegrityCubit(getIt<DeviceIntegrity>()),
     )
     ..registerLazySingleton<TokenRefresher>(
-      () => AuthTokenRefresher(getIt<SecureStorage>()),
+      () => AuthTokenRefresher(
+        getIt<SecureStorage>(),
+        attestation: getIt<AppAttestation>(),
+      ),
     )
     ..registerLazySingleton<ApiClient>(
       () => ApiClient(
         ApiClient.createDio(
-          interceptors: [LanguageInterceptor(getIt<LocalStorage>())],
+          interceptors: [
+            LanguageInterceptor(getIt<LocalStorage>()),
+            AppCheckInterceptor(
+              getIt<AppAttestation>(),
+              analytics: getIt<AnalyticsService>(),
+            ),
+          ],
         ),
       ),
       instanceName: 'publicApi',
@@ -192,7 +201,10 @@ void _registerCore() {
                   failure is ApiFailure && failure.code == 'session_revoked',
             ),
           ),
-          AppCheckInterceptor(getIt<AppAttestation>()),
+          AppCheckInterceptor(
+            getIt<AppAttestation>(),
+            analytics: getIt<AnalyticsService>(),
+          ),
           LanguageInterceptor(getIt<LocalStorage>()),
           UpgradeRequiredInterceptor(getIt<UpdateRequiredNotifier>()),
           if (AppEnvironment.enableLogging) ApiLogInterceptor(),

@@ -155,6 +155,11 @@ extension AnalyticsEvents on AnalyticsService {
   void changedSetting(String setting, String value) =>
       logEvent('setting_changed', {'setting': setting, 'value': value});
 
+  /// App Check rollout monitor: `token_missing` (none could be attached) or
+  /// `rejected` (the server answered 403 app_check_failed).
+  void appCheckIssue(String kind, String endpoint) =>
+      logEvent('app_check_issue', {'kind': kind, 'endpoint': endpoint});
+
   void inviteLinkOpened(String code) =>
       logEvent('invite_link_opened', {'code': code});
 }

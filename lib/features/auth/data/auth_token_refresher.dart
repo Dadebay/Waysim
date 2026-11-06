@@ -2,11 +2,13 @@ import 'package:dio/dio.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_environment.dart';
+import '../../../core/network/interceptors/app_check_interceptor.dart';
 import '../../../core/network/token_refresher.dart';
+import '../../../core/services/app_attestation.dart';
 import '../../../core/storage/secure_storage.dart';
 
 class AuthTokenRefresher implements TokenRefresher {
-  AuthTokenRefresher(this._storage, {Dio? dio})
+  AuthTokenRefresher(this._storage, {Dio? dio, this._attestation})
     : _dio =
           dio ??
           Dio(
@@ -20,6 +22,7 @@ class AuthTokenRefresher implements TokenRefresher {
 
   final SecureStorage _storage;
   final Dio _dio;
+  final AppAttestation? _attestation;
 
   @override
   Future<RefreshOutcome> refresh() async {
@@ -27,9 +30,13 @@ class AuthTokenRefresher implements TokenRefresher {
     if (current == null || current.isEmpty) return RefreshOutcome.rejected;
 
     try {
+      final appCheck = await _attestation?.token();
       final response = await _dio.post<dynamic>(
         '/v1/auth/refresh',
         data: {'refreshToken': current},
+        options: Options(
+          headers: {AppCheckInterceptor.header: ?appCheck},
+        ),
       );
       final body = response.data;
       final data = body is Map && body['data'] is Map ? body['data'] : body;
