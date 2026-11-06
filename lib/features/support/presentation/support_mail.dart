@@ -6,7 +6,6 @@ String buildSupportMailBody({
   required DeviceContext device,
   required String osBuild,
   String? deviceId,
-  String? installId,
   String? appLanguage,
   DateTime? createdAt,
 }) {
@@ -17,7 +16,6 @@ String buildSupportMailBody({
   final details = [
     technicalDetails,
     'Device ID: ${deviceId ?? '—'}',
-    'Install ID: ${installId ?? '—'}',
     'Platform: ${device.platform}',
     'Model: ${device.model}',
     'OS build: $osBuild',

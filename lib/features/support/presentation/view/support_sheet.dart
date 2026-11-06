@@ -120,7 +120,6 @@ Future<void> writeToSupport(
     device: device,
     osBuild: Platform.operatingSystemVersion,
     deviceId: deviceId,
-    installId: local.getString(StorageKeys.installId),
     appLanguage: local.getString(StorageKeys.contentLanguage),
   );
   final uri = Uri.parse(

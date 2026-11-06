@@ -34,7 +34,6 @@ void main() {
       device: device,
       osBuild: 'BP4A.251205.006.A346EXXUEFZE6',
       deviceId: 'server-device-id',
-      installId: 'installation-id',
       appLanguage: 'en',
       createdAt: DateTime.utc(2026, 10, 21, 11, 30),
     );
@@ -45,7 +44,8 @@ void main() {
     expect(body, contains('App: 1.0.0 (1)'));
     expect(body, contains('System: Android 16 (API 36)'));
     expect(body, contains('Device ID: server-device-id'));
-    expect(body, contains('Install ID: installation-id'));
+    expect(body, isNot(contains('Install ID')));
+    expect(body, isNot(contains('installation-id')));
     expect(body, contains('Platform: android'));
     expect(body, contains('Model: Samsung SM-A346E'));
     expect(body, contains('OS build: BP4A.251205.006.A346EXXUEFZE6'));
