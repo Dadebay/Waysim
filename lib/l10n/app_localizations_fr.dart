@@ -479,6 +479,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Trop de requêtes. Veuillez patienter un instant.';
 
   @override
+  String get errorOtpDailyLimit =>
+      'Vous avez atteint la limite quotidienne de codes de connexion pour cet e-mail. Réessayez demain.';
+
+  @override
+  String get errorAppCheckFailed =>
+      'Impossible de vérifier cette copie de l’application. Mettez Waysim à jour ou réessayez plus tard.';
+
+  @override
   String get errorBoundToOtherDevice =>
       'Cette eSIM est déjà liée à un autre appareil.';
 

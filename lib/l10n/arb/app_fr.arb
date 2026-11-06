@@ -130,6 +130,8 @@
   "errorPackageUnavailable": "Ce forfait n’est plus disponible.",
   "errorOrderFailed": "La commande n’a pas pu aboutir. Si vous avez été débité, la somme a été remboursée sur votre solde.",
   "errorTooManyRequests": "Trop de requêtes. Veuillez patienter un instant.",
+  "errorOtpDailyLimit": "Vous avez atteint la limite quotidienne de codes de connexion pour cet e-mail. Réessayez demain.",
+  "errorAppCheckFailed": "Impossible de vérifier cette copie de l’application. Mettez Waysim à jour ou réessayez plus tard.",
   "errorBoundToOtherDevice": "Cette eSIM est déjà liée à un autre appareil.",
   "agoJustNow": "à l’instant",
   "agoMinutes": "il y a {count} min",

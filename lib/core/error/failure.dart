@@ -80,9 +80,11 @@ abstract final class ApiCodes {
   static const otpExpired = 'otp_expired';
   static const otpRateLimited = 'otp_cooldown';
   static const otpTooManyAttempts = 'otp_too_many_attempts';
+  static const otpDailyLimit = 'otp_daily_limit';
+  static const appCheckFailed = 'app_check_failed';
   static const userBlocked = 'user_banned';
   static const insufficientBalance = 'insufficient_balance';
-  static const priceChanged = 'price_mismatch';
+  static const priceChanged = 'price_changed';
   static const packageUnavailable = 'package_unavailable';
   static const maintenance = 'maintenance';
   static const tooManyRequests = 'rate_limited';

@@ -453,6 +453,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorTooManyRequests => '请求过多，请稍候。';
 
   @override
+  String get errorOtpDailyLimit => '此邮箱今日的登录验证码次数已达上限，请明天再试。';
+
+  @override
+  String get errorAppCheckFailed => '无法验证此应用副本。请更新 Waysim 或稍后再试。';
+
+  @override
   String get errorBoundToOtherDevice => '此 eSIM 已绑定到其他设备。';
 
   @override

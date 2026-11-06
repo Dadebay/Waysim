@@ -15,6 +15,8 @@ extension FailureLocalizer on Failure {
     ApiFailure(code: 'invite_code_invalid') => l10n.inviteCodeInvalid,
     ApiFailure(code: ApiCodes.otpRateLimited || ApiCodes.otpTooManyAttempts) =>
       l10n.errorTooManyRequests,
+    ApiFailure(code: ApiCodes.otpDailyLimit) => l10n.errorOtpDailyLimit,
+    ApiFailure(code: ApiCodes.appCheckFailed) => l10n.errorAppCheckFailed,
     ApiFailure(code: 'account_disabled' || ApiCodes.userBlocked) =>
       l10n.errorUnauthorized,
     ApiFailure(statusCode: 401) => l10n.errorUnauthorized,

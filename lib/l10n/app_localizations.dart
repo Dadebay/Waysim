@@ -884,6 +884,18 @@ abstract class AppLocalizations {
   /// **'Too many requests. Please wait a moment.'**
   String get errorTooManyRequests;
 
+  /// No description provided for @errorOtpDailyLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You’ve reached the daily limit of sign-in codes for this e-mail. Please try again tomorrow.'**
+  String get errorOtpDailyLimit;
+
+  /// No description provided for @errorAppCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn’t verify this copy of the app. Update Waysim or try again later.'**
+  String get errorAppCheckFailed;
+
   /// No description provided for @errorBoundToOtherDevice.
   ///
   /// In en, this message translates to:

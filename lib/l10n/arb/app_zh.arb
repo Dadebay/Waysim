@@ -130,6 +130,8 @@
   "errorPackageUnavailable": "此套餐已不可用。",
   "errorOrderFailed": "无法完成订单。如已扣款，款项已退回你的余额。",
   "errorTooManyRequests": "请求过多，请稍候。",
+  "errorOtpDailyLimit": "此邮箱今日的登录验证码次数已达上限，请明天再试。",
+  "errorAppCheckFailed": "无法验证此应用副本。请更新 Waysim 或稍后再试。",
   "errorBoundToOtherDevice": "此 eSIM 已绑定到其他设备。",
   "agoJustNow": "刚刚",
   "agoMinutes": "{count} 分钟前",

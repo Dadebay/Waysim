@@ -483,6 +483,14 @@ class AppLocalizationsRu extends AppLocalizations {
       'Слишком много запросов. Подождите немного.';
 
   @override
+  String get errorOtpDailyLimit =>
+      'Достигнут дневной лимит кодов входа для этого e-mail. Попробуйте завтра.';
+
+  @override
+  String get errorAppCheckFailed =>
+      'Не удалось проверить эту копию приложения. Обновите Waysim или попробуйте позже.';
+
+  @override
   String get errorBoundToOtherDevice =>
       'Эта eSIM уже привязана к другому устройству.';
 

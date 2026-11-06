@@ -130,6 +130,8 @@
   "errorPackageUnavailable": "Este plan ya no está disponible.",
   "errorOrderFailed": "No se pudo completar el pedido. Si se te cobró, el dinero se ha devuelto a tu saldo.",
   "errorTooManyRequests": "Demasiadas solicitudes. Espera un momento.",
+  "errorOtpDailyLimit": "Has alcanzado el límite diario de códigos de acceso para este correo. Inténtalo de nuevo mañana.",
+  "errorAppCheckFailed": "No pudimos verificar esta copia de la app. Actualiza Waysim o inténtalo más tarde.",
   "errorBoundToOtherDevice": "Esta eSIM ya está vinculada a otro dispositivo.",
   "agoJustNow": "ahora mismo",
   "agoMinutes": "hace {count} min",

@@ -279,6 +279,8 @@
   "errorPackageUnavailable": "This plan is no longer available.",
   "errorOrderFailed": "The order couldn’t be completed. If you were charged, the money has been returned to your balance.",
   "errorTooManyRequests": "Too many requests. Please wait a moment.",
+  "errorOtpDailyLimit": "You’ve reached the daily limit of sign-in codes for this e-mail. Please try again tomorrow.",
+  "errorAppCheckFailed": "We couldn’t verify this copy of the app. Update Waysim or try again later.",
   "errorBoundToOtherDevice": "This eSIM is already linked to another device.",
   "agoJustNow": "just now",
   "agoMinutes": "{count, plural, one{{count} min ago} other{{count} min ago}}",

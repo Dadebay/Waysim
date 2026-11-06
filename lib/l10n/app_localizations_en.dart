@@ -477,6 +477,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorTooManyRequests => 'Too many requests. Please wait a moment.';
 
   @override
+  String get errorOtpDailyLimit =>
+      'You’ve reached the daily limit of sign-in codes for this e-mail. Please try again tomorrow.';
+
+  @override
+  String get errorAppCheckFailed =>
+      'We couldn’t verify this copy of the app. Update Waysim or try again later.';
+
+  @override
   String get errorBoundToOtherDevice =>
       'This eSIM is already linked to another device.';
 

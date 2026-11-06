@@ -74,7 +74,13 @@ class ApiPurchaseRepository implements PurchaseRepository {
       final result = asMap(
         await api.post(
           path,
-          data: {'packageId': packageId, 'days': ?days},
+          data: {
+            'packageId': packageId,
+            'days': ?days,
+            // The total the user saw; a different current price answers
+            // 409 price_changed and charges nothing.
+            'expectedPriceCents': expectedPrice.cents,
+          },
           headers: {'Idempotency-Key': key},
         ),
       );
