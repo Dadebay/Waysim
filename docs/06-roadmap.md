@@ -152,6 +152,9 @@ Sayaç: `dart run tool/roadmap_status.dart` (aşağıdaki onay kutularını okur
 - [x] **T8.7** Para alanları (bakiye, fiyat, tutar) eksikse `ParsingException`; 0 gösterilmez
 - [x] **T8.8** Offline eSIM erişimi: liste (aktivasyon kodları dahil) `flutter_secure_storage`'da saklanır, çıkışta silinir
 - [x] **T8.9** `docs/` geri yüklendi (73d137e silmişti); commit'ler Conventional Commits'e göre bölündü
+- [x] **T8.14** Backend güvenlik düzeltmeleri (client-api 2026-11-05): oturum `signedIn` ile belirlenir, destek e-postasında Install ID yok, App Check yalnız backend'in kontrol ettiği 7 POST uçta (+ refresh), `price_changed` + `expectedPriceCents`, `otp_daily_limit` ve `app_check_failed` (çıkış yaptırmaz)
+- [ ] **T8.15** App Check yayını: yeni sürüm yayında `app_check_issue` olayları (`token_missing`, `rejected`) izlenir; sayılar sıfıra yakın ve sabit olunca backend'de enforce açılır
+- [ ] **T8.16** `GET /v1/meta` → `payments.iosAppStoreOnly` (2026-11-01) uygulamada yok: `true` iken iOS'ta kripto ve diğer ödeme yöntemleri gizlenmeli (App Store satın alımı gerekir)
 - [ ] **T8.10** 73d137e'nin sildiği ~3000 satır yorumun geri getirilmesi (dosya dosya; tam revert 22 çakışma verdi)
 - [ ] **T8.11** Pull request açıklaması (ne eklendi, neden, test) ve review için PR
 - [ ] **T8.12** `requestId`'yi hata ekranında/destek e-postasında göstermek
