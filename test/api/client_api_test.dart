@@ -803,7 +803,11 @@ void main() {
       expect(result.dataOrNull!.charged.cents, 575);
       expect(result.dataOrNull!.esimId, 'esim-1');
       expect(adapter.requests.first.headers['Idempotency-Key'], 'key-1');
-      expect(body(adapter.requests.first), {'packageId': 'pkg-1', 'days': 7});
+      expect(body(adapter.requests.first), {
+        'packageId': 'pkg-1',
+        'days': 7,
+        'expectedPriceCents': 599,
+      });
       await repo.buy(
         packageId: 'pkg-1',
         idempotencyKey: 'key-1',

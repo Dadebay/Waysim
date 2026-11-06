@@ -130,13 +130,20 @@ void main() {
     test('only protected endpoints carry the token', () async {
       final interceptor = AppCheckInterceptor(_FakeAttestation());
       for (final entry in {
-        '/v1/auth/otp': true,
+        '/v1/devices': true,
+        '/v1/auth/otp/request': true,
+        '/v1/auth/otp/verify': true,
+        '/v1/auth/refresh': true,
         '/v1/orders': true,
-        '/v1/referral': true,
+        '/v1/esims/esim-1/topups': true,
+        '/v1/payments': true,
+        '/v1/auth/logout': false,
+        '/v1/referral': false,
+        '/v1/wallet/top-up': false,
         '/v1/catalog': false,
         '/v1/config': false,
       }.entries) {
-        final options = RequestOptions(path: entry.key);
+        final options = RequestOptions(path: entry.key, method: 'POST');
         final handler = _Capture();
         await interceptor.onRequest(options, handler);
         expect(
