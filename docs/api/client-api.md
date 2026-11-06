@@ -4,6 +4,16 @@ Contract between the Flutter app and the backend. Every change to an endpoint is
 
 ## 0. Changelog
 
+- **2026-11-05** — security review fixes. What the app must do:
+  - **`POST /v1/devices`** has a new `signedIn: boolean` (this install is attached to an active account). The profile in `user` is returned **only** when the request carries that account's access token for this device (`Authorization: Bearer <accessToken>`); otherwise `user` is `null` — or, while the server keeps the transition switch on, an empty `{}` that carries no data. Decide «keep the session or not» by `signedIn` (not by `user == null`) and load the profile with `GET /v1/me`.
+  - **App Check:** send `X-Firebase-AppCheck` on `POST /v1/devices`, `POST /v1/auth/otp/request`, `POST /v1/auth/otp/verify`, `POST /v1/auth/refresh`, `POST /v1/orders`, `POST /v1/esims/:id/topups` and `POST /v1/payments`. The server first only counts missing/invalid tokens; once it is switched to enforce, such requests get **`403 app_check_failed`** (do not treat it as a sign-out).
+  - **Price check:** send the price the user saw as `expectedPriceCents` in `POST /v1/orders` (the total, `days` included) and `POST /v1/esims/:id/topups`. A different current price → **`409 price_changed`** with `details: { expectedPriceCents, newPriceCents }`; nothing is charged — show the new price and let the user confirm (a new `Idempotency-Key`). Without the field the order goes through at the current price as before.
+  - **OTP daily limits per e-mail:** at most 10 codes and 20 wrong codes per 24 h (a new code does not reset the wrong-code count) → **`429 otp_daily_limit`** with `details.retryAfterSeconds`.
+  - Referral: two different people with the same phone model are no longer rejected as `same_device`; only the same app install counts.
+- **2026-11-03** — the apps are live (App Store `id6826612017`, Google Play `com.waysim.app`) and the site is set up for them: `https://waysim.co/.well-known/apple-app-site-association` lists `V793RH49BX.com.waysim.app`, `/.well-known/assetlinks.json` lists `com.waysim.app` with the signing-key SHA-256 (live once the site is deployed with them). Invite links `https://waysim.co/r/<code>` then open the installed app (§3 **Invite links**). Safari on iPhone shows the App Store banner on the site; on an invite page its «Open» passes `https://waysim.co/r/<code>` to the app like a Universal Link.
+- **2026-11-01** — iOS payment rule: `GET /v1/meta` → `payments: { iosAppStoreOnly }`, a switch in the admin («Оплаты» → «Оплата в iOS»). When `true`, the **iOS** app offers App Store purchases only: hide crypto top-ups and every other way to pay (and links to them). `false` (default) = everything as before. Android ignores it. Read it at start-up with the rest of `GET /v1/meta`.
+- **2026-11-01** — `GET /v1/referral`: the bonus can require a minimum purchase, set in the admin. New `minPurchaseCents` / `minPurchaseFormatted` (`0` = none; always `0` with `after_first_topup`). `rulesText` already states the condition («…купит eSIM на сумму от $5.00…»), so nothing has to change in the app if it shows `rulesText`.
+- **2026-10-30** — `contacts.youtube` (`{ label, url }` or null) next to website, e-mail, Telegram and Instagram in `GET /v1/meta`; `label` is the `@handle`, or `YouTube` for a channel link.
 - **2026-10-23** — contacts: `GET /v1/meta` → `contacts { website, email, telegram, instagram }`, each `{ label, url }` or null (managed in the admin page «Контакты»). Show them on the support/about screen: `label` as the text, open `url` (`https://…`, `mailto:…`, `https://t.me/…`, `https://www.instagram.com/…/`); hide a null one. `supportEmail` stays (= `contacts.email.label`).
 - **2026-10-23** — banners per language: the admin uploads a picture for each app language (the texts are drawn on it), and `GET /v1/catalog/home` → `banners[].imageUrl`/`width`/`height` are those of the `Accept-Language` picture (English when that language has none). Same shape as before — just send `Accept-Language` (already required) and refetch home after the user changes the app language.
 - **2026-10-22** — `GET /v1/payments/:id` also accepts the payment number (`publicNo`, e.g. `58008`); the `payment_credited` push now carries the payment **uuid** in `data.paymentId` (it carried the number, which `GET /v1/payments/:id` could not open). The push is sent for automatic credits and for credits an admin makes on a payment under review.
@@ -39,6 +49,7 @@ Content is served in five languages: `en` (default and fallback), `zh`, `ru`, `e
 | `Accept-Language` | all calls                                                          | `ru`, `en-US`, `zh-Hans`, … → picks one of the 5 content languages (fallback: device locale → user locale → `en`) |
 | `X-App-Version`   | all calls                                                          | e.g. `1.0.0 (12)`; a version below `meta.minAppVersion` gets `426 app_update_required` (enforced later)           |
 | `Idempotency-Key` | money-moving `POST`s (`/orders`, `/esims/:id/topups`, `/payments`) | client-generated UUID per attempt, 8–128 chars; a retry with the same key replays the first result                |
+| `X-Firebase-AppCheck` | `POST /v1/devices`, `/v1/auth/otp/*`, `/v1/auth/refresh`, `/v1/orders`, `/v1/esims/:id/topups`, `/v1/payments` | Firebase App Check token; missing/invalid → `403 app_check_failed` once the server enforces it      |
 | `X-Request-Id`    | optional                                                           | echoed back; also present on every response for support tickets                                                   |
 
 ### Authentication levels
@@ -64,23 +75,23 @@ Every error is `{ "code": "...", "message": "...", "details"?: {...}, "requestId
 | 400  | `otp_invalid`, `otp_expired`, `otp_cooldown`                                                                                                                       | OTP problems (`details.retryAfterSeconds` for cooldown) |
 | 401  | `unauthorized`, `token_expired`, `token_reused`, `session_revoked`                                                                                                 | sign-in required / refresh / reuse / signed out         |
 | 402  | `insufficient_balance`                                                                                                                                             | `details.needCents` = how much is missing               |
-| 403  | `forbidden`, `user_banned`, `guest_not_allowed`, `account_disabled`                                                                                                |                                                         |
+| 403  | `forbidden`, `user_banned`, `guest_not_allowed`, `account_disabled`, `app_check_failed`                                                                                                |                                                         |
 | 404  | `not_found`                                                                                                                                                        |                                                         |
-| 409  | `conflict`, `in_progress`, `package_unavailable`, `esim_not_topupable`, `topup_limit_reached`, `topup_unavailable`, `topup_failed`                                 |                                                         |
+| 409  | `conflict`, `in_progress`, `package_unavailable`, `price_changed` (`details.newPriceCents`), `esim_not_topupable`, `topup_limit_reached`, `topup_unavailable`, `topup_failed`                                 |                                                         |
 | 422  | `validation` (`details.fields[]`), `idempotency_mismatch`, `invite_code_invalid`, `payment_amount_out_of_range` (`details.minCents/maxCents`, per coin for crypto) |                                                         |
 | 426  | `app_update_required`                                                                                                                                              |                                                         |
-| 429  | `rate_limited`, `otp_too_many_attempts`                                                                                                                            |                                                         |
+| 429  | `rate_limited`, `otp_too_many_attempts`, `otp_daily_limit` (`details.retryAfterSeconds`)                                                                                                                            |                                                         |
 | 503  | `maintenance`, `supplier_unavailable`, `payment_provider_unavailable`                                                                                              | retry later                                             |
 | 500  | `internal`                                                                                                                                                         | report `requestId`                                      |
 
-Rate limits (per IP/token): OTP request 10 per 10 min, OTP verify 20 per 10 min, support messages 20 per 10 min, global 300 requests per minute.
+Rate limits (per IP/token): OTP request 10 per 10 min, OTP verify 20 per 10 min, support messages 20 per 10 min, global 300 requests per minute. Per e-mail: 10 codes and 20 wrong codes per 24 h (`otp_daily_limit`).
 
 ## 3. Lifecycles
 
 ### App start
 
-1. `POST /v1/devices` with the install id (generate once, keep forever) → `deviceToken` and, if this device is still attached to a user, `user`.
-2. `GET /v1/meta` → maintenance flag, minimum version, legal links, support e-mail.
+1. `POST /v1/devices` with the install id (generate once, keep forever; never show it to the user or put it in support e-mails — it identifies the device) → `deviceToken` and `signedIn` (still attached to an account). Send the current access token, if you have one, to get the profile in `user`; otherwise use `GET /v1/me`.
+2. `GET /v1/meta` → maintenance flag, minimum version, legal links, support e-mail, iOS payment rule.
 3. `GET /v1/catalog/home` (device token is enough).
 
 ### Sign in / sign up (one flow)
@@ -122,7 +133,7 @@ Errors: `payment_amount_out_of_range` (422, `details.minCents` of that coin — 
 
 ### Referral
 
-`GET /v1/referral` → the user's code, share link, rules text and stats. The inviter is paid (`$3` by default) **after the invited friend's first balance top-up**, not at registration. `GET /v1/referral/invitations` lists friends with masked e-mails and status.
+`GET /v1/referral` → the user's code, share link, rules text and stats. The inviter is paid (`$3` by default) **after the invited friend's first balance top-up** or, when the admin chooses so, after their first purchase of at least `minPurchaseCents`; never at registration. Show `rulesText` for the current condition. `GET /v1/referral/invitations` lists friends with masked e-mails and status.
 
 ### Invite links
 
@@ -136,7 +147,7 @@ Share `referral.link` = `https://waysim.co/r/<code>` (the code is the inviter's 
 
 On an invite: uppercase the code, check it with `GET /v1/referral/codes/:code`, keep it until sign-up and send it as `inviteCode` in `POST /v1/auth/otp/request` (prefill the invite field). Codes count for **new** accounts only — when the user is already signed in, just open the app (optionally say so). iOS has no install referrer: after installing from the App Store the user types the code (the page offers a copy button).
 
-App setup: iOS — Associated Domains `applinks:waysim.co`, URL scheme `waysim`; Android — `<intent-filter android:autoVerify="true">` for `https://waysim.co` with `pathPrefix="/r/"` and `pathPattern="/.*/r/.*"`, plus the `waysim` scheme with host `invite`. The site serves `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json` from its env: send the Apple **Team ID + bundle id** and the Android **package name + SHA-256 fingerprints** of the signing keys (Play Console → App integrity → App signing, plus the upload/debug keys for test builds). Until then the link opens the invite page in the browser.
+App setup: iOS — Associated Domains `applinks:waysim.co`, URL scheme `waysim`; Android — `<intent-filter android:autoVerify="true">` for `https://waysim.co` with `pathPrefix="/r/"` and `pathPattern="/.*/r/.*"`, plus the `waysim` scheme with host `invite`. The site serves `/.well-known/apple-app-site-association` (`V793RH49BX.com.waysim.app`) and `/.well-known/assetlinks.json` (`com.waysim.app` + the SHA-256 of the Play app-signing key). Send any other key that signs builds you test (upload/debug keys) so they can be added; a build signed with an unlisted key opens the invite page in the browser instead.
 
 ### Support chat (no sockets)
 
@@ -163,20 +174,23 @@ Android channels: `orders`, `esim`, `support`, `wallet`, `marketing`, `account` 
 
 ### GET /v1/meta
 
-Public. `{ minAppVersion, maintenance, supportedLocales: ["en","zh","ru","es","fr"], defaultLocale, contacts, supportEmail, legal: { terms, refund, acceptable_use, privacy, pre_purchase, esim_guide, in_app_texts }, legalDocuments: [{ key, slug, title, url }], serverTime }`. `legal` holds the public page URLs (`https://waysim.co/terms`, `…/refund`, `…/fair-use`, `…/privacy`, `…/pre-purchase`, `…/esim-guide`, `…/in-app-texts`); the in-app Settings → Legal section shows Terms of Service · Refund & Replacement Policy · Acceptable Use & Fair Use Policy · Privacy Policy; `legalDocuments` lists only the documents the admin has written, with titles in the request language (`?locale=` → `Accept-Language` → `en`) — show those in «Подробнее» and open `url` in the browser, or render the Markdown from `GET /v1/legal/:doc` in-app.
+Public. `{ minAppVersion, maintenance, supportedLocales: ["en","zh","ru","es","fr"], defaultLocale, contacts, supportEmail, payments: { iosAppStoreOnly }, legal: { terms, refund, acceptable_use, privacy, pre_purchase, esim_guide, in_app_texts }, legalDocuments: [{ key, slug, title, url }], serverTime }`. `legal` holds the public page URLs (`https://waysim.co/terms`, `…/refund`, `…/fair-use`, `…/privacy`, `…/pre-purchase`, `…/esim-guide`, `…/in-app-texts`); the in-app Settings → Legal section shows Terms of Service · Refund & Replacement Policy · Acceptable Use & Fair Use Policy · Privacy Policy; `legalDocuments` lists only the documents the admin has written, with titles in the request language (`?locale=` → `Accept-Language` → `en`) — show those in «Подробнее» and open `url` in the browser, or render the Markdown from `GET /v1/legal/:doc` in-app.
 
-`contacts` = `{ website, email, telegram, instagram }`, each **ContactLink** `{ label, url }` or `null` when the admin left it empty (website and e-mail are always set):
+`payments.iosAppStoreOnly` (boolean): `true` → on iOS show App Store purchases only and hide crypto and any other payment method; `false` → all methods. Android ignores it.
+
+`contacts` = `{ website, email, telegram, instagram, youtube }`, each **ContactLink** `{ label, url }` or `null` when the admin left it empty (website and e-mail are always set):
 
 ```json
 "contacts": {
   "website": { "label": "waysim.co", "url": "https://waysim.co" },
   "email": { "label": "support@waysim.co", "url": "mailto:support@waysim.co" },
   "telegram": { "label": "@waysim_support", "url": "https://t.me/waysim_support" },
-  "instagram": null
+  "instagram": null,
+  "youtube": { "label": "@waysim", "url": "https://www.youtube.com/@waysim" }
 }
 ```
 
-Show `label`, open `url` (Telegram/Instagram links open the installed app). `supportEmail` is the same address as `contacts.email.label`, kept for older builds. `meta` is read at every app start, so a change in the admin shows up on the next start.
+Show `label`, open `url` (Telegram/Instagram/YouTube links open the installed app). `supportEmail` is the same address as `contacts.email.label`, kept for older builds. `meta` is read at every app start, so a change in the admin shows up on the next start.
 
 ### GET /v1/legal
 
@@ -212,7 +226,9 @@ Public. Registers or refreshes the install (idempotent by `installId`).
 }
 ```
 
-→ `{ "device": Device, "deviceToken": "<jwt 30d>", "user": Me | null }`.
+→ `{ "device": Device, "deviceToken": "<jwt 30d>", "signedIn": true, "user": Me | {} | null }`.
+
+`signedIn` — this install is attached to an active account. `user` is the full `Me` only when the request carries that account's access token issued for this device (`Authorization: Bearer <accessToken>`, an expired one does not count); otherwise `null` (while the server's transition switch `DEVICES_LEGACY_USER_STUB` is on, a signed-in device gets an empty `{}` instead, for older app builds). Send `X-Firebase-AppCheck`.
 
 ### PUT /v1/devices/me
 
@@ -228,15 +244,15 @@ Device. → `204`.
 
 ### POST /v1/auth/otp/request
 
-Device. `{ "email": "anna@example.com", "adultConsent": true, "inviteCode": "A001248"? }` → `{ "resendAfterSeconds": 60, "ttlSeconds": 600 }`. Errors: `otp_cooldown` (429/400 with `retryAfterSeconds`), `invite_code_invalid` (422), `rate_limited`.
+Device + `X-Firebase-AppCheck`. `{ "email": "anna@example.com", "adultConsent": true, "inviteCode": "A001248"? }` → `{ "resendAfterSeconds": 60, "ttlSeconds": 600 }`. Errors: `otp_cooldown` (429/400 with `retryAfterSeconds`), `otp_daily_limit` (429, 10 codes or 20 wrong codes per e-mail per 24 h, `retryAfterSeconds`), `invite_code_invalid` (422), `rate_limited`.
 
 ### POST /v1/auth/otp/verify
 
-Device. `{ "email": "...", "code": "123456" }` → `{ "user": Me, "tokens": { "accessToken", "refreshToken", "accessExpiresIn": 3600 }, "isNewUser": true }`. Errors: `otp_invalid`, `otp_expired`, `otp_too_many_attempts`, `user_banned`.
+Device + `X-Firebase-AppCheck`. `{ "email": "...", "code": "123456" }` → `{ "user": Me, "tokens": { "accessToken", "refreshToken", "accessExpiresIn": 3600 }, "isNewUser": true }`. Errors: `otp_invalid`, `otp_expired`, `otp_too_many_attempts`, `otp_daily_limit` (429), `user_banned`.
 
 ### POST /v1/auth/refresh
 
-Public. `{ "refreshToken": "..." }` → `{ "accessToken", "refreshToken", "accessExpiresIn" }` (new pair; the old refresh token is dead). `401 token_reused` → an already-rotated token was presented, the session is revoked; `401 session_revoked` → the session was signed out (another device, logout, ban). Either way: sign in again.
+Public + `X-Firebase-AppCheck`. `{ "refreshToken": "..." }` → `{ "accessToken", "refreshToken", "accessExpiresIn" }` (new pair; the old refresh token is dead). `401 token_reused` → an already-rotated token was presented, the session is revoked; `401 session_revoked` → the session was signed out (another device, logout, ban). Either way: sign in again.
 
 ### POST /v1/auth/logout
 
@@ -272,15 +288,15 @@ Device. Home screen — banners uploaded in the admin, then localized destinatio
     {
       "id": "01a1…",
       "imageUrl": "https://api.waysim.co/uploads/banners/01a1….png",
-      "width": 1600,
-      "height": 900,
+      "width": 1200,
+      "height": 1200,
       "link": "waysim://how-it-works"
     },
     {
       "id": "01a2…",
       "imageUrl": "https://api.waysim.co/uploads/banners/01a2….webp",
-      "width": 1600,
-      "height": 900,
+      "width": 1200,
+      "height": 1200,
       "link": "https://waysim.co/promo"
     }
   ],
@@ -306,7 +322,7 @@ Device. Home screen — banners uploaded in the admin, then localized destinatio
 }
 ```
 
-Banners: a swipeable carousel in display order (auto-advance every 5 s, pause on touch); hide the block when the array is empty. Each banner is one finished picture in the request language (`Accept-Language`; English when the admin uploaded none for it — PNG/JPEG/WebP, all texts already drawn into it, no overlay needed; refetch after the user switches the app language). The Home card is fixed at 16:9 and uses `BoxFit.cover`; upload 16:9 pictures to keep all text visible. `width` and `height` describe the source image but do not control the card size. `link` is what a tap opens: `waysim://…` → navigate in the app (same values as push deep links), `https://…` → open in the browser, `null` → not tappable. A banner leading to the referral screen is omitted while the referral program is disabled. Destinations are cached 60 s per language; banners are live.
+Banners: a swipeable carousel in display order (auto-advance every 5 s, pause on touch); hide the block when the array is empty. Each banner is one finished picture in the request language (`Accept-Language`; English when the admin uploaded none for it — PNG/JPEG/WebP, all texts already drawn into it, no overlay needed; refetch after the user switches the app language) — show it as a rounded card with `BoxFit.cover`, using `width`/`height` for the aspect ratio before it loads (the admin recommends square pictures). `link` is what a tap opens: `waysim://…` → navigate in the app (same values as push deep links), `https://…` → open in the browser, `null` → not tappable. A banner leading to the referral screen is omitted while the referral program is disabled. Destinations are cached 60 s per language; banners are live.
 
 ### GET /v1/catalog/search
 
@@ -322,7 +338,7 @@ Device. By id or slug (`TR_1_7`) → `PackageDetail`.
 
 ### POST /v1/orders
 
-User + `Idempotency-Key`. `{ "packageId": "<id|slug>", "days"?: 7 }` (`days` required for per-day plans, 1–30) → **202** `{ "order": Order, "pollAfterMs": 2000 }`; replay of the same key → **200**. Errors: `insufficient_balance` (402, `details.needCents`), `package_unavailable` (409), `validation`.
+User + `Idempotency-Key` + `X-Firebase-AppCheck`. `{ "packageId": "<id|slug>", "days"?: 7, "expectedPriceCents"?: 349 }` (`days` required for per-day plans, 1–30; `expectedPriceCents` = the total the user saw, `days` included) → **202** `{ "order": Order, "pollAfterMs": 2000 }`; replay of the same key → **200**. Errors: `price_changed` (409, `details: { expectedPriceCents, newPriceCents }`, nothing charged), `insufficient_balance` (402, `details.needCents`), `package_unavailable` (409), `validation`.
 
 ### GET /v1/orders
 
@@ -350,7 +366,7 @@ User. → `{ "options": PackageCard[], "reason": null | "status" | "limit" | "no
 
 ### POST /v1/esims/:id/topups
 
-User + `Idempotency-Key`. `{ "packageId": "TR_3_15" }` → **201** `{ order: Order(status: done), pollAfterMs }` or **202** when pending. Errors: `topup_unavailable` (409, `details.reason`), `topup_failed` (409, refunded), `insufficient_balance`.
+User + `Idempotency-Key` + `X-Firebase-AppCheck`. `{ "packageId": "TR_3_15", "expectedPriceCents"?: 499 }` → **201** `{ order: Order(status: done), pollAfterMs }` or **202** when pending. Errors: `price_changed` (409, `details.newPriceCents`, nothing charged), `topup_unavailable` (409, `details.reason`), `topup_failed` (409, refunded), `insufficient_balance`.
 
 ### GET /v1/wallet
 
@@ -454,7 +470,7 @@ User. → `{ currencies: [CryptoCoin], coins: [{ coin, name, logoUrl, networks: 
 
 ### POST /v1/payments
 
-User + `Idempotency-Key`. `{ "amountCents": 300, "provider": "crypto", "payCurrency": "usdtbsc" }` → **201** `Payment` (a replay with the same key → **200**). `provider` defaults to the first method (`crypto`); `payCurrency` is required for crypto. Errors: `payment_amount_out_of_range` (422, `details.minCents` — global limits or the coin's minimum), `validation` (`fields: ["payCurrency"]`), `payment_provider_unavailable` (503).
+User + `Idempotency-Key` + `X-Firebase-AppCheck`. `{ "amountCents": 300, "provider": "crypto", "payCurrency": "usdtbsc" }` → **201** `Payment` (a replay with the same key → **200**). `provider` defaults to the first method (`crypto`); `payCurrency` is required for crypto. Errors: `payment_amount_out_of_range` (422, `details.minCents` — global limits or the coin's minimum), `validation` (`fields: ["payCurrency"]`), `payment_provider_unavailable` (503).
 
 ```json
 {
@@ -496,11 +512,11 @@ User. `?cursor` → `Page<Payment>`.
 
 ### GET /v1/payments/:id
 
-User. `:id` = uuid or payment number (`publicNo`) → `Payment` (`status`: pending, confirming, credited, review_underpaid, review_overpaid, review_late, expired, cancelled, refunded, disputed; `checkoutUrl` is `null` once finished). For an open crypto payment the backend pulls NOWPayments first (at most every 10 s), so poll this while the payment screen is visible. The order history can open this endpoint using its payment number to show requested and received amounts, network, fees, and review status.
+User. `:id` = uuid or payment number (`publicNo`) → `Payment` (`status`: pending, confirming, credited, review_underpaid, review_overpaid, review_late, expired, cancelled, refunded, disputed; `checkoutUrl` is `null` once finished). For an open crypto payment the backend pulls NOWPayments first (at most every 10 s), so poll this while the payment screen is visible.
 
 ### GET /v1/referral
 
-User. → `{ code, link, enabled, bonusCents, bonusFormatted, accrual: "after_first_topup" | "after_first_purchase", rulesText, stats: { invited, pending, credited, earnedCents, earnedFormatted } }`.
+User. → `{ code, link, enabled, bonusCents, bonusFormatted, accrual: "after_first_topup" | "after_first_purchase", minPurchaseCents, minPurchaseFormatted, rulesText, stats: { invited, pending, credited, earnedCents, earnedFormatted } }`.
 
 ### GET /v1/referral/invitations
 
