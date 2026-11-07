@@ -1,0 +1,112 @@
+import '../../../core/storage/secure_storage.dart';
+import '../../../core/utils/result.dart';
+import '../../../mock/mock_backend.dart';
+import '../domain/entities/user.dart';
+import '../domain/repositories/auth_repository.dart';
+
+class MockAuthRepository implements AuthRepository {
+  @override
+  int get resendAfterSeconds => 60;
+  MockAuthRepository(this._backend, this._secure);
+
+  final MockBackend _backend;
+  final SecureStorage _secure;
+  final _revokedDeviceIds = <String>{};
+
+  static const _mockToken = 'mock-session';
+
+  @override
+  Future<Result<User?>> restore() async {
+    if (await _secure.readAccessToken() != null && _backend.user == null) {
+      await _secure.clearSession();
+    }
+    return Success(_backend.user);
+  }
+
+  @override
+  Future<Result<String>> guestId() async {
+    final stored = await _secure.readDeviceId();
+    if (stored != null) return Success(stored);
+    await _secure.saveDeviceId(MockBackend.guestPublicId);
+    return const Success(MockBackend.guestPublicId);
+  }
+
+  @override
+  Future<Result<void>> requestCode({
+    required String email,
+    String? inviteCode,
+  }) => _backend.requestCode(email);
+
+  @override
+  Future<Result<SignInResult>> verifyCode({
+    required String email,
+    required String code,
+  }) async {
+    final result = await _backend.verifyCode(email, code);
+    if (result.isSuccess) {
+      await _secure.saveTokens(
+        accessToken: _mockToken,
+        refreshToken: _mockToken,
+      );
+    }
+    return result;
+  }
+
+  @override
+  Future<Result<User>> updateName(String name) => _backend.updateName(name);
+
+  @override
+  Future<Result<void>> registerPushToken(String token) async =>
+      const Success(null);
+
+  @override
+  Future<Result<void>> updatePreferences({
+    String? locale,
+    bool? esim,
+    bool? marketing,
+  }) async => const Success(null);
+
+  @override
+  Future<Result<void>> removePushToken() async => const Success(null);
+  @override
+  Future<Result<void>> revokeDevice(String id) async {
+    _revokedDeviceIds.add(id);
+    return const Success(null);
+  }
+
+  @override
+  Future<void> signOut() async {
+    _backend.signOut();
+    await _secure.clearSession();
+  }
+
+  @override
+  Future<Result<List<DeviceInfo>>> devices() async => Success(
+    [
+      DeviceInfo(
+        id: 'd1',
+        model: 'iPhone 15',
+        os: 'iOS 18.2',
+        isCurrent: true,
+        lastSeen: DateTime.now(),
+      ),
+      DeviceInfo(
+        id: 'd2',
+        model: 'Pixel 8',
+        os: 'Android 15',
+        isCurrent: false,
+        lastSeen: DateTime.now().subtract(const Duration(days: 23)),
+      ),
+    ].where((device) => !_revokedDeviceIds.contains(device.id)).toList(),
+  );
+
+  @override
+  Future<Result<void>> requestDeletionCode() async => const Success(null);
+
+  @override
+  Future<Result<void>> deleteAccount({required String code}) async {
+    final result = await _backend.deleteAccount(code);
+    if (result.isSuccess) await _secure.clearSession();
+    return result;
+  }
+}

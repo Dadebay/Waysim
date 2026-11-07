@@ -1,0 +1,155 @@
+import 'package:equatable/equatable.dart';
+
+import 'exceptions.dart';
+
+sealed class Failure extends Equatable {
+  const Failure({
+    required this.code,
+    this.message,
+    this.statusCode,
+    this.details,
+    this.requestId,
+  });
+
+  final String code;
+  final String? message;
+  final int? statusCode;
+
+  /// The API's `X-Request-Id`, when the failure came from a response.
+  final String? requestId;
+
+  final Map<String, dynamic>? details;
+
+  @override
+  List<Object?> get props => [code, message, statusCode, details, requestId];
+}
+
+class ServerFailure extends Failure {
+  const ServerFailure({super.message, super.statusCode, super.requestId})
+    : super(code: 'server_error');
+}
+
+class NetworkFailure extends Failure {
+  const NetworkFailure({super.message}) : super(code: 'network_error');
+}
+
+class TimeoutFailure extends Failure {
+  const TimeoutFailure({super.message}) : super(code: 'timeout_error');
+}
+
+class UnauthorizedFailure extends Failure {
+  const UnauthorizedFailure({super.message})
+    : super(code: 'unauthorized_error', statusCode: 401);
+}
+
+class NotFoundFailure extends Failure {
+  const NotFoundFailure({super.message}) : super(code: 'not_found_error');
+}
+
+class UpgradeRequiredFailure extends Failure {
+  const UpgradeRequiredFailure({super.message, super.requestId})
+    : super(code: 'upgrade_required', statusCode: 426);
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure({super.message}) : super(code: 'cache_error');
+}
+
+class UnknownFailure extends Failure {
+  const UnknownFailure({super.message}) : super(code: 'unknown_error');
+}
+
+class ApiFailure extends Failure {
+  const ApiFailure({
+    required super.code,
+    super.message,
+    super.statusCode,
+    super.details,
+    super.requestId,
+    this.errors = const [],
+  });
+
+  final List<String> errors;
+
+  @override
+  List<Object?> get props => [...super.props, errors];
+}
+
+abstract final class ApiCodes {
+  static const otpInvalid = 'otp_invalid';
+  static const otpExpired = 'otp_expired';
+  static const otpRateLimited = 'otp_cooldown';
+  static const otpTooManyAttempts = 'otp_too_many_attempts';
+  static const otpDailyLimit = 'otp_daily_limit';
+  static const appCheckFailed = 'app_check_failed';
+  static const userBlocked = 'user_banned';
+  static const insufficientBalance = 'insufficient_balance';
+  static const priceChanged = 'price_changed';
+  static const packageUnavailable = 'package_unavailable';
+  static const maintenance = 'maintenance';
+  static const tooManyRequests = 'rate_limited';
+}
+
+extension AppExceptionToFailure on AppException {
+  Failure toFailure() {
+    final backendCode = code;
+    if (backendCode != null) {
+      return ApiFailure(
+        code: backendCode,
+        message: message,
+        statusCode: statusCode,
+        details: details,
+        requestId: requestId,
+        errors: switch (this) {
+          ValidationException(:final errors) => errors,
+          _ => const [],
+        },
+      );
+    }
+
+    return switch (this) {
+      NetworkException() => NetworkFailure(message: message),
+      TimeoutException() => TimeoutFailure(message: message),
+      UpgradeRequiredException() => UpgradeRequiredFailure(
+        message: message,
+        requestId: requestId,
+      ),
+      UnauthorizedException() => UnauthorizedFailure(message: message),
+      ForbiddenException() => UnauthorizedFailure(message: message),
+      NotFoundException() => NotFoundFailure(message: message),
+      CacheException() => CacheFailure(message: message),
+      ParsingException() => UnknownFailure(message: message),
+      ValidationException(:final errors) => ApiFailure(
+        code: 'validation_error',
+        message: message,
+        statusCode: 400,
+        requestId: requestId,
+        errors: errors,
+      ),
+      ConflictException() => ApiFailure(
+        code: 'conflict',
+        message: message,
+        statusCode: 409,
+        details: details,
+        requestId: requestId,
+      ),
+      RateLimitException() => ApiFailure(
+        code: ApiCodes.tooManyRequests,
+        message: message,
+        statusCode: 429,
+        requestId: requestId,
+      ),
+      ServiceUnavailableException() => ApiFailure(
+        code: 'service_unavailable',
+        message: message,
+        statusCode: 503,
+        requestId: requestId,
+      ),
+      ServerException() => ServerFailure(
+        message: message,
+        statusCode: statusCode,
+        requestId: requestId,
+      ),
+    };
+  }
+}

@@ -1,0 +1,226 @@
+import 'dart:async';
+
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/error/failure.dart';
+import '../../../../core/services/analytics_service.dart';
+import '../../../../core/utils/result.dart';
+import '../../domain/repositories/auth_repository.dart';
+import 'auth_cubit.dart';
+
+enum LoginStep { email, code, name, done }
+
+enum LoginProblem { invalidEmail, notAccepted, wrongCode, codeExpired, tooMany }
+
+class LoginState extends Equatable {
+  const LoginState({
+    this.step = LoginStep.email,
+    this.email = '',
+    this.loading = false,
+    this.problem,
+    this.failure,
+    this.resendIn = 0,
+    this.isNewUser = false,
+  });
+
+  final LoginStep step;
+  final String email;
+  final bool loading;
+
+  final LoginProblem? problem;
+
+  final Failure? failure;
+
+  final int resendIn;
+  final bool isNewUser;
+
+  LoginState copyWith({
+    LoginStep? step,
+    String? email,
+    bool? loading,
+    LoginProblem? Function()? problem,
+    Failure? Function()? failure,
+    int? resendIn,
+    bool? isNewUser,
+  }) => LoginState(
+    step: step ?? this.step,
+    email: email ?? this.email,
+    loading: loading ?? this.loading,
+    problem: problem == null ? this.problem : problem(),
+    failure: failure == null ? this.failure : failure(),
+    resendIn: resendIn ?? this.resendIn,
+    isNewUser: isNewUser ?? this.isNewUser,
+  );
+
+  @override
+  List<Object?> get props => [
+    step,
+    email,
+    loading,
+    problem,
+    failure,
+    resendIn,
+    isNewUser,
+  ];
+}
+
+class LoginCubit extends Cubit<LoginState> {
+  LoginCubit(this._repository, this._auth, this._analytics)
+    : super(const LoginState());
+
+  static final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$');
+
+  final AuthRepository _repository;
+  final AuthCubit _auth;
+  final AnalyticsService _analytics;
+  Timer? _ticker;
+  String? _invite;
+
+  String get suggestedName {
+    final savedName = _auth.state.user?.name?.trim();
+    if (savedName != null && savedName.isNotEmpty) return savedName;
+    final email = _auth.state.user?.email ?? state.email;
+    return email.trim().split('@').first;
+  }
+
+  Future<void> submitEmail({
+    required String email,
+    required bool accepted,
+    String? inviteCode,
+  }) async {
+    if (state.loading) return;
+    final trimmed = email.trim();
+    if (!_emailPattern.hasMatch(trimmed)) {
+      emit(state.copyWith(problem: () => LoginProblem.invalidEmail));
+      return;
+    }
+    if (!accepted) {
+      emit(state.copyWith(problem: () => LoginProblem.notAccepted));
+      return;
+    }
+    emit(
+      state.copyWith(
+        loading: true,
+        email: trimmed,
+        problem: () => null,
+        failure: () => null,
+      ),
+    );
+
+    final invite = inviteCode?.trim();
+    _invite = invite == null || invite.isEmpty ? null : invite;
+    final result = await _repository.requestCode(
+      email: trimmed,
+      inviteCode: invite == null || invite.isEmpty ? null : invite,
+    );
+    if (isClosed) return;
+    switch (result) {
+      case Success():
+        emit(state.copyWith(loading: false, step: LoginStep.code));
+        _startCountdown();
+      case Error(:final failure):
+        emit(state.copyWith(loading: false, failure: () => failure));
+    }
+  }
+
+  Future<void> submitCode(String code) async {
+    if (code.length != 6 || state.loading) return;
+    emit(
+      state.copyWith(loading: true, problem: () => null, failure: () => null),
+    );
+    final result = await _repository.verifyCode(email: state.email, code: code);
+    if (isClosed) return;
+    switch (result) {
+      case Success(:final data):
+        _ticker?.cancel();
+        _auth.signedIn(data.user);
+        data.isNewUser ? _analytics.signedUp() : _analytics.loggedIn();
+        emit(
+          state.copyWith(
+            loading: false,
+            isNewUser: data.isNewUser,
+            step: data.isNewUser ? LoginStep.name : LoginStep.done,
+          ),
+        );
+      case Error(:final failure):
+        emit(
+          state.copyWith(
+            loading: false,
+            problem: () => switch (failure.code) {
+              ApiCodes.otpInvalid => LoginProblem.wrongCode,
+              ApiCodes.otpExpired => LoginProblem.codeExpired,
+              ApiCodes.otpTooManyAttempts ||
+              ApiCodes.otpRateLimited => LoginProblem.tooMany,
+              _ => null,
+            },
+            failure: () => switch (failure.code) {
+              ApiCodes.otpInvalid ||
+              ApiCodes.otpExpired ||
+              ApiCodes.otpTooManyAttempts ||
+              ApiCodes.otpRateLimited => null,
+              _ => failure,
+            },
+          ),
+        );
+    }
+  }
+
+  Future<void> resend() async {
+    if (state.resendIn > 0 || state.loading) return;
+    emit(state.copyWith(loading: true));
+    final result = await _repository.requestCode(
+      email: state.email,
+      inviteCode: _invite,
+    );
+    if (isClosed) return;
+    emit(state.copyWith(loading: false));
+    if (result.isSuccess) {
+      emit(state.copyWith(problem: () => null, failure: () => null));
+      _startCountdown();
+    } else {
+      emit(state.copyWith(failure: () => result.failureOrNull));
+    }
+  }
+
+  void clearProblem() {
+    if (state.problem != null) emit(state.copyWith(problem: () => null));
+  }
+
+  void changeEmail() {
+    _ticker?.cancel();
+    emit(LoginState(email: state.email));
+  }
+
+  Future<void> saveName(String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      emit(state.copyWith(step: LoginStep.done));
+      return;
+    }
+    emit(state.copyWith(loading: true));
+    final result = await _repository.updateName(trimmed);
+    if (isClosed) return;
+    if (result case Success(:final data)) _auth.userUpdated(data);
+
+    emit(state.copyWith(loading: false, step: LoginStep.done));
+  }
+
+  void skipName() => emit(state.copyWith(step: LoginStep.done));
+
+  void _startCountdown() {
+    _ticker?.cancel();
+    emit(state.copyWith(resendIn: _repository.resendAfterSeconds));
+    _ticker = Timer.periodic(const Duration(seconds: 1), (t) {
+      final left = state.resendIn - 1;
+      if (left <= 0) t.cancel();
+      if (!isClosed) emit(state.copyWith(resendIn: left < 0 ? 0 : left));
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _ticker?.cancel();
+    return super.close();
+  }
+}

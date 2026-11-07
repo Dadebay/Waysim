@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Reports are no longer written by clients. Keep Firestore closed until
+    // an authenticated, rate-limited server reporting path exists.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

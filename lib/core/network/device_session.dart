@@ -1,0 +1,79 @@
+import 'package:uuid/uuid.dart';
+
+import '../services/crash_report.dart';
+import '../storage/local_storage.dart';
+import '../storage/secure_storage.dart';
+import '../storage/storage_keys.dart';
+import 'api_client.dart';
+import 'api_response.dart';
+
+class DeviceSession {
+  DeviceSession(this.api, this.secure, this.local, this.context);
+  final ApiClient api;
+  final SecureStorage secure;
+  final LocalStorage local;
+  final DeviceContext context;
+  Future<Map<String, dynamic>>? _registration;
+
+  String get language => local.getString(StorageKeys.contentLanguage) ?? 'en';
+  String get appVersion => '${context.appVersion} (${context.buildNumber})';
+
+  void invalidate() => _registration = null;
+
+  Future<Map<String, dynamic>> ensure() =>
+      _registration ??= _register().catchError((Object e) {
+        _registration = null;
+        throw e;
+      });
+
+  Future<Map<String, dynamic>> _register() async {
+    var id = local.getString(StorageKeys.installId);
+    if (id == null) {
+      id = const Uuid().v4();
+      await local.setString(StorageKeys.installId, id);
+    }
+    final json = asMap(
+      await api.post(
+        '/v1/devices',
+        data: {
+          'installId': id,
+          'platform': context.platform,
+          'model': context.model,
+          'osVersion': context.osVersion,
+          'appVersion': appVersion,
+          'locale': language,
+          'timezone': context.timezone,
+          'isEmulator': context.isEmulator,
+          'isRooted': context.isRooted,
+        },
+      ),
+    );
+    await secure.saveDeviceId(asMap(json['device']).str('id'));
+    await secure.saveDeviceToken(json.str('deviceToken'));
+
+    // `signedIn` says whether this install is still attached to an account.
+    // `user` is only filled when the request carried that account's access
+    // token, so it must not decide whether to keep the session. Older servers
+    // and the mock backend send no `signedIn`; they fall back to `user`.
+    final signedIn = json['signedIn'];
+    final detached = signedIn is bool ? !signedIn : json['user'] == null;
+    if (detached || await secure.readAccessToken() == 'mock-session') {
+      await secure.clearSession();
+    }
+    return json;
+  }
+
+  Future<void> update(ApiClient authenticatedApi) async {
+    await ensure();
+    await authenticatedApi.put(
+      '/v1/devices/me',
+      data: {
+        'locale': language,
+        'appVersion': appVersion,
+        'osVersion': context.osVersion,
+
+        'timezone': context.timezone,
+      },
+    );
+  }
+}

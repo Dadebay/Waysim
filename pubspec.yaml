@@ -1,0 +1,119 @@
+name: waysim
+description: "Waysim — travel eSIM reseller app (iOS & Android)."
+publish_to: 'none'
+
+version: 1.0.2+7
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # ---------------------------------------------------------------- state --
+  bloc: ^9.2.1
+  flutter_bloc: ^9.1.1
+  equatable: ^3.0.0
+  hydrated_bloc: ^11.0.0
+
+  # ------------------------------------------------- dependency injection --
+  get_it: ^9.2.1
+
+  # ------------------------------------------------------------ navigation --
+  go_router: ^17.5.0
+
+  # --------------------------------------------------------------- network --
+  dio: ^5.11.1
+  connectivity_plus: ^7.3.1
+
+  # --------------------------------------------------------------- storage --
+  shared_preferences: ^2.5.5
+  shared_preferences_android: 2.4.28
+  flutter_secure_storage: ^11.2.0
+  path_provider: ^2.1.6
+
+  # ---------------------------------------------------------- localization --
+  intl: ^0.20.2
+
+  # -------------------------------------------------------------------- ui --
+  cupertino_icons: ^2.0.0
+  hugeicons: ^1.1.7
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.3.0
+  shimmer: ^3.0.0
+
+  # ------------------------------------------------------- waysim-specific --
+  qr_flutter: ^4.1.0
+  device_info_plus: ^13.3.0
+  flutter_timezone: ^5.1.1
+  root_jailbreak_detector: ^1.0.0
+  package_info_plus: ^10.0.0
+  uuid: ^4.5.1
+
+  # ------------------------------------------------------------- utilities --
+  logger: ^2.8.0
+
+  url_launcher: ^6.3.2
+
+  share_plus: ^13.3.0
+
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
+  firebase_crashlytics: ^5.3.0
+  firebase_app_check: ^0.4.2
+  firebase_analytics: ^12.4.5
+  flutter_local_notifications: ^22.3.1
+  timezone: ^0.11.0
+  flutter_markdown_plus: ^1.0.12
+  markdown: ^7.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  flutter_native_splash: ^2.4.7
+
+flutter:
+  uses-material-design: true
+
+  generate: true
+
+  assets:
+    - assets/brand/
+    - assets/flags/
+    - assets/illustrations/
+
+  fonts:
+    - family: Gilroy
+      fonts:
+        - asset: assets/fonts/Gilroy-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Gilroy-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Gilroy-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Gilroy-Bold.ttf
+          weight: 700
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/brand/splash_logo.png
+  color_dark: "#0E121A"
+  image_dark: assets/brand/splash_logo_dark.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/brand/android12_splash.png
+    color_dark: "#0E121A"
+    image_dark: assets/brand/android12_splash_dark.png
+  fullscreen: false
+  ios: true
+  android: true
+  web: false
