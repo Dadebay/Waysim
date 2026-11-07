@@ -34,9 +34,7 @@ class AuthTokenRefresher implements TokenRefresher {
       final response = await _dio.post<dynamic>(
         '/v1/auth/refresh',
         data: {'refreshToken': current},
-        options: Options(
-          headers: {AppCheckInterceptor.header: ?appCheck},
-        ),
+        options: Options(headers: {AppCheckInterceptor.header: ?appCheck}),
       );
       final body = response.data;
       final data = body is Map && body['data'] is Map ? body['data'] : body;
