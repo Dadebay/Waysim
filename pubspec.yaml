@@ -2,7 +2,7 @@ name: waysim
 description: "Waysim — travel eSIM reseller app (iOS & Android)."
 publish_to: 'none'
 
-version: 1.0.1+6
+version: 1.0.2+7
 
 environment:
   sdk: ^3.12.0

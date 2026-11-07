@@ -70,4 +70,12 @@ flutter test
 
 ## Release
 
-Android signing reads `android/key.properties`. Without it, the release build is unsigned. iOS builds go through Xcode or `flutter build ipa` with `FLAVOR=prod`.
+Build the signed Android App Bundle from the project root with Flutter:
+
+```bash
+flutter build appbundle --release --dart-define=FLAVOR=prod --dart-define=API_BASE_URL=https://api.waysim.co
+```
+
+The AAB is written to `build/app/outputs/bundle/release/app-release.aab`. Release signing reads the external `waysimSigningProperties` path from `~/.gradle/gradle.properties` (or `android/key.properties` as a fallback); both the properties file and keystore stay outside Git. Use the Flutter command instead of Android Studio's direct **Generate Signed Bundle** Gradle action: Flutter regenerates `GeneratedPluginRegistrant.java` for release, excluding development-only plugins such as `integration_test` and `flutter_native_splash`. A direct Gradle build after a debug run can compile a stale registrant and fail with missing plugin classes.
+
+iOS builds go through Xcode or `flutter build ipa` with `FLAVOR=prod`.
