@@ -1,12 +1,14 @@
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
-// CI only: avoid the Maven Central hostname that currently redirects the
-// Kotlin compiler JAR to a GitHub asset returning HTTP 504 on hosted runners.
+// CI only: the usual Maven Central hostnames redirect the Kotlin compiler JAR
+// to a GitHub asset returning HTTP 504 on hosted runners. Google's Maven
+// Central mirror serves the same artifact; its 2.2.20 JAR was checked against
+// Maven Central's published SHA-1.
 def useAlternateCentral = { repositories ->
     repositories.whenObjectAdded { repository ->
         if (repository instanceof MavenArtifactRepository &&
                 repository.url.host == 'repo.maven.apache.org') {
-            repository.url = URI.create('https://repo1.maven.org/maven2/')
+            repository.url = URI.create('https://maven-central.storage-download.googleapis.com/maven2/')
         }
     }
 }
