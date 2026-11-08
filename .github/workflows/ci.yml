@@ -43,6 +43,14 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter gen-l10n
+      # repo.maven.apache.org currently redirects the Kotlin compiler JAR to
+      # GitHub, where hosted runners receive HTTP 504. This is the same Maven
+      # Central artifact through its alternate hostname, on CI only.
+      - name: Use Maven Central alternate hostname on CI
+        run: |
+          flutter_root="$(dirname "$(dirname "$(command -v flutter)")")"
+          sed -i 's#mavenCentral()#maven { url = uri("https://repo1.maven.org/maven2") }#g' android/settings.gradle.kts
+          sed -i 's#mavenCentral()#maven { url = uri("https://repo1.maven.org/maven2") }#g' "$flutter_root/packages/flutter_tools/gradle/settings.gradle.kts"
       - run: flutter build apk --debug --dart-define=USE_MOCK_API=true
 
   ios:
