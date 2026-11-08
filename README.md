@@ -2,6 +2,12 @@
 
 Travel eSIM app for iOS and Android. Customers pick a destination, buy a data plan, install the eSIM on their phone and top it up later, all from one app.
 
+## Install
+
+- [App Store](https://apps.apple.com/us/app/waysim/id6826612017)
+- [Google Play](https://play.google.com/store/apps/details?id=com.waysim.app)
+- [GitHub Release v1.0.2](https://github.com/Dadebay/Waysim/releases/tag/v1.0.2) is a source snapshot of build 7. It contains no installable APK or IPA. Store build numbers may differ from the repository version.
+
 ## What the app does
 
 - **Browse and search** destinations and data plans, with prices in the customer's currency.

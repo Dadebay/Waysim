@@ -43,6 +43,15 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter gen-l10n
+      # The official Gradle URL currently redirects to a GitHub asset that
+      # returns HTTP 504. The wrapper still enforces Gradle's SHA-256.
+      - name: Use checksum-verified Gradle mirror on CI
+        run: sed -i 's#services.gradle.org/distributions#mirror.spaceport.work/gradle#' android/gradle/wrapper/gradle-wrapper.properties
+      # Applies to the app, Flutter's included Gradle build, and pub plugins.
+      - name: Use verified Maven Central mirror on CI
+        run: |
+          mkdir -p "$HOME/.gradle/init.d"
+          cp .github/ci-maven-central.init.gradle "$HOME/.gradle/init.d/ci-maven-central.gradle"
       - run: flutter build apk --debug --dart-define=USE_MOCK_API=true
 
   ios:
